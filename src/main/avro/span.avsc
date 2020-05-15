@@ -1,5 +1,5 @@
 {
-  "namespace": "traceImporter",
+  "namespace": "net.explorviz.avro",
   "type": "record",
   "name": "EVSpan",
   "fields": [
