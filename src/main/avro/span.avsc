@@ -1,0 +1,56 @@
+{
+  "namespace": "traceImporter",
+  "type": "record",
+  "name": "EVSpan",
+  "fields": [
+    {
+      "name": "spanId",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": "string"
+    },
+    {
+      "name": "startTime",
+      "type": {
+        "type": "record",
+        "name": "Timestamp",
+        "fields": [
+          {
+            "name": "seconds",
+            "type": "long"
+          },
+          {
+            "name": "nanoAdjust",
+            "type": "int"
+          }
+        ]
+      }
+    },
+    {
+      "name": "endTime",
+      "type": "long"
+    },
+    {
+      "name": "duration",
+      "type": "long"
+    },
+    {
+      "name": "operationName",
+      "type": "string"
+    },
+    {
+      "name": "requestCount",
+      "type": "int"
+    },
+    {
+      "name": "hostname",
+      "type": "string"
+    },
+    {
+      "name": "appName",
+      "type": "string"
+    }
+  ]
+}
