@@ -4,6 +4,7 @@ import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
+// https://quarkus.io/guides/config#using-configproperties
 public class KafkaConfig {
 
   @ConfigProperty(name = "quarkus.kafka-streams.application-id")

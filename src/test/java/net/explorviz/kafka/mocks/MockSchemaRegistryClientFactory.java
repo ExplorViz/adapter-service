@@ -12,27 +12,27 @@ import net.explorviz.avro.EVSpan;
 import net.explorviz.injection.SchemaRegistryClientFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Mock
-@Dependent
-public class MockSchemaRegistryClientFactory extends SchemaRegistryClientFactory {
+//@Mock
+//@Dependent
+public class MockSchemaRegistryClientFactory {
 
-  @ConfigProperty(name = "explorviz.schema-registry.url")
-  String schemaRegistryUrl;
-
-  @Produces
-  @DefaultBean
-  @Override
-  public SchemaRegistryClient schemaRegistryClient() {
-    final MockSchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
-    try {
-      schemaRegistryClient.register("explorviz-spans" + "-value", EVSpan.SCHEMA$);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (RestClientException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return schemaRegistryClient;
-  }
+//  @ConfigProperty(name = "explorviz.schema-registry.url")
+//  String schemaRegistryUrl;
+//
+//  @Produces
+//  @DefaultBean
+//  @Override
+//  public SchemaRegistryClient schemaRegistryClient() {
+//    final MockSchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
+//    try {
+//      schemaRegistryClient.register("explorviz-spans" + "-value", EVSpan.SCHEMA$);
+//    } catch (IOException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    } catch (RestClientException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    }
+//    return schemaRegistryClient;
+//  }
 }
