@@ -1,6 +1,7 @@
 package net.explorviz.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -12,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
@@ -87,49 +89,51 @@ class SpanTranslatorTest {
 
     return bos.toByteArray();
   }
-  
+
   @Test
   void testTranslationMultiple() throws IOException {
-    // byte[] dumpbytes = getDumpSpan();
-    // DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
-    // byte[] id = dump.getSpans(0).getSpanId().toByteArray();
+    byte[] dumpbytes = getDumpSpan();
+    DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
+    byte[] id = dump.getSpans(0).getSpanId().toByteArray();
 
-    // inputTopic.pipeInput(id, dumpbytes);
+    inputTopic.pipeInput(id, dumpbytes);
 
-    // assertEquals(dump.getSpansList().size(), outputTopic.readValuesToList().size());
+    assertEquals(dump.getSpansList().size(), outputTopic.readValuesToList().size());
   }
 
-  // @Test
-  // void testTranslation() throws IOException {
-  // byte[] dumpbytes = getDumpSpan();
-  // DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
-  //
-  // Span s = dump.getSpans(0);
-  //
-  // DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(s).build();
-  // inputTopic.pipeInput(s.getSpanId().toByteArray(), singleSpanDump.toByteArray());
-  //
-  // EVSpan result = outputTopic.readKeyValue().value;
-  //
-  // String expectedTraceId = "50c246ad9c9883d1558df9f19b9ae7a6";
-  // String expectedSpanId = "7ef83c66eabd5fbb";
-  // long expectedStartTime = 1581938395702319100L;
-  // long expectedEndTime = 1581938395705981005L;
-  // String expectedAppName = "UNKNOWN-APPLICATION";
-  // String expectedOperationName =
-  // "net.explorviz.sampleApplication.database.helper.SQLConnectionHandler.createDatabase";
-  //
-  // // Check IDs
-  // assertEquals(expectedSpanId, result.getSpanId());
-  // assertEquals(expectedTraceId, result.getTraceId());
-  //
-  // // Start and End time
-  // //assertEquals(expectedStartTime, (long) result.getStartTime());
-  // assertEquals(expectedEndTime, (long) result.getEndTime());
-  // assertEquals(expectedOperationName, result.getOperationName());
-  // assertEquals(expectedAppName, result.getAppName());
-  //
-  // }
+  @Test
+  void testTranslation() throws IOException {
+    byte[] dumpbytes = getDumpSpan();
+    DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
+
+    Span s = dump.getSpans(0);
+
+    DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(s).build();
+    inputTopic.pipeInput(s.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+
+    EVSpan result = outputTopic.readKeyValue().value;
+
+    String expectedTraceId = "50c246ad9c9883d1558df9f19b9ae7a6";
+    String expectedSpanId = "7ef83c66eabd5fbb";
+    long expectedStartTime = 1581938395702319100L;
+    long expectedEndTime = 1581938395705981005L;
+    String expectedAppName = "UNKNOWN-APPLICATION";
+    String expectedOperationName =
+        "net.explorviz.sampleApplication.database.helper.SQLConnectionHandler.createDatabase";
+
+    // Check IDs
+    assertEquals(expectedSpanId, result.getSpanId());
+    assertEquals(expectedTraceId, result.getTraceId());
+
+    // Start and End time
+
+
+    assertEquals(expectedStartTime, result.getStartTime());
+    assertEquals(expectedEndTime, (long) result.getEndTime());
+    assertEquals(expectedOperationName, result.getOperationName());
+    assertEquals(expectedAppName, result.getAppName());
+
+  }
 
 
 
