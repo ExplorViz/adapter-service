@@ -22,6 +22,7 @@ repositories {
 configurations.all {
 	resolutionStrategy.force group: 'org.apache.kafka', name: 'kafka-clients', version: '2.5.0'
 	resolutionStrategy.force group: 'org.apache.kafka', name: 'kafka', version: '2.5.0'
+  resolutionStrategy.force group: 'org.apache.kafka', name: 'kafka-streams', version: '2.5.0'
 }
 
 dependencies {
