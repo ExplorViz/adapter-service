@@ -50,7 +50,7 @@ public class SpanTranslator {
   @Inject
   public SpanTranslator(SchemaRegistryClient registry, KafkaConfig config) {
     this.registry = registry;
-    
+
     this.applicationId = config.getApplicationId();
     this.bootstrapServers = config.getBootstrapServers();
     this.inTopic = config.getInTopic();

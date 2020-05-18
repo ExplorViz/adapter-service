@@ -3,15 +3,12 @@ package net.explorviz.kafka.mocks;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-import io.quarkus.arc.DefaultBean;
 import io.quarkus.test.Mock;
 import java.io.IOException;
 import javax.annotation.Priority;
-import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Produces;
 import net.explorviz.avro.EVSpan;
-import net.explorviz.injection.SchemaRegistryClientFactory;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Mock
