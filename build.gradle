@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'io.quarkus'
     id 'com.commercehub.gradle.plugin.avro' version '0.9.1'
+    id 'com.adarshr.test-logger' version '2.0.0'
 }
 
 repositories {
