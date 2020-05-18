@@ -1,7 +1,7 @@
 package net.explorviz.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
 import net.explorviz.avro.EVSpan;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
@@ -35,11 +34,10 @@ class SpanTranslatorTest {
 
   private TopologyTestDriver driver;
 
-  TestInputTopic<byte[], byte[]> inputTopic;
-  TestOutputTopic<String, EVSpan> outputTopic;
+  private TestInputTopic<byte[], byte[]> inputTopic;
+  private TestOutputTopic<String, EVSpan> outputTopic;
 
-  @Inject
-  SchemaRegistryClient schemaRegistryClient;
+  private SpecificAvroSerde<EVSpan> evSpanSerDe;
 
   @Inject
   KafkaConfig kafkaConfig;
@@ -47,10 +45,11 @@ class SpanTranslatorTest {
   @BeforeEach
   void setUp() throws IOException, RestClientException {
 
-    final Deserializer<EVSpan> evSpanDeserializer =
-        new SpecificAvroSerde<EVSpan>(schemaRegistryClient).deserializer();
+    final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    evSpanDeserializer.configure(
+    evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
+
+    evSpanSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
     SpanTranslator translator = new SpanTranslator(schemaRegistryClient, kafkaConfig);
@@ -66,13 +65,12 @@ class SpanTranslatorTest {
     inputTopic = driver.createInputTopic("cluster-dump-spans", Serdes.ByteArray().serializer(),
         Serdes.ByteArray().serializer());
     outputTopic = driver.createOutputTopic("explorviz-spans", Serdes.String().deserializer(),
-        evSpanDeserializer);
-
-
+        evSpanSerDe.deserializer());
   }
 
   @AfterEach
   void tearDown() {
+    evSpanSerDe.close();
     driver.close();
   }
 
@@ -86,6 +84,8 @@ class SpanTranslatorTest {
     FileInputStream fis = new FileInputStream(dumspan.getFile());
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     bos.writeBytes(fis.readAllBytes());
+
+    fis.close();
 
     return bos.toByteArray();
   }
@@ -115,8 +115,7 @@ class SpanTranslatorTest {
 
     String expectedTraceId = "50c246ad9c9883d1558df9f19b9ae7a6";
     String expectedSpanId = "7ef83c66eabd5fbb";
-    Instant expectedStartTime =
-        Instant.ofEpochSecond(1581938395, 702319100L);
+    Instant expectedStartTime = Instant.ofEpochSecond(1581938395, 702319100L);
     long expectedEndTime = 1581938395705L;
     String expectedAppName = "UNKNOWN-APPLICATION";
     String expectedOperationName =
@@ -130,8 +129,8 @@ class SpanTranslatorTest {
 
 
 
-    assertEquals(expectedStartTime, Instant
-        .ofEpochSecond(result.getStartTime().getSeconds(), result.getStartTime().getNanoAdjust()));
+    assertEquals(expectedStartTime, Instant.ofEpochSecond(result.getStartTime().getSeconds(),
+        result.getStartTime().getNanoAdjust()));
     assertEquals(expectedEndTime, (long) result.getEndTime());
     assertEquals(expectedOperationName, result.getOperationName());
     assertEquals(expectedAppName, result.getAppName());
