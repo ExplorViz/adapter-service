@@ -115,8 +115,9 @@ class SpanTranslatorTest {
 
     String expectedTraceId = "50c246ad9c9883d1558df9f19b9ae7a6";
     String expectedSpanId = "7ef83c66eabd5fbb";
-    long expectedStartTime = 1581938395702319100L;
-    long expectedEndTime = 1581938395705981005L;
+    Instant expectedStartTime =
+        Instant.ofEpochSecond(1581938395, 702319100L);
+    long expectedEndTime = 1581938395705L;
     String expectedAppName = "UNKNOWN-APPLICATION";
     String expectedOperationName =
         "net.explorviz.sampleApplication.database.helper.SQLConnectionHandler.createDatabase";
@@ -128,7 +129,9 @@ class SpanTranslatorTest {
     // Start and End time
 
 
-    assertEquals(expectedStartTime, result.getStartTime());
+
+    assertEquals(expectedStartTime, Instant
+        .ofEpochSecond(result.getStartTime().getSeconds(), result.getStartTime().getNanoAdjust()));
     assertEquals(expectedEndTime, (long) result.getEndTime());
     assertEquals(expectedOperationName, result.getOperationName());
     assertEquals(expectedAppName, result.getAppName());
