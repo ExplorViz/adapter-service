@@ -19,11 +19,6 @@ repositories {
  * Force using 2.4.0 as otherwise Kafka streams test utils will fail. The afka-avro-serializer
  * seems to be compatible with this version.
  */
-configurations.all {
-	resolutionStrategy.force group: 'org.apache.kafka', name: 'kafka-clients', version: '2.5.0'
-	resolutionStrategy.force group: 'org.apache.kafka', name: 'kafka', version: '2.5.0'
-  resolutionStrategy.force group: 'org.apache.kafka', name: 'kafka-streams', version: '2.5.0'
-}
 
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
@@ -36,7 +31,7 @@ dependencies {
     implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'
     implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '5.5.0'
     
-    testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.5.0'
+    testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.4.1'
     testImplementation 'io.quarkus:quarkus-junit5'
 }
 
