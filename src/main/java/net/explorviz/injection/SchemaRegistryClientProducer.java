@@ -8,7 +8,7 @@ import javax.enterprise.inject.Produces;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Dependent
-public class SchemaRegistryClientFactory {
+public class SchemaRegistryClientProducer {
 
   @ConfigProperty(name = "explorviz.schema-registry.url")
   String schemaRegistryUrl;

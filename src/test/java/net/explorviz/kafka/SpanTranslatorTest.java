@@ -1,7 +1,6 @@
 package net.explorviz.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -38,22 +37,22 @@ class SpanTranslatorTest {
   private TestOutputTopic<String, EVSpan> outputTopic;
 
   private SpecificAvroSerde<EVSpan> evSpanSerDe;
-
+  
   @Inject
-  KafkaConfig kafkaConfig;
+  SchemaRegistryClient schemaRegistryClient;
+  
+  @Inject
+  SpanTranslator spanTranslator;
 
   @BeforeEach
   void setUp() throws IOException, RestClientException {
 
-    final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
-
     evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
-
+    
     evSpanSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
-
-    SpanTranslator translator = new SpanTranslator(schemaRegistryClient, kafkaConfig);
-    Topology topology = translator.getTopology();
+        
+    Topology topology = spanTranslator.getTopology();
 
     Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");

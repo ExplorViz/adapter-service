@@ -7,6 +7,8 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import net.explorviz.avro.EVSpan;
 import net.explorviz.avro.Timestamp;
@@ -29,41 +32,41 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 
-/**
- * Translates opencensus {@link Span} objects to {@link EVSpan}s.
- */
-
 @ApplicationScoped
 public class SpanTranslator {
 
-  private final String applicationId;
-  private final String bootstrapServers;
-  private final String inTopic;
-  private final String outTopic;
+  private final SchemaRegistryClient registry;
+
+  private final KafkaConfig config;
 
   private final Properties streamsConfig = new Properties();
 
   private Topology topology;
 
-  private SchemaRegistryClient registry;
-
+  private KafkaStreams streams;
+  
   @Inject
   public SpanTranslator(SchemaRegistryClient registry, KafkaConfig config) {
     this.registry = registry;
-
-    this.applicationId = config.getApplicationId();
-    this.bootstrapServers = config.getBootstrapServers();
-    this.inTopic = config.getInTopic();
-    this.outTopic = config.getOutTopic();
-
-    streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-    streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
-
+    this.config = config;
+  }
+ 
+  void onStart(@Observes StartupEvent event) {
+    setupStreamsConfig();
     buildTopology();
+    
+    streams = new KafkaStreams(this.topology, streamsConfig);
+    streams.cleanUp();
+    streams.start();
   }
 
-  public Topology getTopology() {
-    return topology;
+  void onStop(@Observes ShutdownEvent event) {
+    streams.close();
+  }
+
+  private void setupStreamsConfig() {
+    streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBootstrapServers());
+    streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, config.getApplicationId());
   }
 
   private void buildTopology() {
@@ -73,7 +76,7 @@ public class SpanTranslator {
     // Stream 1
 
     KStream<byte[], byte[]> dumpSpanStream =
-        builder.stream(inTopic, Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
+        builder.stream(config.getInTopic(), Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
     KStream<String, EVSpan> traceIdSpanStream = dumpSpanStream.flatMap((key, value) -> {
 
@@ -134,9 +137,17 @@ public class SpanTranslator {
 
     });
 
-    traceIdSpanStream.to(outTopic, Produced.with(Serdes.String(), getValueSerde()));
-
+    
+    
+    //traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), new SpecificAvroSerde<EVSpan>()));
+    //traceIdSpanStream.to(config.getOutTopic(), Produced.valueSerde(new SpecificAvroSerde<EVSpan>()).keySerde(Serdes.String()));
+    //traceIdSpanStream.to(config.getOutTopic());
+    
     this.topology = builder.build();
+  }
+
+  public Topology getTopology() {
+    return topology;
   }
 
   private <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerde() {
@@ -145,16 +156,6 @@ public class SpanTranslator {
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081"),
         false);
     return valueSerde;
-  }
-
-  public void startStreamProcessing() {
-
-    @SuppressWarnings("resource")
-    final KafkaStreams streams = new KafkaStreams(this.topology, streamsConfig);
-    streams.cleanUp();
-    streams.start();
-
-    Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
   }
 
 }

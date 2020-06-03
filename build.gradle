@@ -24,6 +24,8 @@ repositories {
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
+	implementation 'io.quarkus:quarkus-jackson'
+
     implementation 'io.quarkus:quarkus-kafka-streams'    
     //implementation 'io.quarkus:quarkus-resteasy'
 
