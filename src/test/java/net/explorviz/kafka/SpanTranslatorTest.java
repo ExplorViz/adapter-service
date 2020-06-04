@@ -1,6 +1,7 @@
 package net.explorviz.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
 @QuarkusTest
 class SpanTranslatorTest {
 
@@ -39,19 +39,22 @@ class SpanTranslatorTest {
   private SpecificAvroSerde<EVSpan> evSpanSerDe;
   
   @Inject
-  SchemaRegistryClient schemaRegistryClient;
-  
-  @Inject
-  SpanTranslator spanTranslator;
+  KafkaConfig config;
 
   @BeforeEach
   void setUp() throws IOException, RestClientException {
 
-    evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
+    SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
     
+    SpanTranslator spanTranslator = new SpanTranslator(schemaRegistryClient, config);
+    
+    spanTranslator.onStart(null);
+
+    evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
+
     evSpanSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
-        
+
     Topology topology = spanTranslator.getTopology();
 
     Properties props = new Properties();
