@@ -23,23 +23,23 @@ public class KafkaConfig {
   String schemaRegistryUrl;
 
   public String getApplicationId() {
-    return applicationId;
+    return this.applicationId;
   }
 
   public String getBootstrapServers() {
-    return bootstrapServers;
+    return this.bootstrapServers;
   }
 
   public String getInTopic() {
-    return inTopic;
+    return this.inTopic;
   }
 
   public String getOutTopic() {
-    return outTopic;
+    return this.outTopic;
   }
 
   public String getSchemaRegistryUrl() {
-    return schemaRegistryUrl;
+    return this.schemaRegistryUrl;
   }
 
 }

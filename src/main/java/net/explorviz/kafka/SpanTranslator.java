@@ -44,65 +44,66 @@ public class SpanTranslator {
   private Topology topology;
 
   private KafkaStreams streams;
-  
+
   @Inject
-  public SpanTranslator(SchemaRegistryClient registry, KafkaConfig config) {
+  public SpanTranslator(final SchemaRegistryClient registry, final KafkaConfig config) {
     this.registry = registry;
     this.config = config;
-    
-    setupStreamsConfig();
-    buildTopology();
-  }
- 
-  void onStart(@Observes StartupEvent event) {    
-    streams = new KafkaStreams(this.topology, streamsConfig);
-    streams.cleanUp();
-    streams.start();
+
+    this.setupStreamsConfig();
+    this.buildTopology();
   }
 
-  void onStop(@Observes ShutdownEvent event) {
-    streams.close();
+  void onStart(@Observes final StartupEvent event) {
+    this.streams = new KafkaStreams(this.topology, this.streamsConfig);
+    this.streams.cleanUp();
+    this.streams.start();
+  }
+
+  void onStop(@Observes final ShutdownEvent event) {
+    this.streams.close();
   }
 
   private void setupStreamsConfig() {
-    streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBootstrapServers());
-    streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, config.getApplicationId());
+    this.streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
+        this.config.getBootstrapServers());
+    this.streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, this.config.getApplicationId());
   }
 
   private void buildTopology() {
 
-    StreamsBuilder builder = new StreamsBuilder();
+    final StreamsBuilder builder = new StreamsBuilder();
 
     // Stream 1
 
-    KStream<byte[], byte[]> dumpSpanStream =
-        builder.stream(config.getInTopic(), Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
+    final KStream<byte[], byte[]> dumpSpanStream = builder.stream(this.config.getInTopic(),
+        Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
-    KStream<String, EVSpan> traceIdSpanStream = dumpSpanStream.flatMap((key, value) -> {
+    final KStream<String, EVSpan> traceIdSpanStream = dumpSpanStream.flatMap((key, value) -> {
 
       DumpSpans dumpSpan;
-      List<KeyValue<String, EVSpan>> result = new LinkedList<>();
+      final List<KeyValue<String, EVSpan>> result = new LinkedList<>();
       try {
 
         dumpSpan = DumpSpans.parseFrom(value);
 
-        for (Span s : dumpSpan.getSpansList()) {
-          String traceId =
+        for (final Span s : dumpSpan.getSpansList()) {
+          final String traceId =
               BaseEncoding.base16().lowerCase().encode(s.getTraceId().toByteArray(), 0, 16);
 
-          String spanId =
+          final String spanId =
               BaseEncoding.base16().lowerCase().encode(s.getSpanId().toByteArray(), 0, 8);
 
 
 
-          Timestamp startTime =
+          final Timestamp startTime =
               new Timestamp(s.getStartTime().getSeconds(), s.getStartTime().getNanos());
 
-          long endTime = Instant
+          final long endTime = Instant
               .ofEpochSecond(s.getEndTime().getSeconds(), s.getEndTime().getNanos()).toEpochMilli();
 
 
-          long duration = endTime
+          final long duration = endTime
               - Duration.ofSeconds(startTime.getSeconds(), startTime.getNanoAdjust()).toMillis();
 
 
@@ -116,40 +117,43 @@ public class SpanTranslator {
 
           // System.out.println(duration + " und " + Duration.between(t, t1).getNano());
 
-          Map<String, AttributeValue> attributes = s.getAttributes().getAttributeMapMap();
-          String operationName = attributes.get("method_fqn").getStringValue().getValue();
-          String hostname = attributes.get("host").getStringValue().getValue();
-          String appName = attributes.get("application_name").getStringValue().getValue();
+          final Map<String, AttributeValue> attributes = s.getAttributes().getAttributeMapMap();
+          final String operationName = attributes.get("method_fqn").getStringValue().getValue();
+          final String hostname = attributes.get("host").getStringValue().getValue();
+          final String appName = attributes.get("application_name").getStringValue().getValue();
 
 
-          EVSpan span = new EVSpan(spanId, traceId, startTime, endTime, duration, operationName, 1,
-              hostname, appName);
+          final EVSpan span = new EVSpan(spanId, traceId, startTime, endTime, duration,
+              operationName, 1, hostname, appName);
 
           result.add(KeyValue.pair(traceId, span));
         }
 
-      } catch (IOException e) {
+      } catch (final IOException e) {
         e.printStackTrace();
       }
 
       return result;
     });
 
-    
-    traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), getValueSerde()));
-    //traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), new SpecificAvroSerde<EVSpan>()));
-    //traceIdSpanStream.to(config.getOutTopic(), Produced.valueSerde(new SpecificAvroSerde<EVSpan>()).keySerde(Serdes.String()));
-    //traceIdSpanStream.to(config.getOutTopic());
-    
+
+    traceIdSpanStream.to(this.config.getOutTopic(),
+        Produced.with(Serdes.String(), this.getValueSerde()));
+    // traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), new
+    // SpecificAvroSerde<EVSpan>()));
+    // traceIdSpanStream.to(config.getOutTopic(), Produced.valueSerde(new
+    // SpecificAvroSerde<EVSpan>()).keySerde(Serdes.String()));
+    // traceIdSpanStream.to(config.getOutTopic());
+
     this.topology = builder.build();
   }
 
   public Topology getTopology() {
-    return topology;
+    return this.topology;
   }
 
   private <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerde() {
-    final SpecificAvroSerde<T> valueSerde = new SpecificAvroSerde<>(registry);
+    final SpecificAvroSerde<T> valueSerde = new SpecificAvroSerde<>(this.registry);
     valueSerde.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081"),
         false);

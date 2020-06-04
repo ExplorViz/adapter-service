@@ -16,6 +16,6 @@ public class SchemaRegistryClientProducer {
   @Produces
   @DefaultBean
   public SchemaRegistryClient schemaRegistryClient() {
-    return new CachedSchemaRegistryClient("http://" + schemaRegistryUrl, 10);
+    return new CachedSchemaRegistryClient("http://" + this.schemaRegistryUrl, 10);
   }
 }

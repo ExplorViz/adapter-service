@@ -22,6 +22,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,42 +44,42 @@ class SpanTranslatorTest {
   @BeforeEach
   void setUp() throws IOException, RestClientException {
 
-    SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
+    final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    SpanTranslator spanTranslator = new SpanTranslator(schemaRegistryClient, config);
+    final Topology topology = new SpanTranslator(schemaRegistryClient, this.config).getTopology();
 
-    Properties props = new Properties();
+    final Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
 
-    driver = new TopologyTestDriver(spanTranslator.getTopology(), props);
+    this.driver = new TopologyTestDriver(topology, props);
 
-    evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
+    this.evSpanSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
 
-    evSpanSerDe.configure(
+    this.evSpanSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
-    inputTopic = driver.createInputTopic("cluster-dump-spans", Serdes.ByteArray().serializer(),
-        Serdes.ByteArray().serializer());
-    outputTopic = driver.createOutputTopic("explorviz-spans", Serdes.String().deserializer(),
-        evSpanSerDe.deserializer());
+    this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
+        Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
+    this.outputTopic = this.driver.createOutputTopic("explorviz-spans",
+        Serdes.String().deserializer(), this.evSpanSerDe.deserializer());
   }
 
   @AfterEach
   void tearDown() {
-    evSpanSerDe.close();
-    driver.close();
+    this.evSpanSerDe.close();
+    this.driver.close();
   }
 
   private byte[] getDumpSpan() throws IOException {
     // Byte array containing a dumpspan of 50 spans
-    final URL dumspan = getClass().getClassLoader().getResource("dumpspan50");
+    final URL dumspan = this.getClass().getClassLoader().getResource("dumpspan50");
     if (dumspan == null) {
       throw new NullPointerException();
     }
 
-    FileInputStream fis = new FileInputStream(dumspan.getFile());
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    final FileInputStream fis = new FileInputStream(dumspan.getFile());
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
     bos.writeBytes(fis.readAllBytes());
 
     fis.close();
@@ -88,22 +89,22 @@ class SpanTranslatorTest {
 
   @Test
   void testTranslation() throws IOException {
-    byte[] dumpbytes = getDumpSpan();
-    DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
+    final byte[] dumpbytes = this.getDumpSpan();
+    final DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
 
-    Span s = dump.getSpans(0);
+    final Span s = dump.getSpans(0);
 
-    DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(s).build();
-    inputTopic.pipeInput(s.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(s).build();
+    this.inputTopic.pipeInput(s.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    EVSpan result = outputTopic.readKeyValue().value;
+    final EVSpan result = this.outputTopic.readKeyValue().value;
 
-    String expectedTraceId = "50c246ad9c9883d1558df9f19b9ae7a6";
-    String expectedSpanId = "7ef83c66eabd5fbb";
-    Instant expectedStartTime = Instant.ofEpochSecond(1581938395, 702319100L);
-    long expectedEndTime = 1581938395705L;
-    String expectedAppName = "UNKNOWN-APPLICATION";
-    String expectedOperationName =
+    final String expectedTraceId = "50c246ad9c9883d1558df9f19b9ae7a6";
+    final String expectedSpanId = "7ef83c66eabd5fbb";
+    final Instant expectedStartTime = Instant.ofEpochSecond(1581938395, 702319100L);
+    final long expectedEndTime = 1581938395705L;
+    final String expectedAppName = "UNKNOWN-APPLICATION";
+    final String expectedOperationName =
         "net.explorviz.sampleApplication.database.helper.SQLConnectionHandler.createDatabase";
 
     // Check IDs
@@ -120,13 +121,13 @@ class SpanTranslatorTest {
 
   @Test
   void testTranslationMultiple() throws IOException {
-    byte[] dumpbytes = getDumpSpan();
-    DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
-    byte[] id = dump.getSpans(0).getSpanId().toByteArray();
+    final byte[] dumpbytes = this.getDumpSpan();
+    final DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
+    final byte[] id = dump.getSpans(0).getSpanId().toByteArray();
 
-    inputTopic.pipeInput(id, dumpbytes);
+    this.inputTopic.pipeInput(id, dumpbytes);
 
-    assertEquals(dump.getSpansList().size(), outputTopic.readValuesToList().size());
+    assertEquals(dump.getSpansList().size(), this.outputTopic.readValuesToList().size());
   }
 
 }
