@@ -22,7 +22,6 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
-import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +36,7 @@ class SpanTranslatorTest {
   private TestOutputTopic<String, EVSpan> outputTopic;
 
   private SpecificAvroSerde<EVSpan> evSpanSerDe;
-  
+
   @Inject
   KafkaConfig config;
 
@@ -45,24 +44,19 @@ class SpanTranslatorTest {
   void setUp() throws IOException, RestClientException {
 
     SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
-    
+
     SpanTranslator spanTranslator = new SpanTranslator(schemaRegistryClient, config);
-    
-    spanTranslator.onStart(null);
-
-    evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
-
-    evSpanSerDe.configure(
-        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
-
-    Topology topology = spanTranslator.getTopology();
 
     Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
 
+    driver = new TopologyTestDriver(spanTranslator.getTopology(), props);
 
-    driver = new TopologyTestDriver(topology, props);
+    evSpanSerDe = new SpecificAvroSerde<EVSpan>(schemaRegistryClient);
+
+    evSpanSerDe.configure(
+        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
     inputTopic = driver.createInputTopic("cluster-dump-spans", Serdes.ByteArray().serializer(),
         Serdes.ByteArray().serializer());
@@ -76,7 +70,7 @@ class SpanTranslatorTest {
     driver.close();
   }
 
-  public byte[] getDumpSpan() throws IOException {
+  private byte[] getDumpSpan() throws IOException {
     // Byte array containing a dumpspan of 50 spans
     final URL dumspan = getClass().getClassLoader().getResource("dumpspan50");
     if (dumspan == null) {
@@ -90,17 +84,6 @@ class SpanTranslatorTest {
     fis.close();
 
     return bos.toByteArray();
-  }
-
-  @Test
-  void testTranslationMultiple() throws IOException {
-    byte[] dumpbytes = getDumpSpan();
-    DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
-    byte[] id = dump.getSpans(0).getSpanId().toByteArray();
-
-    inputTopic.pipeInput(id, dumpbytes);
-
-    assertEquals(dump.getSpansList().size(), outputTopic.readValuesToList().size());
   }
 
   @Test
@@ -128,17 +111,22 @@ class SpanTranslatorTest {
     assertEquals(expectedTraceId, result.getTraceId());
 
     // Start and End time
-
-
-
     assertEquals(expectedStartTime, Instant.ofEpochSecond(result.getStartTime().getSeconds(),
         result.getStartTime().getNanoAdjust()));
     assertEquals(expectedEndTime, (long) result.getEndTime());
     assertEquals(expectedOperationName, result.getOperationName());
     assertEquals(expectedAppName, result.getAppName());
-
   }
 
+  @Test
+  void testTranslationMultiple() throws IOException {
+    byte[] dumpbytes = getDumpSpan();
+    DumpSpans dump = DumpSpans.parseFrom(dumpbytes);
+    byte[] id = dump.getSpans(0).getSpanId().toByteArray();
 
+    inputTopic.pipeInput(id, dumpbytes);
+
+    assertEquals(dump.getSpansList().size(), outputTopic.readValuesToList().size());
+  }
 
 }

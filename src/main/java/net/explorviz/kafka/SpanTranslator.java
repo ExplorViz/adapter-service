@@ -49,12 +49,12 @@ public class SpanTranslator {
   public SpanTranslator(SchemaRegistryClient registry, KafkaConfig config) {
     this.registry = registry;
     this.config = config;
-  }
- 
-  void onStart(@Observes StartupEvent event) {
+    
     setupStreamsConfig();
     buildTopology();
-    
+  }
+ 
+  void onStart(@Observes StartupEvent event) {    
     streams = new KafkaStreams(this.topology, streamsConfig);
     streams.cleanUp();
     streams.start();
@@ -133,12 +133,10 @@ public class SpanTranslator {
       }
 
       return result;
-
-
     });
 
     
-    
+    traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), getValueSerde()));
     //traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), new SpecificAvroSerde<EVSpan>()));
     //traceIdSpanStream.to(config.getOutTopic(), Produced.valueSerde(new SpecificAvroSerde<EVSpan>()).keySerde(Serdes.String()));
     //traceIdSpanStream.to(config.getOutTopic());
