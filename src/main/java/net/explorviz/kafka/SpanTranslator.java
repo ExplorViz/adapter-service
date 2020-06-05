@@ -74,8 +74,6 @@ public class SpanTranslator {
 
     final StreamsBuilder builder = new StreamsBuilder();
 
-    // Stream 1
-
     final KStream<byte[], byte[]> dumpSpanStream = builder.stream(this.config.getInTopic(),
         Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
@@ -94,8 +92,6 @@ public class SpanTranslator {
           final String spanId =
               BaseEncoding.base16().lowerCase().encode(s.getSpanId().toByteArray(), 0, 8);
 
-
-
           final Timestamp startTime =
               new Timestamp(s.getStartTime().getSeconds(), s.getStartTime().getNanos());
 
@@ -105,17 +101,6 @@ public class SpanTranslator {
 
           final long duration = endTime
               - Duration.ofSeconds(startTime.getSeconds(), startTime.getNanoAdjust()).toMillis();
-
-
-
-          // System.out.println(startTime + " und " + s.getStartTime().getSeconds());
-
-          // System.out.println(Duration
-          // .ofNanos(Duration
-          // .ofSeconds(s.getStartTime().getSeconds(), s.getStartTime().getNanos()).toNanos())
-          // .toMillis());
-
-          // System.out.println(duration + " und " + Duration.between(t, t1).getNano());
 
           final Map<String, AttributeValue> attributes = s.getAttributes().getAttributeMapMap();
           final String operationName = attributes.get("method_fqn").getStringValue().getValue();
@@ -139,11 +124,6 @@ public class SpanTranslator {
 
     traceIdSpanStream.to(this.config.getOutTopic(),
         Produced.with(Serdes.String(), this.getValueSerde()));
-    // traceIdSpanStream.to(config.getOutTopic(), Produced.with(Serdes.String(), new
-    // SpecificAvroSerde<EVSpan>()));
-    // traceIdSpanStream.to(config.getOutTopic(), Produced.valueSerde(new
-    // SpecificAvroSerde<EVSpan>()).keySerde(Serdes.String()));
-    // traceIdSpanStream.to(config.getOutTopic());
 
     this.topology = builder.build();
   }
