@@ -1,4 +1,4 @@
-package net.explorviz.kafka;
+package net.explorviz.adapter.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
