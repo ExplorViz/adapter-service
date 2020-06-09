@@ -1,5 +1,6 @@
 package net.explorviz.adapter.kafka;
 
+import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -14,14 +15,13 @@ import io.quarkus.runtime.StartupEvent;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import net.explorviz.adapter.validation.InvalidSpanException;
+import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.EVSpan;
 import net.explorviz.avro.Timestamp;
@@ -37,7 +37,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 
 @ApplicationScoped
-public class SpanTranslator {
+public class SpanTranslatorStream {
 
   private final SchemaRegistryClient registry;
 
@@ -48,15 +48,17 @@ public class SpanTranslator {
   private Topology topology;
 
   private SpanValidator validator;
+  private SpanSanitizer sanitizer;
 
   private KafkaStreams streams;
 
   @Inject
-  public SpanTranslator(final SchemaRegistryClient registry, final KafkaConfig config,
-      final SpanValidator validator) {
+  public SpanTranslatorStream(final SchemaRegistryClient registry, final KafkaConfig config,
+      final SpanValidator validator, final SpanSanitizer sanitizer) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
+    this.sanitizer = sanitizer;
 
     this.setupStreamsConfig();
     this.buildTopology();
@@ -89,61 +91,73 @@ public class SpanTranslator {
       try {
         return DumpSpans.parseFrom(d).getSpansList();
       } catch (InvalidProtocolBufferException e) {
-        return null;
+        return new ArrayList<>();
       }
-    }).filter(($, v) -> v != null);
-
-    final KStream<String, EVSpan> traceIdSpanStream = spanKStream.flatMap((k, s) -> {
-
-          final String traceId =
-              BaseEncoding.base16().lowerCase().encode(s.getTraceId().toByteArray(), 0, 16);
-
-          final String spanId =
-              BaseEncoding.base16().lowerCase().encode(s.getSpanId().toByteArray(), 0, 8);
-
-          final Timestamp startTime =
-              new Timestamp(s.getStartTime().getSeconds(), s.getStartTime().getNanos());
-
-          final long endTime = Instant
-              .ofEpochSecond(s.getEndTime().getSeconds(), s.getEndTime().getNanos())
-              .toEpochMilli();
-
-
-          final long duration = endTime - Duration
-              .ofSeconds(startTime.getSeconds(), startTime.getNanoAdjust())
-              .toMillis();
-
-          final Map<String, AttributeValue> attributes = s.getAttributes().getAttributeMapMap();
-          final String operationName = attributes.get("method_fqn").getStringValue().getValue();
-          final String hostname = attributes.get("host").getStringValue().getValue();
-          final String appName = attributes.get("application_name").getStringValue().getValue();
-
-
-          final EVSpan span = EVSpan
-              .newBuilder()
-              .setLandscapeToken("TOK")
-              .setSpanId(spanId)
-              .setTraceId(traceId)
-              .setStartTime(startTime)
-              .setEndTime(endTime)
-              .setDuration(duration)
-              .setHostname(hostname)
-              .setHostIpAddress("0.0.0.0")
-              .setAppName(appName)
-              .setAppLanguage("LANG")
-              .setAppPid("PID")
-              .setOperationName(operationName)
-              .build();
-
-          validator.validate(span);
-          return span;
     });
 
+    final KStream<String, EVSpan> traceIdEVSpanStream = spanKStream.map(($, s) -> {
+      EVSpan span = toEVSpan(s);
+      return new KeyValue<>(span.getTraceId(), span);
+    }).mapValues(s -> sanitizer.sanitize(s));
 
-    traceIdSpanStream.to(this.config.getOutTopic(),
+    final KStream<String, EVSpan> validEVSpanStream = traceIdEVSpanStream.filter(($, v) -> validator.isValid(v));
+    final KStream<String, EVSpan> invalidEVSpanStream = traceIdEVSpanStream.filterNot(($, v) -> validator.isValid(v));
+
+    validEVSpanStream.to(this.config.getOutTopic(),
         Produced.with(Serdes.String(), this.getValueSerde()));
 
+    // TODO: invalidEVSpanStream to Event Messages
+
+
     this.topology = builder.build();
+  }
+
+
+  /**
+   * Converts a {@link Span} to an {@link EVSpan}
+   * @param original the original span
+   * @return the converted span
+   */
+  private EVSpan toEVSpan(Span original) {
+    final String traceId =
+        BaseEncoding.base16().lowerCase().encode(original.getTraceId().toByteArray(), 0, 16);
+
+    final String spanId =
+        BaseEncoding.base16().lowerCase().encode(original.getSpanId().toByteArray(), 0, 8);
+
+    final Timestamp startTime =
+        new Timestamp(original.getStartTime().getSeconds(), original.getStartTime().getNanos());
+
+    final long endTime = Instant
+        .ofEpochSecond(original.getEndTime().getSeconds(), original.getEndTime().getNanos())
+        .toEpochMilli();
+
+
+    final long duration =
+        endTime - Duration.ofSeconds(startTime.getSeconds(), startTime.getNanoAdjust()).toMillis();
+
+    final Map<String, AttributeValue> attributes = original.getAttributes().getAttributeMapMap();
+    final String operationName = attributes.get("method_fqn").getStringValue().getValue();
+    final String hostname = attributes.get("host").getStringValue().getValue();
+    final String appName = attributes.get("application_name").getStringValue().getValue();
+
+
+    return EVSpan
+        .newBuilder()
+        .setLandscapeToken("TOK")
+        .setSpanId(spanId)
+        .setTraceId(traceId)
+        .setStartTime(startTime)
+        .setEndTime(endTime)
+        .setDuration(duration)
+        .setHostname(hostname)
+        .setHostIpAddress("0.0.0.0")
+        .setAppName(appName)
+        .setAppLanguage("LANG")
+        .setAppPid("PID")
+        .setOperationName(operationName)
+        .build();
+
   }
 
   public Topology getTopology() {

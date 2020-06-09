@@ -17,6 +17,11 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+
+import net.explorviz.adapter.validation.NoOpSanitizer;
+import net.explorviz.adapter.validation.SpanSanitizer;
+import net.explorviz.adapter.validation.SpanValidator;
+import net.explorviz.adapter.validation.StrictValidator;
 import net.explorviz.avro.EVSpan;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
@@ -29,7 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class SpanTranslatorTest {
+class SpanTranslatorStreamTest {
 
   private TopologyTestDriver driver;
 
@@ -46,7 +51,10 @@ class SpanTranslatorTest {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    final Topology topology = new SpanTranslator(schemaRegistryClient, this.config).getTopology();
+    SpanValidator v = new StrictValidator();
+    SpanSanitizer s = new NoOpSanitizer();
+
+    final Topology topology = new SpanTranslatorStream(schemaRegistryClient, this.config, v, s).getTopology();
 
     final Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -118,6 +126,16 @@ class SpanTranslatorTest {
     assertEquals(expectedOperationName, result.getOperationName());
     assertEquals(expectedAppName, result.getAppName());
   }
+
+
+
+
+  @Test
+  void testInvalidSpan() throws IOException {
+    // TODO
+  }
+
+
 
   @Test
   void testTranslationMultiple() throws IOException {
