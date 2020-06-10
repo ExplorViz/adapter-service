@@ -1,0 +1,15 @@
+{
+  "namespace": "net.explorviz.avro",
+  "type": "record",
+  "name": "Timestamp",
+  "fields": [
+    {
+      "name": "seconds",
+      "type": "long"
+    },
+    {
+      "name": "nanoAdjust",
+      "type": "int"
+    }
+  ]
+}

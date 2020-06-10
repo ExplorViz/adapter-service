@@ -1,6 +1,5 @@
 package net.explorviz.adapter.kafka;
 
-import com.fasterxml.jackson.databind.util.ArrayIterator;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -11,15 +10,14 @@ import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-
 import net.explorviz.adapter.validation.InvalidSpanException;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
@@ -35,9 +33,14 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class SpanTranslatorStream {
+
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(SpanTranslatorStream.class);
 
   private final SchemaRegistryClient registry;
 
@@ -103,10 +106,19 @@ public class SpanTranslatorStream {
     final KStream<String, EVSpan> validEVSpanStream = traceIdEVSpanStream.filter(($, v) -> validator.isValid(v));
     final KStream<String, EVSpan> invalidEVSpanStream = traceIdEVSpanStream.filterNot(($, v) -> validator.isValid(v));
 
+
     validEVSpanStream.to(this.config.getOutTopic(),
         Produced.with(Serdes.String(), this.getValueSerde()));
 
     // TODO: invalidEVSpanStream to Event Messages
+    invalidEVSpanStream.mapValues(s -> {
+      try {
+        validator.validate(s);
+        return null;
+      } catch (InvalidSpanException e) {
+        return e;
+      }
+    }).foreach((k, e) -> LOGGER.warn("Rejected a span {}: {}", e.getSpan(), e.getMessage()));
 
 
     this.topology = builder.build();

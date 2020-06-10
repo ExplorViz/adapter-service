@@ -3,70 +3,57 @@
   "type": "record",
   "name": "EVSpan",
   "fields": [
-      {
-        "name": "startTime",
-        "type": {
-          "type": "record",
-          "name": "Timestamp",
-          "fields": [
-            {
-              "name": "seconds",
-              "type": "long"
-            },
-            {
-              "name": "nanoAdjust",
-              "type": "int"
-            }
-          ]
-        }
-      },
-      {
-        "name": "spanId",
-        "type": "string"
-      },
-      {
-        "name": "landscapeToken",
-        "type": "string"
-      },
-      {
-        "name": "traceId",
-        "type": "string"
-      },
-      {
-        "name": "endTime",
-        "type": "long"
-      },
-      {
-        "name": "duration",
-        "type": "long"
-      },
-      {
-        "name": "operationName",
-        "type": "string"
-      },
-      {
-        "name": "requestCount",
-        "type": "int"
-      },
-      {
-        "name": "hostname",
-        "type": "string"
-      },
-      {
-        "name": "hostIpAddress",
-        "type": "string"
-      },
-      {
-        "name": "appName",
-        "type": "string"
-      },
-      {
-        "name": "appPid",
-        "type": "string"
-      },
-      {
-        "name": "appLanguage",
-        "type": "string"
-      }
+    {
+      "name": "spanId",
+      "type": "string"
+    },
+    {
+      "name": "landscapeToken",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": "string"
+    },
+    {
+      "name": "startTime",
+      "type": "net.explorviz.avro.Timestamp"
+    },
+    {
+      "name": "endTime",
+      "type": "long"
+    },
+    {
+      "name": "duration",
+      "type": "long"
+    },
+    {
+      "name": "operationName",
+      "type": "string"
+    },
+    {
+      "name": "requestCount",
+      "type": "int"
+    },
+    {
+      "name": "hostname",
+      "type": "string"
+    },
+    {
+      "name": "hostIpAddress",
+      "type": "string"
+    },
+    {
+      "name": "appName",
+      "type": "string"
+    },
+    {
+      "name": "appPid",
+      "type": "string"
+    },
+    {
+      "name": "appLanguage",
+      "type": "string"
+    }
   ]
 }
