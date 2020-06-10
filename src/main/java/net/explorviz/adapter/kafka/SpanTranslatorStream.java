@@ -145,6 +145,7 @@ public class SpanTranslatorStream {
     return EVSpan
         .newBuilder()
         .setLandscapeToken("TOK")
+        .setRequestCount(1)
         .setSpanId(spanId)
         .setTraceId(traceId)
         .setStartTime(startTime)
