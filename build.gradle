@@ -60,3 +60,20 @@ sourceSets.main.java.srcDirs = ['build/generated-main-avro-java','src/main/java'
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
+
+task buildDockerJVM(type:Exec) {
+	commandLine './gradlew', '-x', 'test', 'build'
+	
+    commandLine 'docker', 'build', '-t', 'explorviz/explorviz-adapter-service', '-f', 'src/main/docker/Dockerfile.jvm', '.'
+    
+    description = 'Builds Docker image for JVM.'
+    group = 'docker'
+}
+
+task buildDockerNative(type:Exec) {
+	commandLine './gradlew', '-x', 'test', 'build', '-Dquarkus.package.type=native', '-Dquarkus.native.container-build=true'
+    commandLine 'docker', 'build', '-t', 'explorviz/explorviz-adapter-service:native', '-f', 'src/main/docker/Dockerfile.native', '.'
+    
+    description = 'Builds Docker image with native-image executable.'
+    group = 'docker'
+}
