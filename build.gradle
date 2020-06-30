@@ -27,7 +27,7 @@ dependencies {
 	implementation 'io.quarkus:quarkus-jackson'
 
     implementation 'io.quarkus:quarkus-kafka-streams'    
-    //implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-container-image-docker'
 
     implementation 'io.opencensus:opencensus-proto:0.2.0'
 
