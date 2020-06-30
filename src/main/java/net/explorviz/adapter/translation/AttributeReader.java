@@ -11,14 +11,14 @@ import net.explorviz.avro.EVSpan;
 class AttributeReader {
 
 
-  private String landscapeToken;
-  private String hostName;
-  private String hostIPAddress;
+  private String landscapeToken = "";
+  private String hostName = "";
+  private String hostIPAddress = "";
 
-  private String applicationName;
-  private String applicationPID;
-  private String applicationLanguage;
-  private String methodFQN;
+  private String applicationName = "";
+  private String applicationPID = "";
+  private String applicationLanguage = "";
+  private String methodFQN = "";
 
   /**
    * Reads attributes from a span.
@@ -28,13 +28,34 @@ class AttributeReader {
   AttributeReader(Span span) {
     final Map<String, AttributeValue> attributes = span.getAttributes().getAttributeMapMap();
 
-    landscapeToken = attributes.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
-    hostName = attributes.get(TraceAttributes.HOST_NAME).getStringValue().getValue();
-    hostIPAddress = attributes.get(TraceAttributes.HOST_IP).getStringValue().getValue();
-    applicationName = attributes.get(TraceAttributes.APPLICATION_NAME).getStringValue().getValue();
-    applicationPID = attributes.get(TraceAttributes.APPLICATION_PID).getStringValue().getValue();
-    applicationLanguage = attributes.get(TraceAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
-    methodFQN = attributes.get(TraceAttributes.METHOD_FQN).getStringValue().getValue();
+    if (attributes.containsKey(TraceAttributes.LANDSCAPE_TOKEN)) {
+      landscapeToken = attributes.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
+    }
+
+    if (attributes.containsKey(hostName)) {
+      hostName = attributes.get(TraceAttributes.HOST_NAME).getStringValue().getValue();
+    }
+
+    if (attributes.containsKey(TraceAttributes.HOST_IP)) {
+      hostIPAddress = attributes.get(TraceAttributes.HOST_IP).getStringValue().getValue();
+    }
+
+    if (attributes.containsKey(TraceAttributes.APPLICATION_NAME)) {
+      applicationName =
+          attributes.get(TraceAttributes.APPLICATION_NAME).getStringValue().getValue();
+    }
+
+    if (attributes.containsKey(TraceAttributes.APPLICATION_PID)) {
+      applicationPID = attributes.get(TraceAttributes.APPLICATION_PID).getStringValue().getValue();
+    }
+
+    if (attributes.containsKey(TraceAttributes.APPLICATION_LANGUAGE)) {
+      applicationLanguage =
+          attributes.get(TraceAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
+    }
+    if (attributes.containsKey(TraceAttributes.METHOD_FQN)) {
+      methodFQN = attributes.get(TraceAttributes.METHOD_FQN).getStringValue().getValue();
+    }
   }
 
   /**
