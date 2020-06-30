@@ -32,7 +32,7 @@ class AttributeReader {
       landscapeToken = attributes.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
     }
 
-    if (attributes.containsKey(hostName)) {
+    if (attributes.containsKey(TraceAttributes.HOST_NAME)) {
       hostName = attributes.get(TraceAttributes.HOST_NAME).getStringValue().getValue();
     }
 
