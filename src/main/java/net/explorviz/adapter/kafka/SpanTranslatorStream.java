@@ -1,17 +1,13 @@
 package net.explorviz.adapter.kafka;
 
-import com.google.common.io.BaseEncoding;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
-import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
@@ -23,7 +19,6 @@ import net.explorviz.adapter.validation.InvalidSpanException;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.EVSpan;
-import net.explorviz.avro.Timestamp;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -118,7 +113,8 @@ public class SpanTranslatorStream {
     //validEVSpanStream.to(this.config.getOutTopic(),
     //    Produced.with(Serdes.String(), this.getValueSerde()));
 
-    validEVSpanStream.to(this.config.getOutTopic());
+    validEVSpanStream
+        .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
 
     // TODO: invalidEVSpanStream to Event Messages
     invalidEVSpanStream.mapValues(s -> {
