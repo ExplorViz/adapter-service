@@ -59,7 +59,7 @@ class SpanTranslatorStreamTest {
   KafkaConfig config;
 
   @BeforeEach
-  void setUp() throws IOException, RestClientException {
+  void setUp() {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
