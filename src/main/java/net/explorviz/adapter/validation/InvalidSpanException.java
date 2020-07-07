@@ -7,7 +7,7 @@ import net.explorviz.avro.EVSpan;
  */
 public class InvalidSpanException extends Exception {
 
-  private EVSpan span;
+  private final EVSpan span;
 
   public InvalidSpanException(String message, EVSpan span) {
     super(message);
