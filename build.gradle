@@ -1,16 +1,16 @@
 plugins {
-    id 'java'
-    id 'io.quarkus'
-    id 'com.commercehub.gradle.plugin.avro' version '0.9.1'
-    id 'com.adarshr.test-logger' version '2.0.0'
+  id 'java'
+  id 'io.quarkus'
+  id 'com.adarshr.test-logger' version '2.1.0'
+  id "com.commercehub.gradle.plugin.avro" version "0.21.0"
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url "https://packages.confluent.io/maven/"
-    }
+  mavenLocal()
+  mavenCentral()
+  maven {
+    url "https://packages.confluent.io/maven/"
+  }
 }
 
 /**
@@ -22,58 +22,58 @@ repositories {
  */
 
 dependencies {
-    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+  implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
-	implementation 'io.quarkus:quarkus-jackson'
+  implementation 'io.quarkus:quarkus-jackson'
 
-    implementation 'io.quarkus:quarkus-kafka-streams'    
-    implementation 'io.quarkus:quarkus-container-image-docker'
+  implementation 'io.quarkus:quarkus-kafka-streams'    
+  implementation 'io.quarkus:quarkus-container-image-docker'
 
-    implementation 'io.opencensus:opencensus-proto:0.2.0'
+  implementation 'io.opencensus:opencensus-proto:0.2.0'
 
-    implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'
-    implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '5.5.0'
-    
-    testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.4.1'
-    testImplementation 'io.quarkus:quarkus-junit5'
+  implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'
+  implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '5.5.0'
+
+  testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.4.1'
+  testImplementation 'io.quarkus:quarkus-junit5'
 }
 
 group 'net.explorviz'
 version '1.0-SNAPSHOT'
 
 compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << '-parameters'
+  options.encoding = 'UTF-8'
+  options.compilerArgs << '-parameters'
 }
 
 compileTestJava {
-    options.encoding = 'UTF-8'
+  options.encoding = 'UTF-8'
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
 }
 
-sourceSets.main.java.srcDirs = ['build/generated-main-avro-java','src/main/java']
+sourceSets.main.java.srcDirs = ['build/generated-main-avro-java', 'src/main/java']
 
 test {
-    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+  systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
 
-task buildDockerJVM(type:Exec) {
-	commandLine './gradlew', '-x', 'test', 'build'
-	
-    commandLine 'docker', 'build', '-t', 'explorviz/explorviz-adapter-service', '-f', 'src/main/docker/Dockerfile.jvm', '.'
-    
-    description = 'Builds Docker image for JVM.'
-    group = 'docker'
+task buildDockerJVM(type: Exec) {
+  commandLine './gradlew', '-x', 'test', 'build'
+
+  commandLine 'docker', 'build', '-t', 'explorviz/explorviz-adapter-service', '-f', 'src/main/docker/Dockerfile.jvm', '.'
+
+  description = 'Builds Docker image for JVM.'
+  group = 'docker'
 }
 
-task buildDockerNative(type:Exec) {
-	commandLine './gradlew', '-x', 'test', 'build', '-Dquarkus.package.type=native', '-Dquarkus.native.container-build=true'
-    commandLine 'docker', 'build', '-t', 'explorviz/explorviz-adapter-service:native', '-f', 'src/main/docker/Dockerfile.native', '.'
-    
-    description = 'Builds Docker image with native-image executable.'
-    group = 'docker'
+task buildDockerNative(type: Exec) {
+  commandLine './gradlew', '-x', 'test', 'build', '-Dquarkus.package.type=native', '-Dquarkus.native.container-build=true'
+  commandLine 'docker', 'build', '-t', 'explorviz/explorviz-adapter-service:native', '-f', 'src/main/docker/Dockerfile.native', '.'
+
+  description = 'Builds Docker image with native-image executable.'
+  group = 'docker'
 }

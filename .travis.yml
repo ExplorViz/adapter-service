@@ -1,0 +1,13 @@
+language: java
+
+jobs:
+  fast_finish: true
+  include:
+    - stage: test
+      name: "Unit Tests"
+      jdk: openjdk11
+      script: ./gradlew clean test
+
+branches:
+  only:
+    - master
