@@ -18,11 +18,11 @@ public interface SpanValidator {
   /**
    * Same as {@link #validate(EVSpan)} but instead of throwing, this method returns a boolean value
    * that reflects the validity of the span.
+   *
    * @param span the span
    * @return true iff the span is valid
    */
   boolean isValid(EVSpan span);
-
 
 
 

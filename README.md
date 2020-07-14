@@ -1,4 +1,6 @@
-# adapter-service project
+[![Build Status](https://travis-ci.org/ExplorViz/adapter-service.svg?branch=master)](https://travis-ci.org/ExplorViz/adapter-service)
+
+# adapter-service
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
@@ -23,6 +25,9 @@ If you want to build an _über-jar_, just add the `--uber-jar` option to the com
 ```
 ./gradlew quarkusBuild --uber-jar
 ```
+
+### Docker
+Follow the instructions in the comment section of the Dockerfiles to build Docker images.
 
 ## Creating a native executable
 

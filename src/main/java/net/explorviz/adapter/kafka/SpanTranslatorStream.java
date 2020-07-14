@@ -45,10 +45,10 @@ public class SpanTranslatorStream {
 
   private Topology topology;
 
-  private SpanValidator validator;
-  private SpanSanitizer sanitizer;
+  private final SpanValidator validator;
+  private final SpanSanitizer sanitizer;
 
-  private SpanConverter converter;
+  private final SpanConverter converter;
 
   private KafkaStreams streams;
 

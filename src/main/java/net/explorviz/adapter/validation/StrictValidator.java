@@ -1,11 +1,10 @@
 package net.explorviz.adapter.validation;
 
 
-import javax.enterprise.context.ApplicationScoped;
-import net.explorviz.avro.EVSpan;
-
 import java.time.DateTimeException;
 import java.time.Instant;
+import javax.enterprise.context.ApplicationScoped;
+import net.explorviz.avro.EVSpan;
 
 /**
  * Validator that enforces that all values of the {@link EVSpan} are set and valid.

@@ -18,5 +18,5 @@ spec:
       - name: explorviz-adapter-service
         image: explorviz/adapter-service:latest
         ports:
-        - containerPort: 80
+          - containerPort: 80
         imagePullPolicy: IfNotPresent
