@@ -16,6 +16,7 @@ spec:
     spec:
       containers:
       - name: explorviz-adapter-service
-        image: localhost:32000/explorviz/explorviz-adapter-service:latest
+        image: explorviz/adapter-service:latest
         ports:
         - containerPort: 80
+        imagePullPolicy: IfNotPresent
