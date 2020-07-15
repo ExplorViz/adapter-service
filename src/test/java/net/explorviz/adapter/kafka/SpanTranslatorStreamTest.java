@@ -7,7 +7,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
@@ -15,17 +14,12 @@ import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import io.opencensus.proto.trace.v1.TruncatableString;
 import io.quarkus.test.junit.QuarkusTest;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-
 import net.explorviz.adapter.translation.SpanConverter;
 import net.explorviz.adapter.translation.TraceAttributes;
 import net.explorviz.adapter.validation.NoOpSanitizer;
@@ -53,13 +47,11 @@ class SpanTranslatorStreamTest {
 
   private SpecificAvroSerde<EVSpan> evSpanSerDe;
 
-
-
   @Inject
   KafkaConfig config;
 
   @BeforeEach
-  void setUp() throws IOException, RestClientException {
+  void setUp() {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
@@ -93,7 +85,7 @@ class SpanTranslatorStreamTest {
     this.driver.close();
   }
 
-  private Span sampleSpan()  {
+  private Span sampleSpan() {
 
     Map<String, AttributeValue> attrMap = new HashMap<>();
     attrMap.put(TraceAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
@@ -113,7 +105,8 @@ class SpanTranslatorStreamTest {
 
 
     return Span.newBuilder()
-        .setTraceId(ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
+        .setTraceId(
+            ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
         .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
@@ -122,7 +115,7 @@ class SpanTranslatorStreamTest {
   }
 
   @Test
-  void testAttributeTranslation()  {
+  void testAttributeTranslation() {
     final Span testSpan = sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
@@ -130,31 +123,37 @@ class SpanTranslatorStreamTest {
     final EVSpan result = this.outputTopic.readKeyValue().value;
 
     Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
-    final String expectedToken = attrs.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
-    final String expectedHostName = attrs.get(TraceAttributes.HOST_NAME).getStringValue().getValue();
+    final String expectedToken =
+        attrs.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
+    final String expectedHostName =
+        attrs.get(TraceAttributes.HOST_NAME).getStringValue().getValue();
     final String expectedHostIP = attrs.get(TraceAttributes.HOST_IP).getStringValue().getValue();
-    final String expectedAppName = attrs.get(TraceAttributes.APPLICATION_NAME).getStringValue().getValue();
-    final String expectedAppLang = attrs.get(TraceAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
-    final String expectedAppPID = attrs.get(TraceAttributes.APPLICATION_PID).getStringValue().getValue();
-    final String expectedOperationName = attrs.get(TraceAttributes.METHOD_FQN).getStringValue().getValue();
+    final String expectedAppName =
+        attrs.get(TraceAttributes.APPLICATION_NAME).getStringValue().getValue();
+    final String expectedAppLang =
+        attrs.get(TraceAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
+    final String expectedAppPID =
+        attrs.get(TraceAttributes.APPLICATION_PID).getStringValue().getValue();
+    final String expectedOperationName =
+        attrs.get(TraceAttributes.METHOD_FQN).getStringValue().getValue();
 
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 
-    assertEquals( expectedHostIP, result.getHostIpAddress(), "Invalid host ip address");
-    assertEquals( expectedHostName, result.getHostname(), "Invalid host name");
+    assertEquals(expectedHostIP, result.getHostIpAddress(), "Invalid host ip address");
+    assertEquals(expectedHostName, result.getHostname(), "Invalid host name");
 
-    assertEquals( expectedAppName, result.getAppName(), "Invalid application name");
-    assertEquals( expectedAppPID, result.getAppPid(), "Invalid application pid");
-    assertEquals( expectedAppLang, result.getAppLanguage(), "Invalid application language");
+    assertEquals(expectedAppName, result.getAppName(), "Invalid application name");
+    assertEquals(expectedAppPID, result.getAppPid(), "Invalid application pid");
+    assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
 
-    assertEquals( expectedOperationName, result.getOperationName(), "Invalid operation name");
+    assertEquals(expectedOperationName, result.getOperationName(), "Invalid operation name");
 
   }
 
 
   @Test
-  void testIdTranslation()  {
+  void testIdTranslation() {
 
     final Span testSpan = sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
@@ -171,7 +170,7 @@ class SpanTranslatorStreamTest {
   }
 
   @Test
-  void testTimestampTranslation()  {
+  void testTimestampTranslation() {
     final Span testSpan = sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());

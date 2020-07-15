@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: explorviz-adapter-service
+  labels:
+    app: explorviz-adapter-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: explorviz-adapter-service
+  template:
+    metadata:
+      labels:
+        app: explorviz-adapter-service
+    spec:
+      containers:
+      - name: explorviz-adapter-service
+        image: explorviz/adapter-service-jvm:latest
+        ports:
+          - containerPort: 80
+        imagePullPolicy: IfNotPresent
