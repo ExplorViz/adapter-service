@@ -15,6 +15,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import net.explorviz.adapter.translation.SpanConverter;
+import net.explorviz.adapter.util.PerfomanceLogger;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.EVSpan;
@@ -28,9 +29,13 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class SpanTranslatorStream {
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(SpanTranslatorStream.class);
 
   private final SchemaRegistryClient registry;
 
@@ -45,12 +50,16 @@ public class SpanTranslatorStream {
 
   private final SpanConverter converter;
 
+
+  private PerfomanceLogger perLogger =
+      PerfomanceLogger.newOperationPerformanceLogger(LOGGER, 1000, "Converted {} spans in {} ms");
+
   private KafkaStreams streams;
 
   @Inject
   public SpanTranslatorStream(final SchemaRegistryClient registry, final KafkaConfig config,
-      final SpanConverter converter, final SpanValidator validator,
-      final SpanSanitizer sanitizer) {
+                              final SpanConverter converter, final SpanValidator validator,
+                              final SpanSanitizer sanitizer) {
     this.registry = registry;
     this.config = config;
 
@@ -94,8 +103,11 @@ public class SpanTranslatorStream {
       }
     });
 
+
+
     final KStream<String, EVSpan> traceIdEVSpanStream = spanKStream.map(($, s) -> {
       final EVSpan span = this.converter.toEVSpan(s);
+      perLogger.logOperation();
       return new KeyValue<>("test", span);
     }).mapValues(s -> this.sanitizer.sanitize(s));
 
