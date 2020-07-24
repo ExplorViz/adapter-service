@@ -1,7 +1,6 @@
 package net.explorviz.adapter.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -55,9 +54,9 @@ class SpanTranslatorStreamTest {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    SpanValidator v = new StrictValidator();
-    SpanSanitizer s = new NoOpSanitizer();
-    SpanConverter c = new SpanConverter();
+    final SpanValidator v = new StrictValidator();
+    final SpanSanitizer s = new NoOpSanitizer();
+    final SpanConverter c = new SpanConverter();
 
     final Topology topology =
         new SpanTranslatorStream(schemaRegistryClient, this.config, c, v, s).getTopology();
@@ -87,7 +86,7 @@ class SpanTranslatorStreamTest {
 
   private Span sampleSpan() {
 
-    Map<String, AttributeValue> attrMap = new HashMap<>();
+    final Map<String, AttributeValue> attrMap = new HashMap<>();
     attrMap.put(TraceAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
     attrMap.put(TraceAttributes.HOST_IP, AttributeValue.newBuilder()
@@ -116,13 +115,13 @@ class SpanTranslatorStreamTest {
 
   @Test
   void testAttributeTranslation() {
-    final Span testSpan = sampleSpan();
+    final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
     final EVSpan result = this.outputTopic.readKeyValue().value;
 
-    Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
         attrs.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
     final String expectedHostName =
@@ -137,7 +136,6 @@ class SpanTranslatorStreamTest {
     final String expectedOperationName =
         attrs.get(TraceAttributes.METHOD_FQN).getStringValue().getValue();
 
-
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 
     assertEquals(expectedHostIP, result.getHostIpAddress(), "Invalid host ip address");
@@ -147,7 +145,8 @@ class SpanTranslatorStreamTest {
     assertEquals(expectedAppPID, result.getAppPid(), "Invalid application pid");
     assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
 
-    assertEquals(expectedOperationName, result.getOperationName(), "Invalid operation name");
+    assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),
+        "Invalid operation name");
 
   }
 
@@ -155,39 +154,32 @@ class SpanTranslatorStreamTest {
   @Test
   void testIdTranslation() {
 
-    final Span testSpan = sampleSpan();
+    final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
     final EVSpan result = this.outputTopic.readKeyValue().value;
 
     // Check IDs
-    String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
-    String tid = BaseEncoding.base16().encode(testSpan.getTraceId().toByteArray(), 0, 16);
+    final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
     assertEquals(sid, result.getSpanId());
-    assertEquals(tid, result.getTraceId());
-
   }
 
   @Test
   void testTimestampTranslation() {
-    final Span testSpan = sampleSpan();
+    final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
     final EVSpan result = this.outputTopic.readKeyValue().value;
 
-
-    final Instant expectedStartTime = Instant
-        .ofEpochSecond(sampleSpan().getStartTime().getSeconds(),
-            sampleSpan().getStartTime().getNanos());
-    final long expectedEndTime = Instant.ofEpochSecond(sampleSpan().getEndTime().getSeconds(),
-        sampleSpan().getEndTime().getNanos()).toEpochMilli();
+    final Instant expectedTimestamp = Instant
+        .ofEpochSecond(this.sampleSpan().getStartTime().getSeconds(),
+            this.sampleSpan().getStartTime().getNanos());
 
     // Start and End time
-    assertEquals(expectedStartTime, Instant.ofEpochSecond(result.getStartTime().getSeconds(),
-        result.getStartTime().getNanoAdjust()));
-    assertEquals(expectedEndTime, (long) result.getEndTime());
+    assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
+        result.getTimestamp().getNanoAdjust()));
   }
 
 

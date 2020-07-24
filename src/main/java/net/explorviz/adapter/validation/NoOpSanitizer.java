@@ -9,7 +9,7 @@ import net.explorviz.avro.EVSpan;
 @ApplicationScoped
 public class NoOpSanitizer implements SpanSanitizer {
   @Override
-  public EVSpan sanitize(EVSpan span) {
+  public EVSpan sanitize(final EVSpan span) {
     return span;
   }
 }

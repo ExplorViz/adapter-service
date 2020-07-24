@@ -54,8 +54,8 @@ public class SpanTranslatorStream {
 
   @Inject
   public SpanTranslatorStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                              SpanConverter converter, final SpanValidator validator,
-                              final SpanSanitizer sanitizer) {
+      final SpanConverter converter, final SpanValidator validator,
+      final SpanSanitizer sanitizer) {
     this.registry = registry;
     this.config = config;
 
@@ -94,24 +94,24 @@ public class SpanTranslatorStream {
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
         return DumpSpans.parseFrom(d).getSpansList();
-      } catch (InvalidProtocolBufferException e) {
+      } catch (final InvalidProtocolBufferException e) {
         return new ArrayList<>();
       }
     });
 
     final KStream<String, EVSpan> traceIdEVSpanStream = spanKStream.map(($, s) -> {
-      EVSpan span = converter.toEVSpan(s);
-      return new KeyValue<>(span.getTraceId(), span);
-    }).mapValues(s -> sanitizer.sanitize(s));
+      final EVSpan span = this.converter.toEVSpan(s);
+      return new KeyValue<>("test", span);
+    }).mapValues(s -> this.sanitizer.sanitize(s));
 
     final KStream<String, EVSpan> validEVSpanStream =
-        traceIdEVSpanStream.filter(($, v) -> validator.isValid(v));
+        traceIdEVSpanStream.filter(($, v) -> this.validator.isValid(v));
     final KStream<String, EVSpan> invalidEVSpanStream =
-        traceIdEVSpanStream.filterNot(($, v) -> validator.isValid(v));
+        traceIdEVSpanStream.filterNot(($, v) -> this.validator.isValid(v));
 
 
-    //validEVSpanStream.to(this.config.getOutTopic(),
-    //    Produced.with(Serdes.String(), this.getValueSerde()));
+    // validEVSpanStream.to(this.config.getOutTopic(),
+    // Produced.with(Serdes.String(), this.getValueSerde()));
 
     validEVSpanStream
         .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
@@ -119,9 +119,9 @@ public class SpanTranslatorStream {
     // TODO: invalidEVSpanStream to Event Messages
     invalidEVSpanStream.mapValues(s -> {
       try {
-        validator.validate(s);
+        this.validator.validate(s);
         return null;
-      } catch (InvalidSpanException e) {
+      } catch (final InvalidSpanException e) {
         return e;
       }
     }).foreach((k, e) -> LOGGER.warn("Rejected a span {}: {}", e.getSpan(), e.getMessage()));

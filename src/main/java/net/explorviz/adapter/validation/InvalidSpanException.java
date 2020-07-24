@@ -9,17 +9,17 @@ public class InvalidSpanException extends Exception {
 
   private final EVSpan span;
 
-  public InvalidSpanException(String message, EVSpan span) {
+  public InvalidSpanException(final String message, final EVSpan span) {
     super(message);
     this.span = span;
   }
 
-  public InvalidSpanException(String message, Throwable cause, EVSpan span) {
+  public InvalidSpanException(final String message, final Throwable cause, final EVSpan span) {
     super(message, cause);
     this.span = span;
   }
 
   public EVSpan getSpan() {
-    return span;
+    return this.span;
   }
 }
