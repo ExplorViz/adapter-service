@@ -8,22 +8,12 @@ import net.explorviz.avro.EVSpan;
 public interface SpanValidator {
 
   /**
-   * Checks if the given span is valid and throws if not.
+   * Checks if the given span is valid.
    *
    * @param span the span
-   * @throws InvalidSpanException if the span is invalid and can't be recovered
-   */
-  void validate(EVSpan span) throws InvalidSpanException;
-
-  /**
-   * Same as {@link #validate(EVSpan)} but instead of throwing, this method returns a boolean value
-   * that reflects the validity of the span.
-   *
-   * @param span the span
-   * @return true iff the span is valid
+   * @return Boolean that indicates if span is valid.
    */
   boolean isValid(EVSpan span);
-
 
 
 }

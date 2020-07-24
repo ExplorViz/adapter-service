@@ -41,7 +41,6 @@ class StrictValidatorTest {
 
   @Test
   void valid() {
-    Assertions.assertDoesNotThrow(() -> this.validator.validate(this.validSpan));
     Assertions.assertTrue(this.validator.isValid(this.validSpan));
   }
 
@@ -51,7 +50,7 @@ class StrictValidatorTest {
     final EVSpan blankToken = EVSpan.newBuilder(this.validSpan).setLandscapeToken("   ").build();
 
     for (final EVSpan tt : new EVSpan[] {noToken, blankToken}) {
-      Assertions.assertThrows(InvalidSpanException.class, () -> this.validator.validate(tt));
+      Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
 
@@ -64,7 +63,7 @@ class StrictValidatorTest {
             .build();
 
     for (final EVSpan tt : new EVSpan[] {negative, overflow}) {
-      Assertions.assertThrows(InvalidSpanException.class, () -> this.validator.validate(tt));
+      Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
 
@@ -75,7 +74,7 @@ class StrictValidatorTest {
 
 
     for (final EVSpan tt : new EVSpan[] {noHostname, noIpAddress}) {
-      Assertions.assertThrows(InvalidSpanException.class, () -> this.validator.validate(tt));
+      Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
 
@@ -87,7 +86,7 @@ class StrictValidatorTest {
     final EVSpan noPid = EVSpan.newBuilder(this.validSpan).setAppPid(" ").build();
 
     for (final EVSpan tt : new EVSpan[] {noName, noLanguage, noPid}) {
-      Assertions.assertThrows(InvalidSpanException.class, () -> this.validator.validate(tt));
+      Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
 
@@ -100,8 +99,7 @@ class StrictValidatorTest {
     for (final String tt : new String[] {noMethod, noClass, endingDot}) {
       final EVSpan testee =
           EVSpan.newBuilder(this.validSpan).setFullyQualifiedOperationName(tt).build();
-      Assertions.assertThrows(InvalidSpanException.class, () -> this.validator.validate(testee),
-          tt);
+      Assertions.assertFalse(this.validator.isValid(testee));
     }
   }
 }

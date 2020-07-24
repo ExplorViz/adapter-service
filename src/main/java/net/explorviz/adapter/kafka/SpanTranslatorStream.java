@@ -15,7 +15,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import net.explorviz.adapter.translation.SpanConverter;
-import net.explorviz.adapter.validation.InvalidSpanException;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.EVSpan;
@@ -29,13 +28,9 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class SpanTranslatorStream {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SpanTranslatorStream.class);
 
   private final SchemaRegistryClient registry;
 
@@ -106,26 +101,11 @@ public class SpanTranslatorStream {
 
     final KStream<String, EVSpan> validEVSpanStream =
         traceIdEVSpanStream.filter(($, v) -> this.validator.isValid(v));
-    final KStream<String, EVSpan> invalidEVSpanStream =
-        traceIdEVSpanStream.filterNot(($, v) -> this.validator.isValid(v));
-
-
-    // validEVSpanStream.to(this.config.getOutTopic(),
-    // Produced.with(Serdes.String(), this.getValueSerde()));
+    // final KStream<String, EVSpan> invalidEVSpanStream =
+    // traceIdEVSpanStream.filterNot(($, v) -> this.validator.isValid(v));
 
     validEVSpanStream
         .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
-
-    // TODO: invalidEVSpanStream to Event Messages
-    invalidEVSpanStream.mapValues(s -> {
-      try {
-        this.validator.validate(s);
-        return null;
-      } catch (final InvalidSpanException e) {
-        return e;
-      }
-    }).foreach((k, e) -> LOGGER.warn("Rejected a span {}: {}", e.getSpan(), e.getMessage()));
-
 
     this.topology = builder.build();
   }
