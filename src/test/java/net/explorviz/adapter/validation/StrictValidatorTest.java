@@ -28,6 +28,7 @@ class StrictValidatorTest {
         .newBuilder()
         .setSpanId("id")
         .setLandscapeToken(token)
+        .setHashCode("0bfb1aebe1c7c7b2efd200fb6761d3742f00b34fb337b8532d945d82912b7106")
         .setTimestamp(new Timestamp(now.getEpochSecond(), now.getNano()))
         .setHostname(hostname)
         .setHostIpAddress(hostIp)

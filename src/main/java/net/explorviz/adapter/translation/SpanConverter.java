@@ -43,6 +43,9 @@ public class SpanConverter {
     final AttributeReader attributeReader = new AttributeReader(original);
     attributeReader.append(builder);
 
+    // temporary hash code since the field is required for avro builder
+    builder.setHashCode("");
+
     final EVSpan span = builder.build();
 
     // HashCode is used to map structural and dynamic data
