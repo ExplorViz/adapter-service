@@ -37,7 +37,6 @@ class StrictValidatorTest {
         .setAppLanguage(appLang)
         .setFullyQualifiedOperationName("foo.bar.TestClass.testMethod()")
         .build();
-
   }
 
   @Test

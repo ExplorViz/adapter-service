@@ -8,12 +8,26 @@ import net.explorviz.avro.EVSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+/**
+ * This class holds the hashing function for an {@link EVSpan}.
+ */
 public class HashHelper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HashHelper.class);
 
   private static final String DIGEST_ALGORITHM = "SHA3-256";
 
+  private HashHelper() {
+    // helper
+  }
+
+  /**
+   * Converts a {@link EVSpan} to a SHA3-256 hash.
+   *
+   * @param span the passed span
+   * @return the SHA3-256 hash Hex-String
+   */
   public static String spanToHexHashString(final EVSpan span) {
 
     final StringJoiner joiner = new StringJoiner(";");
@@ -41,7 +55,6 @@ public class HashHelper {
     final byte[] hashbytes = digest.digest(joiner.toString().getBytes(StandardCharsets.UTF_8));
 
     return bytesToHex(hashbytes);
-
   }
 
   private static String bytesToHex(final byte[] hash) {
