@@ -3,7 +3,7 @@ package net.explorviz.adapter.translation;
 /**
  * Contains the names of the
  */
-public final class TraceAttributes {
+public final class SpanAttributes {
 
   /**
    * The token that uniquely identifies the landscape a span belongs to.
