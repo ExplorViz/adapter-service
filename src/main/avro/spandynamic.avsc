@@ -1,0 +1,36 @@
+{
+  "namespace": "net.explorviz.avro",
+  "type": "record",
+  "name": "SpanDynamic",
+  "fields": [
+    {
+      "name": "landscapeToken",
+      "type": "string"
+    },
+    {
+      "name": "spanId",
+      "type": "string"
+    },
+    {
+      "name": "parentSpanId",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "name": "traceId",
+      "type": "string"
+    },
+    {
+      "name": "startTime",
+      "type": "net.explorviz.avro.Timestamp"
+    },
+    {
+      "name": "endTime",
+      "type": "net.explorviz.avro.Timestamp"
+    },
+    {
+      "name": "hashCode",
+      "type": "string"
+    }
+  ]
+}
