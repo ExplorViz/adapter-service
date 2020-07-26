@@ -1,7 +1,7 @@
 package net.explorviz.adapter.validation;
 
 import javax.enterprise.context.ApplicationScoped;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 
 /**
  * Does not actually sanitize, for testing purposes.
@@ -9,7 +9,7 @@ import net.explorviz.avro.EVSpan;
 @ApplicationScoped
 public class NoOpSanitizer implements SpanSanitizer {
   @Override
-  public EVSpan sanitize(final EVSpan span) {
+  public SpanStructure sanitize(final SpanStructure span) {
     return span;
   }
 }

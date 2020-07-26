@@ -1,6 +1,6 @@
 package net.explorviz.adapter.validation;
 
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 
 public interface SpanSanitizer {
 
@@ -10,5 +10,5 @@ public interface SpanSanitizer {
    * @param span span to sanitize
    * @return a santitzed version of the given sapn
    */
-  EVSpan sanitize(EVSpan span);
+  SpanStructure sanitize(SpanStructure span);
 }

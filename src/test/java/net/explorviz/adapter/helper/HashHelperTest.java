@@ -2,14 +2,14 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.Instant;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class HashHelperTest {
 
-  private EVSpan validSpan;
+  private SpanStructure validSpan;
 
   @BeforeEach
   void setUp() {
@@ -22,7 +22,7 @@ public class HashHelperTest {
     final String appPid = "1234";
     final String appLang = "java";
 
-    this.validSpan = EVSpan
+    this.validSpan = SpanStructure
         .newBuilder()
         .setSpanId("id")
         .setLandscapeToken(token)

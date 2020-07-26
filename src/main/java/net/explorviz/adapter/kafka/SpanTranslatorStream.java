@@ -18,7 +18,7 @@ import net.explorviz.adapter.translation.SpanConverter;
 import net.explorviz.adapter.util.PerfomanceLogger;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -105,18 +105,18 @@ public class SpanTranslatorStream {
 
 
 
-    final KStream<String, EVSpan> traceIdEVSpanStream = spanKStream.map(($, s) -> {
-      final EVSpan span = this.converter.toEVSpan(s);
+    final KStream<String, SpanStructure> traceIdSpanStructureStream = spanKStream.map(($, s) -> {
+      final SpanStructure span = this.converter.toSpanStructure(s);
       perLogger.logOperation();
       return new KeyValue<>("test", span);
     }).mapValues(s -> this.sanitizer.sanitize(s));
 
-    final KStream<String, EVSpan> validEVSpanStream =
-        traceIdEVSpanStream.filter(($, v) -> this.validator.isValid(v));
-    // final KStream<String, EVSpan> invalidEVSpanStream =
-    // traceIdEVSpanStream.filterNot(($, v) -> this.validator.isValid(v));
+    final KStream<String, SpanStructure> validSpanStructureStream =
+        traceIdSpanStructureStream.filter(($, v) -> this.validator.isValid(v));
+    // final KStream<String, SpanStructure> invalidSpanStructureStream =
+    // traceIdSpanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
 
-    validEVSpanStream
+    validSpanStructureStream
         .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
 
     this.topology = builder.build();

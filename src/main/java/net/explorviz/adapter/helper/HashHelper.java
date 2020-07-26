@@ -4,13 +4,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.StringJoiner;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 /**
- * This class holds the hashing function for an {@link EVSpan}.
+ * This class holds the hashing function for an {@link SpanStructure}.
  */
 public class HashHelper {
 
@@ -23,12 +23,12 @@ public class HashHelper {
   }
 
   /**
-   * Converts a {@link EVSpan} to a SHA3-256 hash.
+   * Converts a {@link SpanStructure} to a SHA3-256 hash.
    *
    * @param span the passed span
    * @return the SHA3-256 hash Hex-String
    */
-  public static String spanToHexHashString(final EVSpan span) {
+  public static String spanToHexHashString(final SpanStructure span) {
 
     final StringJoiner joiner = new StringJoiner(";");
 

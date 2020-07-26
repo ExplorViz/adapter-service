@@ -25,7 +25,7 @@ import net.explorviz.adapter.validation.NoOpSanitizer;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.adapter.validation.StrictValidator;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
@@ -42,9 +42,9 @@ class SpanTranslatorStreamTest {
   private TopologyTestDriver driver;
 
   private TestInputTopic<byte[], byte[]> inputTopic;
-  private TestOutputTopic<String, EVSpan> outputTopic;
+  private TestOutputTopic<String, SpanStructure> outputTopic;
 
-  private SpecificAvroSerde<EVSpan> evSpanSerDe;
+  private SpecificAvroSerde<SpanStructure> SpanStructureSerDe;
 
   @Inject
   KafkaConfig config;
@@ -67,20 +67,20 @@ class SpanTranslatorStreamTest {
 
     this.driver = new TopologyTestDriver(topology, props);
 
-    this.evSpanSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+    this.SpanStructureSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
 
-    this.evSpanSerDe.configure(
+    this.SpanStructureSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
     this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
         Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
     this.outputTopic = this.driver.createOutputTopic("explorviz-spans",
-        Serdes.String().deserializer(), this.evSpanSerDe.deserializer());
+        Serdes.String().deserializer(), this.SpanStructureSerDe.deserializer());
   }
 
   @AfterEach
   void tearDown() {
-    this.evSpanSerDe.close();
+    this.SpanStructureSerDe.close();
     this.driver.close();
   }
 
@@ -119,7 +119,7 @@ class SpanTranslatorStreamTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final EVSpan result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.outputTopic.readKeyValue().value;
 
     final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
@@ -158,7 +158,7 @@ class SpanTranslatorStreamTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final EVSpan result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.outputTopic.readKeyValue().value;
 
     // Check IDs
     final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
@@ -171,7 +171,7 @@ class SpanTranslatorStreamTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final EVSpan result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.outputTopic.readKeyValue().value;
 
     final Instant expectedTimestamp = Instant
         .ofEpochSecond(this.sampleSpan().getStartTime().getSeconds(),

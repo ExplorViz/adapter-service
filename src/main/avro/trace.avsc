@@ -31,7 +31,7 @@
       "name": "spanList",
       "type": {
         "type": "array",
-        "items": "net.explorviz.avro.EVSpan"
+        "items": "net.explorviz.avro.SpanStructure"
       }
     }
   ]

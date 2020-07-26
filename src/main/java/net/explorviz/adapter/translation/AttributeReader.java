@@ -3,7 +3,7 @@ package net.explorviz.adapter.translation;
 import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import java.util.Map;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 
 /**
  * Reads the attributes of a {@link Span}.
@@ -61,11 +61,11 @@ class AttributeReader {
   }
 
   /**
-   * Appends all attributes to the given EVSpan builder.
+   * Appends all attributes to the given SpanStructure builder.
    *
    * @param builder the builder to append the attributes to
    */
-  public void append(final EVSpan.Builder builder) {
+  public void append(final SpanStructure.Builder builder) {
     builder
         .setLandscapeToken(this.landscapeToken)
         .setHostname(this.hostName)

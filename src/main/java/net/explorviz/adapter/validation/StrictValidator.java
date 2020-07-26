@@ -4,12 +4,12 @@ package net.explorviz.adapter.validation;
 import java.time.DateTimeException;
 import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Validator that enforces that all values of the {@link EVSpan} are set and valid. Does not
+ * Validator that enforces that all values of the {@link SpanStructure} are set and valid. Does not
  * sanitize invalid attributes with default values.
  */
 @ApplicationScoped
@@ -18,7 +18,7 @@ public class StrictValidator implements SpanValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
 
   @Override
-  public boolean isValid(final EVSpan span) {
+  public boolean isValid(final SpanStructure span) {
 
     if (span.getLandscapeToken() == null || span.getLandscapeToken().isBlank()) {
       LOGGER.error("No token: {}", span);
@@ -36,7 +36,7 @@ public class StrictValidator implements SpanValidator {
         this.validateOperation(span);
   }
 
-  private boolean validateTimestamp(final EVSpan span) {
+  private boolean validateTimestamp(final SpanStructure span) {
     try {
 
       final Instant ignored = Instant.ofEpochSecond(span.getTimestamp().getSeconds(),
@@ -52,7 +52,7 @@ public class StrictValidator implements SpanValidator {
     return true;
   }
 
-  private boolean validateHost(final EVSpan span) {
+  private boolean validateHost(final SpanStructure span) {
     if (this.isBlank(span.getHostname())) {
       LOGGER.error("No hostname: {}", span);
       return false;
@@ -64,7 +64,7 @@ public class StrictValidator implements SpanValidator {
     return true;
   }
 
-  private boolean validateApp(final EVSpan span) {
+  private boolean validateApp(final SpanStructure span) {
     if (this.isBlank(span.getAppName())) {
       LOGGER.error("No application name: {}", span);
       return false;
@@ -83,7 +83,7 @@ public class StrictValidator implements SpanValidator {
     return true;
   }
 
-  private boolean validateOperation(final EVSpan span) {
+  private boolean validateOperation(final SpanStructure span) {
     /*
      * By definition getFullyQualifiedOperationName().split("."): Last entry is method name, next to
      * last is class name, remaining elements form the package name which must not be empty

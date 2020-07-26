@@ -1,7 +1,7 @@
 package net.explorviz.adapter.validation;
 
 import java.time.Instant;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class StrictValidatorTest {
 
   private StrictValidator validator;
-  private EVSpan validSpan;
+  private SpanStructure validSpan;
 
   @BeforeEach
   void setUp() {
@@ -24,7 +24,7 @@ class StrictValidatorTest {
     final String appPid = "1234";
     final String appLang = "java";
 
-    this.validSpan = EVSpan
+    this.validSpan = SpanStructure
         .newBuilder()
         .setSpanId("id")
         .setLandscapeToken(token)
@@ -46,34 +46,34 @@ class StrictValidatorTest {
 
   @Test
   void invalidToken() {
-    final EVSpan noToken = EVSpan.newBuilder(this.validSpan).setLandscapeToken("").build();
-    final EVSpan blankToken = EVSpan.newBuilder(this.validSpan).setLandscapeToken("   ").build();
+    final SpanStructure noToken = SpanStructure.newBuilder(this.validSpan).setLandscapeToken("").build();
+    final SpanStructure blankToken = SpanStructure.newBuilder(this.validSpan).setLandscapeToken("   ").build();
 
-    for (final EVSpan tt : new EVSpan[] {noToken, blankToken}) {
+    for (final SpanStructure tt : new SpanStructure[] {noToken, blankToken}) {
       Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
 
   @Test
   void invalidTimestamp() {
-    final EVSpan negative =
-        EVSpan.newBuilder(this.validSpan).setTimestamp(new Timestamp(-1L, 0)).build();
-    final EVSpan overflow =
-        EVSpan.newBuilder(this.validSpan).setTimestamp(new Timestamp(1000000000000000000L, 0))
+    final SpanStructure negative =
+        SpanStructure.newBuilder(this.validSpan).setTimestamp(new Timestamp(-1L, 0)).build();
+    final SpanStructure overflow =
+        SpanStructure.newBuilder(this.validSpan).setTimestamp(new Timestamp(1000000000000000000L, 0))
             .build();
 
-    for (final EVSpan tt : new EVSpan[] {negative, overflow}) {
+    for (final SpanStructure tt : new SpanStructure[] {negative, overflow}) {
       Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
 
   @Test
   void invalidHost() {
-    final EVSpan noHostname = EVSpan.newBuilder(this.validSpan).setHostname(" ").build();
-    final EVSpan noIpAddress = EVSpan.newBuilder(this.validSpan).setHostIpAddress("\t").build();
+    final SpanStructure noHostname = SpanStructure.newBuilder(this.validSpan).setHostname(" ").build();
+    final SpanStructure noIpAddress = SpanStructure.newBuilder(this.validSpan).setHostIpAddress("\t").build();
 
 
-    for (final EVSpan tt : new EVSpan[] {noHostname, noIpAddress}) {
+    for (final SpanStructure tt : new SpanStructure[] {noHostname, noIpAddress}) {
       Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
@@ -81,11 +81,11 @@ class StrictValidatorTest {
 
   @Test
   void invalidApp() {
-    final EVSpan noName = EVSpan.newBuilder(this.validSpan).setAppName(" ").build();
-    final EVSpan noLanguage = EVSpan.newBuilder(this.validSpan).setAppLanguage(" ").build();
-    final EVSpan noPid = EVSpan.newBuilder(this.validSpan).setAppPid(" ").build();
+    final SpanStructure noName = SpanStructure.newBuilder(this.validSpan).setAppName(" ").build();
+    final SpanStructure noLanguage = SpanStructure.newBuilder(this.validSpan).setAppLanguage(" ").build();
+    final SpanStructure noPid = SpanStructure.newBuilder(this.validSpan).setAppPid(" ").build();
 
-    for (final EVSpan tt : new EVSpan[] {noName, noLanguage, noPid}) {
+    for (final SpanStructure tt : new SpanStructure[] {noName, noLanguage, noPid}) {
       Assertions.assertFalse(this.validator.isValid(tt));
     }
   }
@@ -97,8 +97,8 @@ class StrictValidatorTest {
     final String endingDot = "foo.bar.";
 
     for (final String tt : new String[] {noMethod, noClass, endingDot}) {
-      final EVSpan testee =
-          EVSpan.newBuilder(this.validSpan).setFullyQualifiedOperationName(tt).build();
+      final SpanStructure testee =
+          SpanStructure.newBuilder(this.validSpan).setFullyQualifiedOperationName(tt).build();
       Assertions.assertFalse(this.validator.isValid(testee));
     }
   }

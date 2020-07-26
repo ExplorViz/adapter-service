@@ -1,7 +1,7 @@
 {
   "namespace": "net.explorviz.avro",
   "type": "record",
-  "name": "EVSpan",
+  "name": "SpanStructure",
   "fields": [
     {
       "name": "spanId",
