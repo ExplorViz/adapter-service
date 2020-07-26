@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
  * Converts {@link Span}s to {@link SpanStructure}s.
  */
 @ApplicationScoped
-public class SpanConverter {
+public class SpanStructureConverter {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SpanConverter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SpanStructureConverter.class);
 
   private static final int SPAN_ID_LEN = 8;
 

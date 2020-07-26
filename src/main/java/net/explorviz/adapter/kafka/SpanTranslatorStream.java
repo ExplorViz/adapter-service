@@ -14,7 +14,7 @@ import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanConverter;
+import net.explorviz.adapter.translation.SpanStructureConverter;
 import net.explorviz.adapter.util.PerfomanceLogger;
 import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
@@ -48,7 +48,7 @@ public class SpanTranslatorStream {
   private final SpanValidator validator;
   private final SpanSanitizer sanitizer;
 
-  private final SpanConverter converter;
+  private final SpanStructureConverter converter;
 
 
   private PerfomanceLogger perLogger =
@@ -58,7 +58,7 @@ public class SpanTranslatorStream {
 
   @Inject
   public SpanTranslatorStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                              final SpanConverter converter, final SpanValidator validator,
+                              final SpanStructureConverter converter, final SpanValidator validator,
                               final SpanSanitizer sanitizer) {
     this.registry = registry;
     this.config = config;

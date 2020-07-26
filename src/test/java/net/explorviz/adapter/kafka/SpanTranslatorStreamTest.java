@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanConverter;
+import net.explorviz.adapter.translation.SpanStructureConverter;
 import net.explorviz.adapter.translation.SpanAttributes;
 import net.explorviz.adapter.validation.NoOpSanitizer;
 import net.explorviz.adapter.validation.SpanSanitizer;
@@ -56,7 +56,7 @@ class SpanTranslatorStreamTest {
 
     final SpanValidator v = new StrictValidator();
     final SpanSanitizer s = new NoOpSanitizer();
-    final SpanConverter c = new SpanConverter();
+    final SpanStructureConverter c = new SpanStructureConverter();
 
     final Topology topology =
         new SpanTranslatorStream(schemaRegistryClient, this.config, c, v, s).getTopology();
