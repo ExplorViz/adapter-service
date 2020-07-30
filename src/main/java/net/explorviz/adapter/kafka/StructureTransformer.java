@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class StructureTransformer implements Transformer<byte[], Span, KeyValue<String, SpanStructure>> {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(DumpSpanIngestion.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(StructureTransformer.class);
   private PerfomanceLogger perfLogger =
       PerfomanceLogger.newOperationPerformanceLogger(LOGGER, 1000, "Converted {} spans in {} ms");
 

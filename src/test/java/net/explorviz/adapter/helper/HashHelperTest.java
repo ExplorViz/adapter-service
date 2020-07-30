@@ -2,6 +2,7 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.Instant;
+import net.explorviz.adapter.translation.HashHelper;
 import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
 import org.junit.jupiter.api.BeforeEach;

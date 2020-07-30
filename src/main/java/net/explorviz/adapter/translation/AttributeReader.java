@@ -60,12 +60,40 @@ class AttributeReader {
     }
   }
 
+  public String getLandscapeToken() {
+    return landscapeToken;
+  }
+
+  public String getHostName() {
+    return hostName;
+  }
+
+  public String getHostIPAddress() {
+    return hostIPAddress;
+  }
+
+  public String getApplicationName() {
+    return applicationName;
+  }
+
+  public String getApplicationPID() {
+    return applicationPID;
+  }
+
+  public String getApplicationLanguage() {
+    return applicationLanguage;
+  }
+
+  public String getMethodFQN() {
+    return methodFQN;
+  }
+
   /**
    * Appends all attributes to the given SpanStructure builder.
    *
    * @param builder the builder to append the attributes to
    */
-  public void append(final SpanStructure.Builder builder) {
+  public void appendAll(final SpanStructure.Builder builder) {
     builder
         .setLandscapeToken(this.landscapeToken)
         .setHostname(this.hostName)

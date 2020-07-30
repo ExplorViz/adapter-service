@@ -14,7 +14,6 @@ import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
@@ -29,7 +28,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 
 @ApplicationScoped
-public class DumpSpanIngestion {
+public class DumpSpanConverter {
 
 
 
@@ -44,17 +43,20 @@ public class DumpSpanIngestion {
 
   private final SpanValidator validator;
   private final StructureTransformer structureTransformer;
+  private final DynamicTransformer dynamicTransformer;
 
   private KafkaStreams streams;
 
   @Inject
-  public DumpSpanIngestion(final SchemaRegistryClient registry, final KafkaConfig config,
+  public DumpSpanConverter(final SchemaRegistryClient registry, final KafkaConfig config,
                            final StructureTransformer structureTransformer,
+                           final DynamicTransformer dynamicTransformer,
                            final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
     this.structureTransformer = structureTransformer;
+    this.dynamicTransformer = dynamicTransformer;
 
     this.setupStreamsConfig();
     this.buildTopology();
@@ -94,13 +96,22 @@ public class DumpSpanIngestion {
     KStream<String, SpanStructure> spanStructureStream =
         spanKStream.transform(() -> structureTransformer);
 
-
     final KStream<String, SpanStructure> validSpanStructureStream =
         spanStructureStream.filter(($, v) -> this.validator.isValid(v));
     // final KStream<String, SpanStructure> invalidSpanStructureStream =
     // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
+
+
+    KStream<String, SpanDynamic> spanDynamicStream =
+        spanKStream.transform(() -> dynamicTransformer);
+
+
     validSpanStructureStream
-        .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
+        .to(this.config.getStructureOutTopic(),
+            Produced.with(Serdes.String(), this.getValueSerde()));
+
+    spanDynamicStream.to(this.config.getDynamicOutTopic(),
+        Produced.with(Serdes.String(), this.getValueSerde()));
 
 
 

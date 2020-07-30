@@ -16,8 +16,11 @@ public class KafkaConfig {
   @ConfigProperty(name = "quarkus.kafka-streams.topics")
   String inTopic;
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out")
-  String outTopic;
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
+  String structureOutTopic;
+
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
+  String dynamicOutTopic;
 
   @ConfigProperty(name = "explorviz.schema-registry.url")
   String schemaRegistryUrl;
@@ -34,8 +37,12 @@ public class KafkaConfig {
     return this.inTopic;
   }
 
-  public String getOutTopic() {
-    return this.outTopic;
+  public String getStructureOutTopic() {
+    return this.structureOutTopic;
+  }
+
+  public String getDynamicOutTopic() {
+    return dynamicOutTopic;
   }
 
   public String getSchemaRegistryUrl() {

@@ -1,6 +1,7 @@
 package net.explorviz.adapter.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -19,12 +20,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+import net.explorviz.adapter.translation.SpanDynamicConverter;
 import net.explorviz.adapter.translation.SpanStructureConverter;
 import net.explorviz.adapter.translation.SpanAttributes;
 import net.explorviz.adapter.validation.NoOpStructureSanitizer;
 import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.adapter.validation.StrictValidator;
+import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
@@ -37,14 +40,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DumpSpanIngestionTest {
+class DumpSpanConverterTest {
 
   private TopologyTestDriver driver;
 
   private TestInputTopic<byte[], byte[]> inputTopic;
-  private TestOutputTopic<String, SpanStructure> outputTopic;
+  private TestOutputTopic<String, SpanStructure> structureOutputTopic;
+  private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
 
   private SpecificAvroSerde<SpanStructure> SpanStructureSerDe;
+  private SpecificAvroSerde<SpanDynamic> SpanDynamicSerDe;
 
   @Inject
   KafkaConfig config;
@@ -58,9 +63,12 @@ class DumpSpanIngestionTest {
     final SpanStructureSanitizer s = new NoOpStructureSanitizer();
     final SpanStructureConverter c = new SpanStructureConverter();
     final StructureTransformer structureTransformer = new StructureTransformer(s, c);
+    final DynamicTransformer dynamicTransformer =
+        new DynamicTransformer(new SpanDynamicConverter());
 
     final Topology topology =
-        new DumpSpanIngestion(schemaRegistryClient, this.config, structureTransformer, v).getTopology();
+        new DumpSpanConverter(schemaRegistryClient, this.config, structureTransformer,
+            dynamicTransformer, v).getTopology();
 
     final Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -69,19 +77,28 @@ class DumpSpanIngestionTest {
     this.driver = new TopologyTestDriver(topology, props);
 
     this.SpanStructureSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+    this.SpanDynamicSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+
 
     this.SpanStructureSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
+    this.SpanDynamicSerDe.configure(
+        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
+
+
     this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
         Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
-    this.outputTopic = this.driver.createOutputTopic("explorviz-spans",
+    this.structureOutputTopic = this.driver.createOutputTopic(config.getStructureOutTopic(),
         Serdes.String().deserializer(), this.SpanStructureSerDe.deserializer());
+    this.dynamicOutputTopic = this.driver.createOutputTopic(config.getDynamicOutTopic(),
+        Serdes.String().deserializer(), this.SpanDynamicSerDe.deserializer());
   }
 
   @AfterEach
   void tearDown() {
     this.SpanStructureSerDe.close();
+    this.SpanDynamicSerDe.close();
     this.driver.close();
   }
 
@@ -108,6 +125,7 @@ class DumpSpanIngestionTest {
         .setTraceId(
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
+        .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
         .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
         .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
         .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap))
@@ -120,7 +138,7 @@ class DumpSpanIngestionTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final SpanStructure result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
     final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
@@ -159,7 +177,7 @@ class DumpSpanIngestionTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final SpanStructure result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
     // Check IDs
     final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
@@ -172,7 +190,7 @@ class DumpSpanIngestionTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final SpanStructure result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
     final Instant expectedTimestamp = Instant
         .ofEpochSecond(this.sampleSpan().getStartTime().getSeconds(),
@@ -181,6 +199,17 @@ class DumpSpanIngestionTest {
     // Start and End time
     assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
         result.getTimestamp().getNanoAdjust()));
+  }
+
+  @Test
+  void testDynamicTranslation() {
+    final Span testSpan = this.sampleSpan();
+    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+
+    final SpanDynamic result = this.dynamicOutputTopic.readKeyValue().value;
+    System.out.println(result);
+
   }
 
 

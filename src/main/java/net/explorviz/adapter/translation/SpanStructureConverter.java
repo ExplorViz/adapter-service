@@ -1,10 +1,7 @@
 package net.explorviz.adapter.translation;
 
-import com.google.common.io.BaseEncoding;
 import io.opencensus.proto.trace.v1.Span;
-import java.security.NoSuchAlgorithmException;
 import javax.enterprise.context.ApplicationScoped;
-import net.explorviz.adapter.helper.HashHelper;
 import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
 import org.slf4j.Logger;
@@ -18,19 +15,17 @@ public class SpanStructureConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SpanStructureConverter.class);
 
-  private static final int SPAN_ID_LEN = 8;
+
 
   /**
    * Converts a {@link Span} to an {@link SpanStructure}
    *
    * @param original the original span
    * @return the converted span
-   * @throws NoSuchAlgorithmException
    */
   public SpanStructure toSpanStructure(final Span original) {
 
-    final String spanId = BaseEncoding.base16().lowerCase()
-        .encode(original.getSpanId().toByteArray(), 0, SPAN_ID_LEN);
+    final String spanId = IdHelper.converterSpanId(original.getSpanId().toByteArray());
 
     final Timestamp startTime =
         new Timestamp(original.getStartTime().getSeconds(), original.getStartTime().getNanos());
@@ -41,7 +36,7 @@ public class SpanStructureConverter {
         .setTimestamp(startTime);
 
     final AttributeReader attributeReader = new AttributeReader(original);
-    attributeReader.append(builder);
+    attributeReader.appendAll(builder);
 
     // temporary hash code since the field is required for avro builder
     builder.setHashCode("");
