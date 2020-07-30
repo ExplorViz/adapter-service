@@ -14,28 +14,24 @@ import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.util.PerfomanceLogger;
-import net.explorviz.adapter.validation.SpanSanitizer;
+import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
+import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class SpanTranslatorStream {
+public class DumpSpanIngestion {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(SpanTranslatorStream.class);
+
 
   private final SchemaRegistryClient registry;
 
@@ -45,28 +41,20 @@ public class SpanTranslatorStream {
 
   private Topology topology;
 
+
   private final SpanValidator validator;
-  private final SpanSanitizer sanitizer;
-
-  private final SpanStructureConverter converter;
-
-
-  private PerfomanceLogger perLogger =
-      PerfomanceLogger.newOperationPerformanceLogger(LOGGER, 1000, "Converted {} spans in {} ms");
+  private final StructureTransformer structureTransformer;
 
   private KafkaStreams streams;
 
   @Inject
-  public SpanTranslatorStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                              final SpanStructureConverter converter, final SpanValidator validator,
-                              final SpanSanitizer sanitizer) {
+  public DumpSpanIngestion(final SchemaRegistryClient registry, final KafkaConfig config,
+                           final StructureTransformer structureTransformer,
+                           final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
-
-    this.converter = converter;
     this.validator = validator;
-    this.sanitizer = sanitizer;
-
+    this.structureTransformer = structureTransformer;
 
     this.setupStreamsConfig();
     this.buildTopology();
@@ -103,21 +91,18 @@ public class SpanTranslatorStream {
       }
     });
 
+    KStream<String, SpanStructure> spanStructureStream =
+        spanKStream.transform(() -> structureTransformer);
 
-
-    final KStream<String, SpanStructure> traceIdSpanStructureStream = spanKStream.map(($, s) -> {
-      final SpanStructure span = this.converter.toSpanStructure(s);
-      perLogger.logOperation();
-      return new KeyValue<>("test", span);
-    }).mapValues(s -> this.sanitizer.sanitize(s));
 
     final KStream<String, SpanStructure> validSpanStructureStream =
-        traceIdSpanStructureStream.filter(($, v) -> this.validator.isValid(v));
+        spanStructureStream.filter(($, v) -> this.validator.isValid(v));
     // final KStream<String, SpanStructure> invalidSpanStructureStream =
-    // traceIdSpanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
-
+    // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
     validSpanStructureStream
         .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
+
+
 
     this.topology = builder.build();
   }

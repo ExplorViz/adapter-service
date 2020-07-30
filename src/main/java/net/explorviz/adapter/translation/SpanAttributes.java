@@ -1,7 +1,7 @@
 package net.explorviz.adapter.translation;
 
 /**
- * Contains the names of the
+ * Contains the names of the additional attributes each span contains.
  */
 public final class SpanAttributes {
 

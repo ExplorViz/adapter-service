@@ -21,8 +21,8 @@ import java.util.Properties;
 import javax.inject.Inject;
 import net.explorviz.adapter.translation.SpanStructureConverter;
 import net.explorviz.adapter.translation.SpanAttributes;
-import net.explorviz.adapter.validation.NoOpSanitizer;
-import net.explorviz.adapter.validation.SpanSanitizer;
+import net.explorviz.adapter.validation.NoOpStructureSanitizer;
+import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.adapter.validation.StrictValidator;
 import net.explorviz.avro.SpanStructure;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class SpanTranslatorStreamTest {
+class DumpSpanIngestionTest {
 
   private TopologyTestDriver driver;
 
@@ -55,11 +55,12 @@ class SpanTranslatorStreamTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
     final SpanValidator v = new StrictValidator();
-    final SpanSanitizer s = new NoOpSanitizer();
+    final SpanStructureSanitizer s = new NoOpStructureSanitizer();
     final SpanStructureConverter c = new SpanStructureConverter();
+    final StructureTransformer structureTransformer = new StructureTransformer(s, c);
 
     final Topology topology =
-        new SpanTranslatorStream(schemaRegistryClient, this.config, c, v, s).getTopology();
+        new DumpSpanIngestion(schemaRegistryClient, this.config, structureTransformer, v).getTopology();
 
     final Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");

@@ -2,7 +2,7 @@ package net.explorviz.adapter.validation;
 
 import net.explorviz.avro.SpanStructure;
 
-public interface SpanSanitizer {
+public interface SpanStructureSanitizer {
 
   /**
    * Fixes missing and/or malformed properties of spans
