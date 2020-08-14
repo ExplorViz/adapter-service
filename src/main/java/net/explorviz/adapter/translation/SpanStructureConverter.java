@@ -35,8 +35,8 @@ public class SpanStructureConverter {
         .setSpanId(spanId)
         .setTimestamp(startTime);
 
-    final AttributeReader attributeReader = new AttributeReader(original);
-    attributeReader.appendAll(builder);
+    final SpanAttributes spanAttributes = new SpanAttributes(original);
+    spanAttributes.appendToStructure(builder);
 
     // temporary hash code since the field is required for avro builder
     builder.setHashCode("");
@@ -44,7 +44,7 @@ public class SpanStructureConverter {
     final SpanStructure span = builder.build();
 
     // HashCode is used to map structural and dynamic data
-    final String hashCode = HashHelper.spanToHexHashString(span);
+    final String hashCode = HashHelper.fromSpanAttributes(spanAttributes);
     span.setHashCode(hashCode);
 
     if (LOGGER.isDebugEnabled()) {

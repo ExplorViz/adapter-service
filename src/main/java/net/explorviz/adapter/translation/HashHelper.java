@@ -1,5 +1,6 @@
 package net.explorviz.adapter.translation;
 
+import io.opencensus.proto.trace.v1.Span;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,13 +23,8 @@ public class HashHelper {
     // helper
   }
 
-  /**
-   * Converts a {@link SpanStructure} to a SHA3-256 hash.
-   *
-   * @param span the passed span
-   * @return the SHA3-256 hash Hex-String
-   */
-  public static String spanToHexHashString(final SpanStructure span) {
+  private static String createHash(String landscapeToken, String hostIp, String appPid,
+                                  String methodFqn) {
 
     final StringJoiner joiner = new StringJoiner(";");
 
@@ -36,12 +32,11 @@ public class HashHelper {
      * By definition getFullyQualifiedOperationName().split("."): Last entry is method name, next to
      * last is class name, remaining elements form the package name
      */
-    final String fullyQualifiedOperationName =
-        span.getFullyQualifiedOperationName().replace(".", ";");
+    final String fullyQualifiedOperationName = methodFqn.replace(".", ";");
 
-    joiner.add(span.getLandscapeToken());
-    joiner.add(span.getHostIpAddress());
-    joiner.add(span.getAppPid());
+    joiner.add(landscapeToken);
+    joiner.add(hostIp);
+    joiner.add(appPid);
     joiner.add(fullyQualifiedOperationName);
 
     MessageDigest digest;
@@ -55,7 +50,17 @@ public class HashHelper {
     final byte[] hashbytes = digest.digest(joiner.toString().getBytes(StandardCharsets.UTF_8));
 
     return bytesToHex(hashbytes);
+
   }
+
+  public static String fromSpanAttributes(final SpanAttributes attribute) {
+    return createHash(
+        attribute.getLandscapeToken(),
+        attribute.getHostIPAddress(),
+        attribute.getApplicationPID(),
+        attribute.getMethodFQN());
+  }
+
 
   private static String bytesToHex(final byte[] hash) {
     final StringBuffer hexString = new StringBuffer();

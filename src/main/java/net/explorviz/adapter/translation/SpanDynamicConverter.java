@@ -22,15 +22,17 @@ public class SpanDynamicConverter {
     final Timestamp endTime =
         new Timestamp(span.getEndTime().getSeconds(), span.getEndTime().getNanos());
 
-    AttributeReader attributeReader = new AttributeReader(span);
+    SpanAttributes spanAttributes = new SpanAttributes(span);
 
     String parentSpan = "";
     if (span.getParentSpanId().size() > 0) {
       parentSpan = IdHelper.converterSpanId(span.getParentSpanId().toByteArray());
     }
 
-    return SpanDynamic.newBuilder()
-        .setLandscapeToken(attributeReader.getLandscapeToken())
+
+
+    SpanDynamic spanDynamic =  SpanDynamic.newBuilder()
+        .setLandscapeToken(spanAttributes.getLandscapeToken())
         .setParentSpanId(parentSpan)
         .setSpanId(IdHelper.converterSpanId(span.getSpanId().toByteArray()))
         .setTraceId(IdHelper.converterTraceId(span.getTraceId().toByteArray()))
@@ -39,6 +41,9 @@ public class SpanDynamicConverter {
         .setEndTime(endTime)
         .build();
 
+    String hashValue = HashHelper.fromSpanAttributes(new SpanAttributes(span));
+    spanDynamic.setHashCode(hashValue);
+    return spanDynamic;
   }
 
 }

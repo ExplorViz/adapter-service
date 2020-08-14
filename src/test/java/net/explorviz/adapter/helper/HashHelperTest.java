@@ -1,47 +1,36 @@
 package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.time.Instant;
+
+import io.opencensus.proto.trace.v1.AttributeValue;
+import io.opencensus.proto.trace.v1.TruncatableString;
+import java.util.HashMap;
+import java.util.Map;
 import net.explorviz.adapter.translation.HashHelper;
-import net.explorviz.avro.SpanStructure;
-import net.explorviz.avro.Timestamp;
-import org.junit.jupiter.api.BeforeEach;
+import net.explorviz.adapter.translation.SpanAttributes;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class HashHelperTest {
 
-  private SpanStructure validSpan;
 
-  @BeforeEach
-  void setUp() {
-
-    final Instant now = Instant.now();
-    final String token = "tok";
-    final String hostname = "Host";
-    final String hostIp = "1.2.3.4";
-    final String appName = "Test App";
-    final String appPid = "1234";
-    final String appLang = "java";
-
-    this.validSpan = SpanStructure
-        .newBuilder()
-        .setSpanId("id")
-        .setLandscapeToken(token)
-        .setHashCode("")
-        .setTimestamp(new Timestamp(now.getEpochSecond(), now.getNano()))
-        .setHostname(hostname)
-        .setHostIpAddress(hostIp)
-        .setAppName(appName)
-        .setAppPid(appPid)
-        .setAppLanguage(appLang)
-        .setFullyQualifiedOperationName("foo.bar.TestClass.testMethod()")
-        .build();
-  }
 
   @Test
   void testHashFunction() {
+    final String token = "tok";
+    final String hostIp = "1.2.3.4";
+    final String appPid = "1234";
+    final String fqn = "foo.bar.TestClass.testMethod()";
+
+    SpanAttributes attr = Mockito.mock(SpanAttributes.class);
+    Mockito.when(attr.getLandscapeToken()).thenReturn(token);
+    Mockito.when(attr.getHostIPAddress()).thenReturn(hostIp);
+    Mockito.when(attr.getApplicationPID()).thenReturn(appPid);
+    Mockito.when(attr.getMethodFQN()).thenReturn(fqn);
+
+
     final String expectedValue = "429756767f5de088856ba6d2dbbb973ee7d740b75e5cfb9cfc60610e07941136";
-    assertEquals(expectedValue, HashHelper.spanToHexHashString(validSpan), "Hashes are not equal");
+    assertEquals(expectedValue, HashHelper.fromSpanAttributes(attr), "Hashes are not equal");
   }
 
 

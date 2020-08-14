@@ -1,9 +1,14 @@
 package net.explorviz.adapter.translation;
 
+import io.opencensus.proto.trace.v1.AttributeValue;
+import io.opencensus.proto.trace.v1.Span;
+import java.util.Map;
+import net.explorviz.avro.SpanStructure;
+
 /**
- * Contains the names of the additional attributes each span contains.
+ * Reads the attributes of a {@link Span}.
  */
-public final class SpanAttributes {
+public class SpanAttributes {
 
   /**
    * The token that uniquely identifies the landscape a span belongs to.
@@ -39,5 +44,89 @@ public final class SpanAttributes {
    * The fully qualified name of the operation/method called
    */
   public static final String METHOD_FQN = "method_fqn";
+
+
+  private final Map<String, AttributeValue> attributes;
+
+  /**
+   * Reads attributes from a span.
+   *
+   * @param span the span to read attributes out of
+   */
+  SpanAttributes(final Span span) {
+    this.attributes = span.getAttributes().getAttributeMapMap();
+  }
+
+  public String getLandscapeToken() {
+    String token = null;
+    if (attributes.containsKey(LANDSCAPE_TOKEN)) {
+      token =  attributes.get(LANDSCAPE_TOKEN).getStringValue().getValue();
+    }
+    return token;
+  }
+
+  public String getHostName() {
+    String hostName = null;
+    if (attributes.containsKey(HOST_NAME)) {
+      hostName = attributes.get(HOST_NAME).getStringValue().getValue();
+    }
+    return hostName;
+  }
+
+  public String getHostIPAddress() {
+    String hostIP = null;
+    if (attributes.containsKey(HOST_IP)) {
+      hostIP = attributes.get(HOST_IP).getStringValue().getValue();
+    }
+    return hostIP;
+  }
+
+  public String getApplicationName() {
+    String appName = null;
+    if (attributes.containsKey(APPLICATION_NAME)) {
+      appName = attributes.get(APPLICATION_NAME).getStringValue().getValue();
+    }
+    return appName;
+  }
+
+  public String getApplicationPID() {
+    String appPid = null;
+    if (attributes.containsKey(APPLICATION_PID)) {
+      appPid = attributes.get(APPLICATION_PID).getStringValue().getValue();
+    }
+    return appPid;
+  }
+
+  public String getApplicationLanguage() {
+    String appLang = null;
+    if (attributes.containsKey(APPLICATION_LANGUAGE)) {
+      appLang = attributes.get(APPLICATION_LANGUAGE).getStringValue().getValue();
+    }
+    return appLang;
+  }
+
+  public String getMethodFQN() {
+    String fqn = null;
+    if (attributes.containsKey(METHOD_FQN)) {
+      fqn = attributes.get(METHOD_FQN).getStringValue().getValue();
+    }
+    return fqn;
+  }
+
+  /**
+   * Appends all attributes to the given SpanStructure builder.
+   *
+   * @param builder the builder to append the attributes to
+   */
+  public void appendToStructure(final SpanStructure.Builder builder) {
+    builder
+        .setLandscapeToken(getLandscapeToken())
+        .setHostname(getHostName())
+        .setHostIpAddress(getHostIPAddress())
+        .setAppPid(getApplicationPID())
+        .setAppName(getApplicationName())
+        .setAppLanguage(getApplicationLanguage())
+        .setFullyQualifiedOperationName(getMethodFQN());
+  }
 
 }
