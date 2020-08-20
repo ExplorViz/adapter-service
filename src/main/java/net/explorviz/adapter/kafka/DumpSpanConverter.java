@@ -14,28 +14,23 @@ import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanConverter;
-import net.explorviz.adapter.validation.InvalidSpanException;
-import net.explorviz.adapter.validation.SpanSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanDynamic;
+import net.explorviz.avro.SpanStructure;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class SpanTranslatorStream {
+public class DumpSpanConverter {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SpanTranslatorStream.class);
+
 
   private final SchemaRegistryClient registry;
 
@@ -45,24 +40,23 @@ public class SpanTranslatorStream {
 
   private Topology topology;
 
-  private final SpanValidator validator;
-  private final SpanSanitizer sanitizer;
 
-  private final SpanConverter converter;
+  private final SpanValidator validator;
+  private final StructureTransformer structureTransformer;
+  private final DynamicTransformer dynamicTransformer;
 
   private KafkaStreams streams;
 
   @Inject
-  public SpanTranslatorStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                              SpanConverter converter, final SpanValidator validator,
-                              final SpanSanitizer sanitizer) {
+  public DumpSpanConverter(final SchemaRegistryClient registry, final KafkaConfig config,
+                           final StructureTransformer structureTransformer,
+                           final DynamicTransformer dynamicTransformer,
+                           final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
-
-    this.converter = converter;
     this.validator = validator;
-    this.sanitizer = sanitizer;
-
+    this.structureTransformer = structureTransformer;
+    this.dynamicTransformer = dynamicTransformer;
 
     this.setupStreamsConfig();
     this.buildTopology();
@@ -94,37 +88,31 @@ public class SpanTranslatorStream {
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
         return DumpSpans.parseFrom(d).getSpansList();
-      } catch (InvalidProtocolBufferException e) {
+      } catch (final InvalidProtocolBufferException e) {
         return new ArrayList<>();
       }
     });
 
-    final KStream<String, EVSpan> traceIdEVSpanStream = spanKStream.map(($, s) -> {
-      EVSpan span = converter.toEVSpan(s);
-      return new KeyValue<>(span.getTraceId(), span);
-    }).mapValues(s -> sanitizer.sanitize(s));
+    KStream<String, SpanStructure> spanStructureStream =
+        spanKStream.transform(() -> structureTransformer);
 
-    final KStream<String, EVSpan> validEVSpanStream =
-        traceIdEVSpanStream.filter(($, v) -> validator.isValid(v));
-    final KStream<String, EVSpan> invalidEVSpanStream =
-        traceIdEVSpanStream.filterNot(($, v) -> validator.isValid(v));
+    final KStream<String, SpanStructure> validSpanStructureStream =
+        spanStructureStream.filter(($, v) -> this.validator.isValid(v));
+    // final KStream<String, SpanStructure> invalidSpanStructureStream =
+    // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
 
 
-    //validEVSpanStream.to(this.config.getOutTopic(),
-    //    Produced.with(Serdes.String(), this.getValueSerde()));
+    KStream<String, SpanDynamic> spanDynamicStream =
+        spanKStream.transform(() -> dynamicTransformer);
 
-    validEVSpanStream
-        .to(this.config.getOutTopic(), Produced.with(Serdes.String(), this.getValueSerde()));
 
-    // TODO: invalidEVSpanStream to Event Messages
-    invalidEVSpanStream.mapValues(s -> {
-      try {
-        validator.validate(s);
-        return null;
-      } catch (InvalidSpanException e) {
-        return e;
-      }
-    }).foreach((k, e) -> LOGGER.warn("Rejected a span {}: {}", e.getSpan(), e.getMessage()));
+    validSpanStructureStream
+        .to(this.config.getStructureOutTopic(),
+            Produced.with(Serdes.String(), this.getValueSerde()));
+
+    spanDynamicStream.to(this.config.getDynamicOutTopic(),
+        Produced.with(Serdes.String(), this.getValueSerde()));
+
 
 
     this.topology = builder.build();

@@ -1,29 +1,19 @@
 package net.explorviz.adapter.validation;
 
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
 
 /**
- * Validates and possibly manipulates {@link EVSpan}s prior to processing.
+ * Validates and possibly manipulates {@link SpanStructure}s prior to processing.
  */
 public interface SpanValidator {
 
   /**
-   * Checks if the given span is valid and throws if not.
+   * Checks if the given span is valid.
    *
    * @param span the span
-   * @throws InvalidSpanException if the span is invalid and can't be recovered
+   * @return Boolean that indicates if span is valid.
    */
-  void validate(EVSpan span) throws InvalidSpanException;
-
-  /**
-   * Same as {@link #validate(EVSpan)} but instead of throwing, this method returns a boolean value
-   * that reflects the validity of the span.
-   *
-   * @param span the span
-   * @return true iff the span is valid
-   */
-  boolean isValid(EVSpan span);
-
+  boolean isValid(SpanStructure span);
 
 
 }

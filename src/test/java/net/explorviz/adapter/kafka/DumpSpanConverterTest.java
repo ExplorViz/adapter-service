@@ -20,13 +20,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanConverter;
-import net.explorviz.adapter.translation.TraceAttributes;
-import net.explorviz.adapter.validation.NoOpSanitizer;
-import net.explorviz.adapter.validation.SpanSanitizer;
+import net.explorviz.adapter.translation.SpanDynamicConverter;
+import net.explorviz.adapter.translation.SpanStructureConverter;
+import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.validation.NoOpStructureSanitizer;
+import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.adapter.validation.StrictValidator;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanDynamic;
+import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
@@ -38,14 +40,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class SpanTranslatorStreamTest {
+class DumpSpanConverterTest {
 
   private TopologyTestDriver driver;
 
   private TestInputTopic<byte[], byte[]> inputTopic;
-  private TestOutputTopic<String, EVSpan> outputTopic;
+  private TestOutputTopic<String, SpanStructure> structureOutputTopic;
+  private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
 
-  private SpecificAvroSerde<EVSpan> evSpanSerDe;
+  private SpecificAvroSerde<SpanStructure> SpanStructureSerDe;
+  private SpecificAvroSerde<SpanDynamic> SpanDynamicSerDe;
 
   @Inject
   KafkaConfig config;
@@ -55,12 +59,16 @@ class SpanTranslatorStreamTest {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    SpanValidator v = new StrictValidator();
-    SpanSanitizer s = new NoOpSanitizer();
-    SpanConverter c = new SpanConverter();
+    final SpanValidator v = new StrictValidator();
+    final SpanStructureSanitizer s = new NoOpStructureSanitizer();
+    final SpanStructureConverter c = new SpanStructureConverter();
+    final StructureTransformer structureTransformer = new StructureTransformer(s, c);
+    final DynamicTransformer dynamicTransformer =
+        new DynamicTransformer(new SpanDynamicConverter());
 
     final Topology topology =
-        new SpanTranslatorStream(schemaRegistryClient, this.config, c, v, s).getTopology();
+        new DumpSpanConverter(schemaRegistryClient, this.config, structureTransformer,
+            dynamicTransformer, v).getTopology();
 
     final Properties props = new Properties();
     props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -68,39 +76,48 @@ class SpanTranslatorStreamTest {
 
     this.driver = new TopologyTestDriver(topology, props);
 
-    this.evSpanSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+    this.SpanStructureSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+    this.SpanDynamicSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
 
-    this.evSpanSerDe.configure(
+
+    this.SpanStructureSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
+
+    this.SpanDynamicSerDe.configure(
+        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
+
 
     this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
         Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
-    this.outputTopic = this.driver.createOutputTopic("explorviz-spans",
-        Serdes.String().deserializer(), this.evSpanSerDe.deserializer());
+    this.structureOutputTopic = this.driver.createOutputTopic(config.getStructureOutTopic(),
+        Serdes.String().deserializer(), this.SpanStructureSerDe.deserializer());
+    this.dynamicOutputTopic = this.driver.createOutputTopic(config.getDynamicOutTopic(),
+        Serdes.String().deserializer(), this.SpanDynamicSerDe.deserializer());
   }
 
   @AfterEach
   void tearDown() {
-    this.evSpanSerDe.close();
+    this.SpanStructureSerDe.close();
+    this.SpanDynamicSerDe.close();
     this.driver.close();
   }
 
   private Span sampleSpan() {
 
-    Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(TraceAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
+    final Map<String, AttributeValue> attrMap = new HashMap<>();
+    attrMap.put(SpanAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(TraceAttributes.HOST_IP, AttributeValue.newBuilder()
+    attrMap.put(SpanAttributes.HOST_IP, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(TraceAttributes.HOST_NAME, AttributeValue.newBuilder()
+    attrMap.put(SpanAttributes.HOST_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(TraceAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
+    attrMap.put(SpanAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(TraceAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
+    attrMap.put(SpanAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(TraceAttributes.APPLICATION_PID, AttributeValue.newBuilder()
+    attrMap.put(SpanAttributes.APPLICATION_PID, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(TraceAttributes.METHOD_FQN, AttributeValue.newBuilder()
+    attrMap.put(SpanAttributes.METHOD_FQN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
 
 
@@ -108,6 +125,7 @@ class SpanTranslatorStreamTest {
         .setTraceId(
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
+        .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
         .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
         .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
         .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap))
@@ -116,27 +134,26 @@ class SpanTranslatorStreamTest {
 
   @Test
   void testAttributeTranslation() {
-    final Span testSpan = sampleSpan();
+    final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final EVSpan result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
-        attrs.get(TraceAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(SpanAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
     final String expectedHostName =
-        attrs.get(TraceAttributes.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIP = attrs.get(TraceAttributes.HOST_IP).getStringValue().getValue();
+        attrs.get(SpanAttributes.HOST_NAME).getStringValue().getValue();
+    final String expectedHostIP = attrs.get(SpanAttributes.HOST_IP).getStringValue().getValue();
     final String expectedAppName =
-        attrs.get(TraceAttributes.APPLICATION_NAME).getStringValue().getValue();
+        attrs.get(SpanAttributes.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
-        attrs.get(TraceAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
+        attrs.get(SpanAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
     final String expectedAppPID =
-        attrs.get(TraceAttributes.APPLICATION_PID).getStringValue().getValue();
+        attrs.get(SpanAttributes.APPLICATION_PID).getStringValue().getValue();
     final String expectedOperationName =
-        attrs.get(TraceAttributes.METHOD_FQN).getStringValue().getValue();
-
+        attrs.get(SpanAttributes.METHOD_FQN).getStringValue().getValue();
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 
@@ -147,7 +164,8 @@ class SpanTranslatorStreamTest {
     assertEquals(expectedAppPID, result.getAppPid(), "Invalid application pid");
     assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
 
-    assertEquals(expectedOperationName, result.getOperationName(), "Invalid operation name");
+    assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),
+        "Invalid operation name");
 
   }
 
@@ -155,39 +173,43 @@ class SpanTranslatorStreamTest {
   @Test
   void testIdTranslation() {
 
-    final Span testSpan = sampleSpan();
+    final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final EVSpan result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
     // Check IDs
-    String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
-    String tid = BaseEncoding.base16().encode(testSpan.getTraceId().toByteArray(), 0, 16);
+    final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
     assertEquals(sid, result.getSpanId());
-    assertEquals(tid, result.getTraceId());
-
   }
 
   @Test
   void testTimestampTranslation() {
-    final Span testSpan = sampleSpan();
+    final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final EVSpan result = this.outputTopic.readKeyValue().value;
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-
-    final Instant expectedStartTime = Instant
-        .ofEpochSecond(sampleSpan().getStartTime().getSeconds(),
-            sampleSpan().getStartTime().getNanos());
-    final long expectedEndTime = Instant.ofEpochSecond(sampleSpan().getEndTime().getSeconds(),
-        sampleSpan().getEndTime().getNanos()).toEpochMilli();
+    final Instant expectedTimestamp = Instant
+        .ofEpochSecond(this.sampleSpan().getStartTime().getSeconds(),
+            this.sampleSpan().getStartTime().getNanos());
 
     // Start and End time
-    assertEquals(expectedStartTime, Instant.ofEpochSecond(result.getStartTime().getSeconds(),
-        result.getStartTime().getNanoAdjust()));
-    assertEquals(expectedEndTime, (long) result.getEndTime());
+    assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
+        result.getTimestamp().getNanoAdjust()));
+  }
+
+  @Test
+  void testDynamicTranslation() {
+    final Span testSpan = this.sampleSpan();
+    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+
+    final SpanDynamic result = this.dynamicOutputTopic.readKeyValue().value;
+    System.out.println(result);
+
   }
 
 

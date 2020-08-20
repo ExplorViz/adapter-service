@@ -4,87 +4,99 @@ package net.explorviz.adapter.validation;
 import java.time.DateTimeException;
 import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
-import net.explorviz.avro.EVSpan;
+import net.explorviz.avro.SpanStructure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Validator that enforces that all values of the {@link EVSpan} are set and valid.
- * Does not sanitize invalid attributes with default values.
+ * Validator that enforces that all values of the {@link SpanStructure} are set and valid. Does not
+ * sanitize invalid attributes with default values.
  */
 @ApplicationScoped
 public class StrictValidator implements SpanValidator {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
+
   @Override
-  public void validate(EVSpan span) throws InvalidSpanException {
+  public boolean isValid(final SpanStructure span) {
 
     if (span.getLandscapeToken() == null || span.getLandscapeToken().isBlank()) {
-      throw new InvalidSpanException("No token", span);
-    }
-
-    validateTimestamp(span);
-    validateHost(span);
-    validateApp(span);
-    validateOperation(span);
-  }
-
-  @Override
-  public boolean isValid(EVSpan span) {
-    try {
-      validate(span);
-      return true;
-    } catch (InvalidSpanException e) {
+      LOGGER.error("No token: {}", span);
       return false;
     }
+
+    if (span.getHashCode() == null || span.getHashCode().isBlank()) {
+      LOGGER.error("No hash code: {}", span);
+      return false;
+    }
+
+    return this.validateTimestamp(span) &&
+        this.validateHost(span) &&
+        this.validateApp(span) &&
+        this.validateOperation(span);
   }
 
-  private void validateTimestamp(EVSpan span) throws InvalidSpanException {
+  private boolean validateTimestamp(final SpanStructure span) {
     try {
-      Instant ignored = Instant.ofEpochSecond(span.getStartTime().getSeconds(),
-          span.getStartTime().getNanoAdjust());
+
+      final Instant ignored = Instant.ofEpochSecond(span.getTimestamp().getSeconds(),
+          span.getTimestamp().getNanoAdjust());
+
       if (ignored.getEpochSecond() <= 0) {
         throw new NumberFormatException("Time must be positive");
       }
     } catch (DateTimeException | NumberFormatException e) {
-      throw new InvalidSpanException("Invalid timestamp", e, span);
+      LOGGER.error("Invalid timestamp: {}, {}", span, e);
+      return false;
     }
+    return true;
   }
 
-  private void validateHost(EVSpan span) throws InvalidSpanException {
-    if (isBlank(span.getHostname())) {
-      throw new InvalidSpanException("No hostname", span);
+  private boolean validateHost(final SpanStructure span) {
+    if (this.isBlank(span.getHostname())) {
+      LOGGER.error("No hostname: {}", span);
+      return false;
     }
-    if (isBlank(span.getHostIpAddress())) {
-      throw new InvalidSpanException("No IP address", span);
+    if (this.isBlank(span.getHostIpAddress())) {
+      LOGGER.error("No IP address: {}", span);
+      return false;
     }
+    return true;
   }
 
-  private void validateApp(EVSpan span) throws InvalidSpanException {
-    if (isBlank(span.getAppName())) {
-      throw new InvalidSpanException("No application name", span);
+  private boolean validateApp(final SpanStructure span) {
+    if (this.isBlank(span.getAppName())) {
+      LOGGER.error("No application name: {}", span);
+      return false;
     }
 
-    if (isBlank(span.getAppLanguage())) {
-      throw new InvalidSpanException("No application language", span);
+    if (this.isBlank(span.getAppLanguage())) {
+      LOGGER.error("No application language: {}", span);
+      return false;
     }
 
-    if (isBlank(span.getAppPid())) {
-      throw new InvalidSpanException("No application PID", span);
+    if (this.isBlank(span.getAppPid())) {
+      LOGGER.error("No application PID: {}", span);
+      return false;
     }
+
+    return true;
   }
 
-  private void validateOperation(EVSpan span) throws InvalidSpanException {
+  private boolean validateOperation(final SpanStructure span) {
     /*
-      By definition getOperationName().split("."):
-        Last entry is method name,
-        next to last is class name,
-        remaining elements form the package name which must not be empty
-    */
-    String[] operationFqnSplit = span.getOperationName().split("\\.");
+     * By definition getFullyQualifiedOperationName().split("."): Last entry is method name, next to
+     * last is class name, remaining elements form the package name which must not be empty
+     */
+    final String[] operationFqnSplit = span.getFullyQualifiedOperationName().split("\\.");
     if (operationFqnSplit.length < 3) {
-      throw new InvalidSpanException("Invalid operation Name", span);
+      LOGGER.error("Invalid operation name: {}", span);
+      return false;
     }
+    return true;
   }
 
-  private boolean isBlank(String s) {
+  private boolean isBlank(final String s) {
     return s == null || s.isBlank();
   }
 

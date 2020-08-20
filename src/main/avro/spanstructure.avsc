@@ -1,7 +1,7 @@
 {
   "namespace": "net.explorviz.avro",
   "type": "record",
-  "name": "EVSpan",
+  "name": "SpanStructure",
   "fields": [
     {
       "name": "spanId",
@@ -12,28 +12,16 @@
       "type": "string"
     },
     {
-      "name": "traceId",
-      "type": "string"
-    },
-    {
-      "name": "startTime",
+      "name": "timestamp",
       "type": "net.explorviz.avro.Timestamp"
     },
     {
-      "name": "endTime",
-      "type": "long"
-    },
-    {
-      "name": "duration",
-      "type": "long"
-    },
-    {
-      "name": "operationName",
+      "name": "hashCode",
       "type": "string"
     },
     {
-      "name": "requestCount",
-      "type": "int"
+      "name": "fullyQualifiedOperationName",
+      "type": "string"
     },
     {
       "name": "hostname",
