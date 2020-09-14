@@ -9,8 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Validator that enforces that all values of the {@link SpanStructure} are set and valid. Does not
- * sanitize invalid attributes with default values.
+ * Validator that enforces that all values of the {@link SpanStructure} are set and valid.
  */
 @ApplicationScoped
 public class StrictValidator implements SpanValidator {
