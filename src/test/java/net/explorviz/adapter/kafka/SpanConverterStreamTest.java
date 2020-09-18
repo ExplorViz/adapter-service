@@ -2,27 +2,27 @@ package net.explorviz.adapter.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.opencensus.proto.dump.DumpSpans;
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.Span;
-import io.opencensus.proto.trace.v1.TruncatableString;
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.common.v1.KeyValue;
+import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.test.junit.QuarkusTest;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import java.util.HashMap;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+import net.explorviz.adapter.translation.IdHelper;
+import net.explorviz.adapter.translation.SpanAttributes;
 import net.explorviz.adapter.translation.SpanDynamicConverter;
 import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.translation.SpanAttributes;
 import net.explorviz.adapter.validation.NoOpStructureSanitizer;
 import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
@@ -40,7 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DumpSpanConverterTest {
+class SpanConverterStreamTest {
 
   private TopologyTestDriver driver;
 
@@ -67,7 +67,7 @@ class DumpSpanConverterTest {
         new DynamicTransformer(new SpanDynamicConverter());
 
     final Topology topology =
-        new DumpSpanConverter(schemaRegistryClient, this.config, structureTransformer,
+        new SpanConverterStream(schemaRegistryClient, this.config, structureTransformer,
             dynamicTransformer, v).getTopology();
 
     final Properties props = new Properties();
@@ -87,7 +87,7 @@ class DumpSpanConverterTest {
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
 
-    this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
+    this.inputTopic = this.driver.createInputTopic(config.getInTopic(),
         Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
     this.structureOutputTopic = this.driver.createOutputTopic(config.getStructureOutTopic(),
         Serdes.String().deserializer(), this.SpanStructureSerDe.deserializer());
@@ -104,67 +104,57 @@ class DumpSpanConverterTest {
 
   private Span sampleSpan() {
 
-    final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(SpanAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(SpanAttributes.HOST_IP, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(SpanAttributes.HOST_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(SpanAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_PID, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(SpanAttributes.METHOD_FQN, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
+    final List<KeyValue> attrMap = new ArrayList<>();
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.LANDSCAPE_TOKEN)
+        .setValue(AnyValue.newBuilder().setStringValue("token").build()).build());
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.HOST_IP)
+        .setValue(AnyValue.newBuilder().setStringValue("1.2.3.4").build()).build());
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.HOST_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue("hostname").build()).build());
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.APPLICATION_LANGUAGE)
+        .setValue(AnyValue.newBuilder().setStringValue("language").build()).build());
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.APPLICATION_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue("appname").build()).build());
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.APPLICATION_PID)
+        .setValue(AnyValue.newBuilder().setStringValue("1234").build()).build());
+    attrMap.add(KeyValue.newBuilder().setKey(SpanAttributes.METHOD_FQN)
+        .setValue(AnyValue.newBuilder().setStringValue("net.example.Bar.foo()").build()).build());
 
 
-    return Span.newBuilder()
+    Span.Builder builder = Span.newBuilder()
         .setTraceId(
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
-        .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap))
-        .build();
+        .setStartTimeUnixNano(1600417977219429929L)
+        .setEndTimeUnixNano(1600417977219529929L)
+        .addAllAttributes(attrMap);
+
+    return builder.build();
   }
 
   @Test
   void testAttributeTranslation() {
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), testSpan.toByteArray());
+
+    assert(!structureOutputTopic.isEmpty());
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
-    final String expectedToken =
-        attrs.get(SpanAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
-    final String expectedHostName =
-        attrs.get(SpanAttributes.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIP = attrs.get(SpanAttributes.HOST_IP).getStringValue().getValue();
-    final String expectedAppName =
-        attrs.get(SpanAttributes.APPLICATION_NAME).getStringValue().getValue();
-    final String expectedAppLang =
-        attrs.get(SpanAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
-    final String expectedAppPID =
-        attrs.get(SpanAttributes.APPLICATION_PID).getStringValue().getValue();
-    final String expectedOperationName =
-        attrs.get(SpanAttributes.METHOD_FQN).getStringValue().getValue();
+    SpanAttributes expected = new SpanAttributes(testSpan);
 
-    assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
+    assertEquals(expected.getLandscapeToken(), result.getLandscapeToken(), "Invalid token");
 
-    assertEquals(expectedHostIP, result.getHostIpAddress(), "Invalid host ip address");
-    assertEquals(expectedHostName, result.getHostname(), "Invalid host name");
+    assertEquals(expected.getHostIPAddress(), result.getHostIpAddress(), "Invalid host ip address");
+    assertEquals(expected.getHostName(), result.getHostname(), "Invalid host name");
 
-    assertEquals(expectedAppName, result.getAppName(), "Invalid application name");
-    assertEquals(expectedAppPID, result.getAppPid(), "Invalid application pid");
-    assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
+    assertEquals(expected.getApplicationName(), result.getAppName(), "Invalid application name");
+    assertEquals(expected.getApplicationPID(), result.getAppPid(), "Invalid application pid");
+    assertEquals(expected.getApplicationLanguage(), result.getAppLanguage(),
+        "Invalid application language");
 
-    assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),
+    assertEquals(expected.getMethodFQN(), result.getFullyQualifiedOperationName(),
         "Invalid operation name");
 
   }
@@ -174,27 +164,25 @@ class DumpSpanConverterTest {
   void testIdTranslation() {
 
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), testSpan.toByteArray());
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
     // Check IDs
-    final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
+    final String sid = IdHelper.converterSpanId(testSpan.getSpanId().toByteArray());
     assertEquals(sid, result.getSpanId());
+
   }
 
   @Test
   void testTimestampTranslation() {
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), testSpan.toByteArray());
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    final Instant expectedTimestamp = Instant
-        .ofEpochSecond(this.sampleSpan().getStartTime().getSeconds(),
-            this.sampleSpan().getStartTime().getNanos());
+    final Instant expectedTimestamp =
+        Instant.EPOCH.plus(testSpan.getStartTimeUnixNano(), ChronoUnit.NANOS);
 
     // Start and End time
     assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
@@ -204,13 +192,14 @@ class DumpSpanConverterTest {
   @Test
   void testDynamicTranslation() {
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), testSpan.toByteArray());
 
     final SpanDynamic result = this.dynamicOutputTopic.readKeyValue().value;
     System.out.println(result);
 
   }
+
+  // TODO: Add tests for dynamic data
 
 
 }
