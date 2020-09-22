@@ -4,9 +4,11 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.opentelemetry.proto.trace.v1.Span;
+import io.opencensus.proto.dump.DumpSpans;
+import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
@@ -26,7 +28,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 
 @ApplicationScoped
-public class SpanConverterStream {
+public class DumpSpanConverter {
 
 
 
@@ -46,10 +48,10 @@ public class SpanConverterStream {
   private KafkaStreams streams;
 
   @Inject
-  public SpanConverterStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                             final StructureTransformer structureTransformer,
-                             final DynamicTransformer dynamicTransformer,
-                             final SpanValidator validator) {
+  public DumpSpanConverter(final SchemaRegistryClient registry, final KafkaConfig config,
+                           final StructureTransformer structureTransformer,
+                           final DynamicTransformer dynamicTransformer,
+                           final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -83,17 +85,13 @@ public class SpanConverterStream {
     final KStream<byte[], byte[]> dumpSpanStream = builder.stream(this.config.getInTopic(),
         Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
-    final KStream<byte[], Span> spanKStream = dumpSpanStream.mapValues(v -> {
+    final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
-        return io.opentelemetry.proto.trace.v1.Span.parseFrom(v);
-      } catch (InvalidProtocolBufferException e) {
-        e.printStackTrace();
-        return null;
+        return DumpSpans.parseFrom(d).getSpansList();
+      } catch (final InvalidProtocolBufferException e) {
+        return new ArrayList<>();
       }
     });
-
-    spanKStream.foreach((k,v) -> System.out.println("SPANID: "+ v.getSpanId()));
-    spanKStream.foreach((k,v) -> System.out.println("TRACEID: "+ v.getTraceId() +  "("+v.getTraceId().toStringUtf8()+")"));
 
     KStream<String, SpanStructure> spanStructureStream =
         spanKStream.transform(() -> structureTransformer);

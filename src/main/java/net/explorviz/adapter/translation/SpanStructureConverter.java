@@ -1,8 +1,6 @@
 package net.explorviz.adapter.translation;
 
-import io.opentelemetry.proto.trace.v1.Span;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
@@ -27,12 +25,10 @@ public class SpanStructureConverter {
    */
   public SpanStructure toSpanStructure(final Span original) {
 
-    Instant startInstant = Instant.EPOCH.plus(original.getStartTimeUnixNano(), ChronoUnit.NANOS);
-
     final String spanId = IdHelper.converterSpanId(original.getSpanId().toByteArray());
 
     final Timestamp startTime =
-        new Timestamp(startInstant.getEpochSecond(), startInstant.getNano());
+        new Timestamp(original.getStartTime().getSeconds(), original.getStartTime().getNanos());
 
     final SpanStructure.Builder builder = SpanStructure.newBuilder();
     builder

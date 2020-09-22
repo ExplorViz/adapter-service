@@ -1,6 +1,6 @@
 package net.explorviz.adapter.kafka;
 
-import io.opentelemetry.proto.trace.v1.Span;
+import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.translation.SpanDynamicConverter;

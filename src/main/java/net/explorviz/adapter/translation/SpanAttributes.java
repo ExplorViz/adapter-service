@@ -1,9 +1,7 @@
 package net.explorviz.adapter.translation;
 
-
-import io.opentelemetry.proto.common.v1.AnyValue;
-import io.opentelemetry.proto.trace.v1.Span;
-import java.util.HashMap;
+import io.opencensus.proto.trace.v1.AttributeValue;
+import io.opencensus.proto.trace.v1.Span;
 import java.util.Map;
 import net.explorviz.avro.SpanStructure;
 
@@ -48,24 +46,21 @@ public class SpanAttributes {
   public static final String METHOD_FQN = "method_fqn";
 
 
-  private final Map<String, AnyValue> attributes;
+  private final Map<String, AttributeValue> attributes;
 
   /**
    * Reads attributes from a span.
    *
    * @param span the span to read attributes out of
    */
-  public SpanAttributes(final Span span) {
-    this.attributes = new HashMap<>();
-    span.getAttributesList()
-        .forEach(kv -> attributes.put(kv.getKey(), kv.getValue()));
+  SpanAttributes(final Span span) {
+    this.attributes = span.getAttributes().getAttributeMapMap();
   }
 
   public String getLandscapeToken() {
-
     String token = null;
     if (attributes.containsKey(LANDSCAPE_TOKEN)) {
-      token = attributes.get(LANDSCAPE_TOKEN).getStringValue();
+      token =  attributes.get(LANDSCAPE_TOKEN).getStringValue().getValue();
     }
     return token;
   }
@@ -73,7 +68,7 @@ public class SpanAttributes {
   public String getHostName() {
     String hostName = null;
     if (attributes.containsKey(HOST_NAME)) {
-      hostName = attributes.get(HOST_NAME).getStringValue();
+      hostName = attributes.get(HOST_NAME).getStringValue().getValue();
     }
     return hostName;
   }
@@ -81,7 +76,7 @@ public class SpanAttributes {
   public String getHostIPAddress() {
     String hostIP = null;
     if (attributes.containsKey(HOST_IP)) {
-      hostIP = attributes.get(HOST_IP).getStringValue();
+      hostIP = attributes.get(HOST_IP).getStringValue().getValue();
     }
     return hostIP;
   }
@@ -89,7 +84,7 @@ public class SpanAttributes {
   public String getApplicationName() {
     String appName = null;
     if (attributes.containsKey(APPLICATION_NAME)) {
-      appName = attributes.get(APPLICATION_NAME).getStringValue();
+      appName = attributes.get(APPLICATION_NAME).getStringValue().getValue();
     }
     return appName;
   }
@@ -97,7 +92,7 @@ public class SpanAttributes {
   public String getApplicationPID() {
     String appPid = null;
     if (attributes.containsKey(APPLICATION_PID)) {
-      appPid = attributes.get(APPLICATION_PID).getStringValue();
+      appPid = attributes.get(APPLICATION_PID).getStringValue().getValue();
     }
     return appPid;
   }
@@ -105,7 +100,7 @@ public class SpanAttributes {
   public String getApplicationLanguage() {
     String appLang = null;
     if (attributes.containsKey(APPLICATION_LANGUAGE)) {
-      appLang = attributes.get(APPLICATION_LANGUAGE).getStringValue();
+      appLang = attributes.get(APPLICATION_LANGUAGE).getStringValue().getValue();
     }
     return appLang;
   }
@@ -113,7 +108,7 @@ public class SpanAttributes {
   public String getMethodFQN() {
     String fqn = null;
     if (attributes.containsKey(METHOD_FQN)) {
-      fqn = attributes.get(METHOD_FQN).getStringValue();
+      fqn = attributes.get(METHOD_FQN).getStringValue().getValue();
     }
     return fqn;
   }
@@ -133,7 +128,5 @@ public class SpanAttributes {
         .setAppLanguage(getApplicationLanguage())
         .setFullyQualifiedOperationName(getMethodFQN());
   }
-
-
 
 }
