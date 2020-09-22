@@ -1,12 +1,12 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion.opentelemetry.stream;
 
-import io.opencensus.proto.trace.v1.Span;
+
+import io.opentelemetry.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanStructureConverter;
+import net.explorviz.adapter.conversion.opentelemetry.converter.OtSpanStructureConverter;
 import net.explorviz.adapter.util.PerfomanceLogger;
 import net.explorviz.adapter.validation.SpanStructureSanitizer;
-import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
@@ -24,11 +24,11 @@ public class StructureTransformer implements Transformer<byte[], Span, KeyValue<
 
   private final SpanStructureSanitizer sanitizer;
 
-  private final SpanStructureConverter converter;
+  private final OtSpanStructureConverter converter;
 
   @Inject
   public StructureTransformer(final SpanStructureSanitizer sanitizer,
-                              final SpanStructureConverter converter) {
+                              final OtSpanStructureConverter converter) {
     this.sanitizer = sanitizer;
     this.converter = converter;
   }

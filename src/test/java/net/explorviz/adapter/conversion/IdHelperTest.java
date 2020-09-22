@@ -1,4 +1,4 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.conversion;
 
 import com.google.common.io.BaseEncoding;
 import org.junit.jupiter.api.Assertions;

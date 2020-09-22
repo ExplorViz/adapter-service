@@ -1,19 +1,18 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion.opentelemetry.stream;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.opencensus.proto.dump.DumpSpans;
-import io.opencensus.proto.trace.v1.Span;
+import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import net.explorviz.adapter.injection.KafkaConfig;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
@@ -28,7 +27,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 
 @ApplicationScoped
-public class DumpSpanConverter {
+public class SpanConverterStream {
 
 
 
@@ -48,10 +47,10 @@ public class DumpSpanConverter {
   private KafkaStreams streams;
 
   @Inject
-  public DumpSpanConverter(final SchemaRegistryClient registry, final KafkaConfig config,
-                           final StructureTransformer structureTransformer,
-                           final DynamicTransformer dynamicTransformer,
-                           final SpanValidator validator) {
+  public SpanConverterStream(final SchemaRegistryClient registry, final KafkaConfig config,
+                             final StructureTransformer structureTransformer,
+                             final DynamicTransformer dynamicTransformer,
+                             final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -82,16 +81,20 @@ public class DumpSpanConverter {
 
     final StreamsBuilder builder = new StreamsBuilder();
 
-    final KStream<byte[], byte[]> dumpSpanStream = builder.stream(this.config.getInTopic(),
+    final KStream<byte[], byte[]> dumpSpanStream = builder.stream(this.config.getInTopicOpenTelemetry(),
         Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
-    final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
+    final KStream<byte[], Span> spanKStream = dumpSpanStream.mapValues(v -> {
       try {
-        return DumpSpans.parseFrom(d).getSpansList();
-      } catch (final InvalidProtocolBufferException e) {
-        return new ArrayList<>();
+        return Span.parseFrom(v);
+      } catch (InvalidProtocolBufferException e) {
+        e.printStackTrace();
+        return null;
       }
     });
+
+    spanKStream.foreach((k,v) -> System.out.println("SPANID: "+ v.getSpanId()));
+    spanKStream.foreach((k,v) -> System.out.println("TRACEID: "+ v.getTraceId() +  "("+v.getTraceId().toStringUtf8()+")"));
 
     KStream<String, SpanStructure> spanStructureStream =
         spanKStream.transform(() -> structureTransformer);
@@ -133,4 +136,3 @@ public class DumpSpanConverter {
   }
 
 }
-

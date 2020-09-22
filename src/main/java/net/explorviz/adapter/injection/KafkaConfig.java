@@ -1,4 +1,4 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.injection;
 
 import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -13,8 +13,11 @@ public class KafkaConfig {
   @ConfigProperty(name = "quarkus.kafka-streams.bootstrap-servers")
   String bootstrapServers;
 
-  @ConfigProperty(name = "quarkus.kafka-streams.topics")
-  String inTopic;
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.opencensus-spans")
+  String inTopicOpenCensus;
+
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.opentelemetry-spans")
+  String inTopicOpenTelemetry;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
   String structureOutTopic;
@@ -33,8 +36,12 @@ public class KafkaConfig {
     return this.bootstrapServers;
   }
 
-  public String getInTopic() {
-    return this.inTopic;
+  public String getInTopicOpenCensus() {
+    return inTopicOpenCensus;
+  }
+
+  public String getInTopicOpenTelemetry() {
+    return inTopicOpenTelemetry;
   }
 
   public String getStructureOutTopic() {

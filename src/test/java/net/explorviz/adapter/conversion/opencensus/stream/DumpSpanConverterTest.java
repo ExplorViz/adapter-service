@@ -1,4 +1,4 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion.opencensus.stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,9 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanDynamicConverter;
-import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.injection.KafkaConfig;
+import net.explorviz.adapter.conversion.opencensus.converter.OcSpanDynamicConverter;
+import net.explorviz.adapter.conversion.opencensus.converter.OcSpanStructureConverter;
+import net.explorviz.adapter.conversion.opencensus.converter.OcSpanAttributes;
 import net.explorviz.adapter.validation.NoOpStructureSanitizer;
 import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
@@ -61,10 +62,10 @@ class DumpSpanConverterTest {
 
     final SpanValidator v = new StrictValidator();
     final SpanStructureSanitizer s = new NoOpStructureSanitizer();
-    final SpanStructureConverter c = new SpanStructureConverter();
+    final OcSpanStructureConverter c = new OcSpanStructureConverter();
     final StructureTransformer structureTransformer = new StructureTransformer(s, c);
     final DynamicTransformer dynamicTransformer =
-        new DynamicTransformer(new SpanDynamicConverter());
+        new DynamicTransformer(new OcSpanDynamicConverter());
 
     final Topology topology =
         new DumpSpanConverter(schemaRegistryClient, this.config, structureTransformer,
@@ -87,7 +88,7 @@ class DumpSpanConverterTest {
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
 
-    this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
+    this.inputTopic = this.driver.createInputTopic("oc-span-batches",
         Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
     this.structureOutputTopic = this.driver.createOutputTopic(config.getStructureOutTopic(),
         Serdes.String().deserializer(), this.SpanStructureSerDe.deserializer());
@@ -105,19 +106,19 @@ class DumpSpanConverterTest {
   private Span sampleSpan() {
 
     final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(SpanAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(SpanAttributes.HOST_IP, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.HOST_IP, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(SpanAttributes.HOST_NAME, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.HOST_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(SpanAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_PID, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.APPLICATION_PID, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(SpanAttributes.METHOD_FQN, AttributeValue.newBuilder()
+    attrMap.put(OcSpanAttributes.METHOD_FQN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
 
 
@@ -142,18 +143,18 @@ class DumpSpanConverterTest {
 
     final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
-        attrs.get(SpanAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(OcSpanAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
     final String expectedHostName =
-        attrs.get(SpanAttributes.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIP = attrs.get(SpanAttributes.HOST_IP).getStringValue().getValue();
+        attrs.get(OcSpanAttributes.HOST_NAME).getStringValue().getValue();
+    final String expectedHostIP = attrs.get(OcSpanAttributes.HOST_IP).getStringValue().getValue();
     final String expectedAppName =
-        attrs.get(SpanAttributes.APPLICATION_NAME).getStringValue().getValue();
+        attrs.get(OcSpanAttributes.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
-        attrs.get(SpanAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
+        attrs.get(OcSpanAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
     final String expectedAppPID =
-        attrs.get(SpanAttributes.APPLICATION_PID).getStringValue().getValue();
+        attrs.get(OcSpanAttributes.APPLICATION_PID).getStringValue().getValue();
     final String expectedOperationName =
-        attrs.get(SpanAttributes.METHOD_FQN).getStringValue().getValue();
+        attrs.get(OcSpanAttributes.METHOD_FQN).getStringValue().getValue();
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 

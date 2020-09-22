@@ -1,9 +1,9 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion.opencensus.stream;
 
 import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanDynamicConverter;
+import net.explorviz.adapter.conversion.opencensus.converter.OcSpanDynamicConverter;
 import net.explorviz.adapter.util.PerfomanceLogger;
 import net.explorviz.avro.SpanDynamic;
 import org.apache.kafka.streams.KeyValue;
@@ -21,11 +21,11 @@ public class DynamicTransformer
   private PerfomanceLogger perfLogger =
       PerfomanceLogger.newOperationPerformanceLogger(LOGGER, 1000, "Converted {} spans in {} ms");
 
-  private final SpanDynamicConverter converter;
+  private final OcSpanDynamicConverter converter;
 
 
   @Inject
-  public DynamicTransformer(final SpanDynamicConverter converter) {
+  public DynamicTransformer(final OcSpanDynamicConverter converter) {
     this.converter = converter;
   }
 
