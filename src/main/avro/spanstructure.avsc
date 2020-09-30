@@ -25,7 +25,8 @@
     },
     {
       "name": "hostname",
-      "type": "string"
+      "type": "string",
+      "default": "UNKNOWN-HOST"
     },
     {
       "name": "hostIpAddress",
@@ -33,7 +34,8 @@
     },
     {
       "name": "appName",
-      "type": "string"
+      "type": "string",
+      "default": "UNKNOWN-APPLICATION"
     },
     {
       "name": "appPid",
@@ -41,7 +43,8 @@
     },
     {
       "name": "appLanguage",
-      "type": "string"
+      "type": "string",
+      "default": "UNKNOWN-LANGUAGE"
     }
   ]
 }
