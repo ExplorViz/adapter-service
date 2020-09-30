@@ -22,7 +22,7 @@ import java.util.Properties;
 import javax.inject.Inject;
 import net.explorviz.adapter.translation.SpanDynamicConverter;
 import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.translation.AttributesReader;
 import net.explorviz.adapter.validation.NoOpStructureSanitizer;
 import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
@@ -105,19 +105,19 @@ class DumpSpanConverterTest {
   private Span sampleSpan() {
 
     final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(SpanAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(SpanAttributes.HOST_IP, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(SpanAttributes.HOST_NAME, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.HOST_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(SpanAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_PID, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_PID, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(SpanAttributes.METHOD_FQN, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
 
 
@@ -142,18 +142,18 @@ class DumpSpanConverterTest {
 
     final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
-        attrs.get(SpanAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
     final String expectedHostName =
-        attrs.get(SpanAttributes.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIP = attrs.get(SpanAttributes.HOST_IP).getStringValue().getValue();
+        attrs.get(AttributesReader.HOST_NAME).getStringValue().getValue();
+    final String expectedHostIP = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
     final String expectedAppName =
-        attrs.get(SpanAttributes.APPLICATION_NAME).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
-        attrs.get(SpanAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
     final String expectedAppPID =
-        attrs.get(SpanAttributes.APPLICATION_PID).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_PID).getStringValue().getValue();
     final String expectedOperationName =
-        attrs.get(SpanAttributes.METHOD_FQN).getStringValue().getValue();
+        attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 

@@ -2,12 +2,8 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.TruncatableString;
-import java.util.HashMap;
-import java.util.Map;
 import net.explorviz.adapter.translation.HashHelper;
-import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.translation.AttributesReader;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -22,7 +18,7 @@ public class HashHelperTest {
     final String appPid = "1234";
     final String fqn = "foo.bar.TestClass.testMethod()";
 
-    SpanAttributes attr = Mockito.mock(SpanAttributes.class);
+    AttributesReader attr = Mockito.mock(AttributesReader.class);
     Mockito.when(attr.getLandscapeToken()).thenReturn(token);
     Mockito.when(attr.getHostIPAddress()).thenReturn(hostIp);
     Mockito.when(attr.getApplicationPID()).thenReturn(appPid);

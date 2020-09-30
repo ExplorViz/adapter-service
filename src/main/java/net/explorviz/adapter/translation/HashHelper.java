@@ -1,6 +1,5 @@
 package net.explorviz.adapter.translation;
 
-import io.opencensus.proto.trace.v1.Span;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -53,7 +52,7 @@ public class HashHelper {
 
   }
 
-  public static String fromSpanAttributes(final SpanAttributes attribute) {
+  public static String fromSpanAttributes(final AttributesReader attribute) {
     return createHash(
         attribute.getLandscapeToken(),
         attribute.getHostIPAddress(),
