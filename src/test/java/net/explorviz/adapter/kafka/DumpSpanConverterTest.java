@@ -23,6 +23,8 @@ import javax.inject.Inject;
 import net.explorviz.adapter.translation.SpanDynamicConverter;
 import net.explorviz.adapter.translation.SpanStructureConverter;
 import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.validation.NoOpStructureSanitizer;
+import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.adapter.validation.StrictValidator;
 import net.explorviz.avro.SpanDynamic;
@@ -58,8 +60,9 @@ class DumpSpanConverterTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
     final SpanValidator v = new StrictValidator();
+    final SpanStructureSanitizer s = new NoOpStructureSanitizer();
     final SpanStructureConverter c = new SpanStructureConverter();
-    final StructureTransformer structureTransformer = new StructureTransformer(c);
+    final StructureTransformer structureTransformer = new StructureTransformer(s, c);
     final DynamicTransformer dynamicTransformer =
         new DynamicTransformer(new SpanDynamicConverter());
 
