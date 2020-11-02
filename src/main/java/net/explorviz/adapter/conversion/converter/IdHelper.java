@@ -1,4 +1,4 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.conversion.converter;
 
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;

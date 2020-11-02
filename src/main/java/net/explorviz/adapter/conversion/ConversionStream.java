@@ -1,4 +1,4 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -14,6 +14,9 @@ import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
+import net.explorviz.adapter.conversion.transformer.StructureTransformer;
+import net.explorviz.adapter.injection.KafkaConfig;
 import net.explorviz.adapter.validation.SpanValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
@@ -28,9 +31,7 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 
 @ApplicationScoped
-public class DumpSpanConverter {
-
-
+public class ConversionStream {
 
   private final SchemaRegistryClient registry;
 
@@ -48,10 +49,10 @@ public class DumpSpanConverter {
   private KafkaStreams streams;
 
   @Inject
-  public DumpSpanConverter(final SchemaRegistryClient registry, final KafkaConfig config,
-                           final StructureTransformer structureTransformer,
-                           final DynamicTransformer dynamicTransformer,
-                           final SpanValidator validator) {
+  public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
+                          final StructureTransformer structureTransformer,
+                          final DynamicTransformer dynamicTransformer,
+                          final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;

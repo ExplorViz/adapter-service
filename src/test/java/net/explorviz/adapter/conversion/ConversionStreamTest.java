@@ -1,4 +1,4 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,9 +20,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanDynamicConverter;
-import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.conversion.converter.SpanAttributes;
+import net.explorviz.adapter.conversion.converter.SpanDynamicConverter;
+import net.explorviz.adapter.conversion.converter.SpanStructureConverter;
+import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
+import net.explorviz.adapter.conversion.transformer.StructureTransformer;
+import net.explorviz.adapter.injection.KafkaConfig;
 import net.explorviz.adapter.validation.NoOpStructureSanitizer;
 import net.explorviz.adapter.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.validation.SpanValidator;
@@ -40,7 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DumpSpanConverterTest {
+class ConversionStreamTest {
 
   private TopologyTestDriver driver;
 
@@ -67,7 +70,7 @@ class DumpSpanConverterTest {
         new DynamicTransformer(new SpanDynamicConverter());
 
     final Topology topology =
-        new DumpSpanConverter(schemaRegistryClient, this.config, structureTransformer,
+        new ConversionStream(schemaRegistryClient, this.config, structureTransformer,
             dynamicTransformer, v).getTopology();
 
     final Properties props = new Properties();

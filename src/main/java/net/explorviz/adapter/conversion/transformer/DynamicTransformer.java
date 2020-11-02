@@ -1,9 +1,9 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion.transformer;
 
 import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanDynamicConverter;
+import net.explorviz.adapter.conversion.converter.SpanDynamicConverter;
 import net.explorviz.adapter.util.PerfomanceLogger;
 import net.explorviz.avro.SpanDynamic;
 import org.apache.kafka.streams.KeyValue;

@@ -2,12 +2,9 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.TruncatableString;
-import java.util.HashMap;
-import java.util.Map;
-import net.explorviz.adapter.translation.HashHelper;
-import net.explorviz.adapter.translation.SpanAttributes;
+import net.explorviz.adapter.conversion.converter.HashHelper;
+
+import net.explorviz.adapter.conversion.converter.SpanAttributes;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

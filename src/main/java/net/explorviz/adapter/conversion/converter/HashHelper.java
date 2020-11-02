@@ -1,6 +1,5 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.conversion.converter;
 
-import io.opencensus.proto.trace.v1.Span;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

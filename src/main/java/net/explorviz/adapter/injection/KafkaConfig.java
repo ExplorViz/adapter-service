@@ -1,4 +1,4 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.injection;
 
 import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
