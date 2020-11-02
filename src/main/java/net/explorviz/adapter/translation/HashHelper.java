@@ -23,8 +23,8 @@ public class HashHelper {
     // helper
   }
 
-  private static String createHash(String landscapeToken, String hostIp, String appPid,
-                                  String methodFqn) {
+  private static String createHash(String landscapeToken, String hostIp, String applicationName,
+                                   String methodFqn) {
 
     final StringJoiner joiner = new StringJoiner(";");
 
@@ -36,7 +36,7 @@ public class HashHelper {
 
     joiner.add(landscapeToken);
     joiner.add(hostIp);
-    joiner.add(appPid);
+    joiner.add(applicationName);
     joiner.add(fullyQualifiedOperationName);
 
     MessageDigest digest;
@@ -57,7 +57,7 @@ public class HashHelper {
     return createHash(
         attribute.getLandscapeToken(),
         attribute.getHostIPAddress(),
-        attribute.getApplicationPID(),
+        attribute.getApplicationName(),
         attribute.getMethodFQN());
   }
 
