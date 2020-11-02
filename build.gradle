@@ -29,6 +29,10 @@ dependencies {
   implementation 'io.quarkus:quarkus-kafka-streams'    
   implementation 'io.quarkus:quarkus-container-image-docker'
 
+  implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging-kafka'
+  implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging'
+  implementation group: 'io.smallrye.reactive', name: 'smallrye-reactive-messaging-in-memory'
+
   implementation 'io.opencensus:opencensus-proto:0.2.0'
 
   implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'
