@@ -1,4 +1,4 @@
-package net.explorviz.adapter.validation;
+package net.explorviz.adapter.service.validation;
 
 import net.explorviz.avro.SpanStructure;
 

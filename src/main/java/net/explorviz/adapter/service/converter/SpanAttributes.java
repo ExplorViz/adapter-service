@@ -1,4 +1,4 @@
-package net.explorviz.adapter.conversion.converter;
+package net.explorviz.adapter.service.converter;
 
 import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;

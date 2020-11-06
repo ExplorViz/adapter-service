@@ -1,4 +1,4 @@
-package net.explorviz.adapter.conversion.converter;
+package net.explorviz.adapter.service.converter;
 
 import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
@@ -11,31 +11,23 @@ import org.slf4j.LoggerFactory;
  * Converts {@link Span}s to {@link SpanStructure}s.
  */
 @ApplicationScoped
-public class SpanStructureConverter {
+public class SpanStructureConverter implements SpanConverter<SpanStructure> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SpanStructureConverter.class);
 
-
-
-  /**
-   * Converts a {@link Span} to an {@link SpanStructure}
-   *
-   * @param original the original span
-   * @return the converted span
-   */
-  public SpanStructure toSpanStructure(final Span original) {
-
-    final String spanId = IdHelper.converterSpanId(original.getSpanId().toByteArray());
+  @Override
+  public SpanStructure fromOpenCensusSpan(final Span ocSpan) {
+    final String spanId = IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
 
     final Timestamp startTime =
-        new Timestamp(original.getStartTime().getSeconds(), original.getStartTime().getNanos());
+        new Timestamp(ocSpan.getStartTime().getSeconds(), ocSpan.getStartTime().getNanos());
 
     final SpanStructure.Builder builder = SpanStructure.newBuilder();
     builder
         .setSpanId(spanId)
         .setTimestamp(startTime);
 
-    final SpanAttributes spanAttributes = new SpanAttributes(original);
+    final SpanAttributes spanAttributes = new SpanAttributes(ocSpan);
     spanAttributes.appendToStructure(builder);
 
     // temporary hash code since the field is required for avro builder
@@ -50,8 +42,6 @@ public class SpanStructureConverter {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Converted SpanStructure: {}", span.toString());
     }
-
     return span;
   }
-
 }

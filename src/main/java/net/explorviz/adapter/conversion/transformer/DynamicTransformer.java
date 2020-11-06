@@ -3,7 +3,7 @@ package net.explorviz.adapter.conversion.transformer;
 import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.explorviz.adapter.conversion.converter.SpanDynamicConverter;
+import net.explorviz.adapter.service.converter.SpanDynamicConverter;
 import net.explorviz.avro.SpanDynamic;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
@@ -32,7 +32,7 @@ public class DynamicTransformer
 
   @Override
   public KeyValue<String, SpanDynamic> transform(final byte[] key, final Span value) {
-    SpanDynamic dynamic = converter.toSpanDynamic(value);
+    SpanDynamic dynamic = converter.fromOpenCensusSpan(value);
     return new KeyValue<>(dynamic.getTraceId(), dynamic);
   }
 

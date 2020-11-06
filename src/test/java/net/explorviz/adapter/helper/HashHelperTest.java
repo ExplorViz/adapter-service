@@ -2,9 +2,9 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import net.explorviz.adapter.conversion.converter.HashHelper;
+import net.explorviz.adapter.service.converter.HashHelper;
 
-import net.explorviz.adapter.conversion.converter.SpanAttributes;
+import net.explorviz.adapter.service.converter.SpanAttributes;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

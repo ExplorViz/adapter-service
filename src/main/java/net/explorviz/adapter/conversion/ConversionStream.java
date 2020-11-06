@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
 import net.explorviz.adapter.conversion.transformer.StructureTransformer;
 import net.explorviz.adapter.injection.KafkaConfig;
-import net.explorviz.adapter.validation.SpanValidator;
+import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.avro.specific.SpecificRecord;

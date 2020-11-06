@@ -1,4 +1,4 @@
-package net.explorviz.adapter.validation;
+package net.explorviz.adapter.service.validation;
 
 import java.time.Instant;
 import net.explorviz.avro.SpanStructure;

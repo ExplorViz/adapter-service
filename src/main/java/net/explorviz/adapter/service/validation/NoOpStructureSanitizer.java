@@ -1,4 +1,4 @@
-package net.explorviz.adapter.validation;
+package net.explorviz.adapter.service.validation;
 
 import javax.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.SpanStructure;

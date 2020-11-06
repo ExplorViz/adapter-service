@@ -1,0 +1,45 @@
+package net.explorviz.adapter.service.converter;
+
+import io.opencensus.proto.trace.v1.Span;
+import javax.enterprise.context.ApplicationScoped;
+import net.explorviz.avro.SpanDynamic;
+import net.explorviz.avro.Timestamp;
+
+/**
+ * Converts a {@link Span} to a {@link SpanDynamic}.
+ */
+@ApplicationScoped
+public class SpanDynamicConverter implements SpanConverter<SpanDynamic>{
+
+  @Override
+  public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
+    final Timestamp startTime =
+        new Timestamp(ocSpan.getStartTime().getSeconds(), ocSpan.getStartTime().getNanos());
+
+    final Timestamp endTime =
+        new Timestamp(ocSpan.getEndTime().getSeconds(), ocSpan.getEndTime().getNanos());
+
+    SpanAttributes spanAttributes = new SpanAttributes(ocSpan);
+
+    String parentSpan = "";
+    if (ocSpan.getParentSpanId().size() > 0) {
+      parentSpan = IdHelper.converterSpanId(ocSpan.getParentSpanId().toByteArray());
+    }
+
+
+
+    SpanDynamic spanDynamic =  SpanDynamic.newBuilder()
+        .setLandscapeToken(spanAttributes.getLandscapeToken())
+        .setParentSpanId(parentSpan)
+        .setSpanId(IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()))
+        .setTraceId(IdHelper.converterTraceId(ocSpan.getTraceId().toByteArray()))
+        .setHashCode("") // temporary hash code since the field is required for avro builder
+        .setStartTime(startTime)
+        .setEndTime(endTime)
+        .build();
+
+    String hashValue = HashHelper.fromSpanAttributes(new SpanAttributes(ocSpan));
+    spanDynamic.setHashCode(hashValue);
+    return spanDynamic;
+  }
+}
