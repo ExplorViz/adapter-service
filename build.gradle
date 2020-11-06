@@ -29,9 +29,10 @@ dependencies {
   implementation 'io.quarkus:quarkus-kafka-streams'    
   implementation 'io.quarkus:quarkus-container-image-docker'
 
+
   implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging-kafka'
-  implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging'
-  implementation group: 'io.smallrye.reactive', name: 'smallrye-reactive-messaging-in-memory'
+  implementation group: 'io.quarkus', name: 'quarkus-redis-client'
+
 
   implementation 'io.opencensus:opencensus-proto:0.2.0'
 
@@ -41,6 +42,8 @@ dependencies {
   testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
   testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.4.1'
   testImplementation 'io.quarkus:quarkus-junit5'
+  testImplementation group: 'it.ozimov', name: 'embedded-redis', version: '0.7.3'
+
 }
 
 group 'net.explorviz'
