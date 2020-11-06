@@ -14,8 +14,7 @@ import javax.inject.Inject;
  */
 @ApplicationScoped
 public class TokenService {
-
-
+  
   private RedisClient redisClient;
   private ReactiveRedisClient reactiveRedisClient;
 
