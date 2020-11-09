@@ -4,6 +4,8 @@ package net.explorviz.adapter.service.validation;
 import java.time.DateTimeException;
 import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import net.explorviz.adapter.service.TokenService;
 import net.explorviz.avro.SpanStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,23 +18,33 @@ public class StrictValidator implements SpanValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
 
+  private TokenService tokenService;
+
+  @Inject
+  public StrictValidator(final TokenService tokenService) {
+    this.tokenService = tokenService;
+  }
+
   @Override
   public boolean isValid(final SpanStructure span) {
-
-    if (span.getLandscapeToken() == null || span.getLandscapeToken().isBlank()) {
-      LOGGER.error("No token: {}", span);
-      return false;
-    }
 
     if (span.getHashCode() == null || span.getHashCode().isBlank()) {
       LOGGER.error("No hash code: {}", span);
       return false;
     }
 
-    return this.validateTimestamp(span) &&
+
+    return this.validateToken(span.getLandscapeToken()) && this.validateTimestamp(span) &&
         this.validateHost(span) &&
         this.validateApp(span) &&
         this.validateOperation(span);
+  }
+
+  private boolean validateToken(String token) {
+    if (token == null || token.isBlank()) {
+      return false;
+    }
+    return tokenService.exists(token);
   }
 
   private boolean validateTimestamp(final SpanStructure span) {

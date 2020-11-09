@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.SpanAttributes;
 import net.explorviz.adapter.service.converter.SpanDynamicConverter;
 import net.explorviz.adapter.service.converter.SpanStructureConverter;
@@ -41,6 +42,7 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @QuarkusTest
 class ConversionStreamTest {
@@ -61,8 +63,9 @@ class ConversionStreamTest {
   void setUp() {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
-
-    final SpanValidator v = new StrictValidator();
+    final TokenService mockTokenService = Mockito.mock(TokenService.class);
+    Mockito.when(mockTokenService.exists(Mockito.anyString())).thenReturn(true);
+    final SpanValidator v = new StrictValidator(mockTokenService);
     final SpanStructureSanitizer s = new NoOpStructureSanitizer();
     final SpanStructureConverter c = new SpanStructureConverter();
     final StructureTransformer structureTransformer = new StructureTransformer(s, c);
