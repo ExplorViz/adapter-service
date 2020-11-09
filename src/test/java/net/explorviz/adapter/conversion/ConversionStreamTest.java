@@ -210,9 +210,6 @@ class ConversionStreamTest {
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final SpanDynamic result = this.dynamicOutputTopic.readKeyValue().value;
-    System.out.println(result);
-
   }
 
 

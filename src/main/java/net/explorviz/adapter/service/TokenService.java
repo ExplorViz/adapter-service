@@ -2,19 +2,24 @@ package net.explorviz.adapter.service;
 
 import io.quarkus.redis.client.RedisClient;
 import io.quarkus.redis.client.reactive.ReactiveRedisClient;
-import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.subscription.Cancellable;
 import io.vertx.mutiny.redis.client.Response;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service to access available landscape tokens, backed by redis.
  */
 @ApplicationScoped
 public class TokenService {
-  
+
+  public static final Logger LOGGER = LoggerFactory.getLogger(TokenService.class);
+
   private RedisClient redisClient;
   private ReactiveRedisClient reactiveRedisClient;
 
@@ -23,10 +28,7 @@ public class TokenService {
                       final ReactiveRedisClient reactiveRedisClient) {
     this.redisClient = redisClient;
     this.reactiveRedisClient = reactiveRedisClient;
-
-    redisClient.ping(Collections.singletonList(""));
   }
-
 
   /**
    * Adds a token to the set of valid token. Non-blocking.
@@ -34,8 +36,22 @@ public class TokenService {
    * @param token the token to add.
    * @return Uni future of the response
    */
-  public Uni<Response> add(String token) {
-    return reactiveRedisClient.set(Arrays.asList(token, ""));
+  public Cancellable add(String token) {
+    return add(token,
+        item -> LOGGER.info("Added token {}", token),
+        error -> LOGGER.info("Failed to add token {}: {}", token, error.toString()));
+  }
+
+  /**
+   * Adds a token to the set of valid token. Non-blocking.
+   *
+   * @param token the token to add.
+   * @return Uni future of the response
+   */
+  public Cancellable add(String token, Consumer<? super Response> onItem,
+                         Consumer<Throwable> onError) {
+    LOGGER.info("Adding token {} non-blocking", token);
+    return reactiveRedisClient.set(Arrays.asList(token, "")).subscribe().with(onItem, onError);
   }
 
   /**
@@ -44,7 +60,8 @@ public class TokenService {
    * @param token the token to add.
    */
   public void addBlocking(String token) {
-    reactiveRedisClient.setAndAwait(Arrays.asList(token, ""));
+    LOGGER.info("Adding token {}", token);
+    redisClient.set(Arrays.asList(token, ""));
   }
 
   /**
@@ -53,8 +70,22 @@ public class TokenService {
    * @param token the token to remove
    * @return Uni future of the response
    */
-  public Uni<Response> delete(String token) {
-    return reactiveRedisClient.del(Collections.singletonList(token));
+  public Cancellable delete(String token, Consumer<? super Response> onItem,
+                            Consumer<Throwable> onError) {
+    return reactiveRedisClient.del(Collections.singletonList(token)).subscribe()
+        .with(onItem, onError);
+  }
+
+  /**
+   * Removes a token from the set of valid tokens, if it is contained. Non-blocking.
+   *
+   * @param token the token to remove
+   * @return Uni future of the response
+   */
+  public Cancellable delete(String token) {
+    return delete(token,
+        item -> LOGGER.info("Deleted token {}", token),
+        error -> LOGGER.info("Failed to delete token {}: {}", token, error.toString()));
   }
 
   /**

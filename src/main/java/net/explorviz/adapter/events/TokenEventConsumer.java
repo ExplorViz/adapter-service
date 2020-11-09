@@ -1,6 +1,9 @@
 package net.explorviz.adapter.events;
 
 
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.groups.UniSubscribe;
+import io.vertx.mutiny.redis.client.Response;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
@@ -24,28 +27,17 @@ public class TokenEventConsumer {
 
   @Incoming("token-events")
   public void process(TokenEvent event) {
+    LOGGER.info("Received event {}", event);
     switch (event.getType()) {
       case CREATED:
-        onTokenCreated(event.getToken());
+        tokenService.add(event.getToken());
       case DELETED:
-        onTokenDelete(event.getToken());
+        tokenService.delete(event.getToken());
         break;
       default:
         // Irrelevant event, do nothing
         break;
     }
-  }
-
-  private void onTokenDelete(String token) {
-    tokenService.delete(token).onItem().invoke(
-        () -> LOGGER.info("Deleted token {}", token)
-    );
-  }
-
-  private void onTokenCreated(String token) {
-    tokenService.add(token).onItem().invoke(
-        () -> LOGGER.info("Deleted token {}", token)
-    );
   }
 
 

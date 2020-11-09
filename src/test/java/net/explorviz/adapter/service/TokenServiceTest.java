@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.quarkus.test.junit.QuarkusTest;
-import java.time.Duration;
 import javax.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +12,6 @@ import redis.embedded.RedisServer;
 
 @QuarkusTest
 class TokenServiceTest {
-
-
 
   @Inject
   TokenService service;
@@ -35,8 +32,14 @@ class TokenServiceTest {
   @Test
   synchronized void testAdd() {
     final String tokenToAdd = "123456789";
-    service.add(tokenToAdd).await().atMost(Duration.ofMillis(100));
+    service.addBlocking(tokenToAdd);
     assertTrue(service.exists(tokenToAdd));
+  }
+
+  @Test
+  synchronized void testAddNonBlocking() throws InterruptedException {
+    final String tokenToAdd = "123456789";
+    service.add(tokenToAdd, i -> assertTrue(service.exists(tokenToAdd)), e -> {});
   }
 
   @Test
@@ -49,8 +52,15 @@ class TokenServiceTest {
   void testDelete() {
     final String token = "123456789";
     service.addBlocking(token); // Make sure key was actually added
-    service.delete(token).await().atMost(Duration.ofMillis(100));
+    service.deleteBlocking(token);
     assertFalse(service.exists(token));
+  }
+
+  @Test
+  void testDeleteNonBlocking() {
+    final String token = "123456789";
+    service.addBlocking(token); // Make sure key was actually added
+    service.delete(token, i -> assertFalse(service.exists(token)), e -> {});
   }
 
 }
