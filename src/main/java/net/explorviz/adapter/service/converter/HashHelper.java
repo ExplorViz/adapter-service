@@ -52,7 +52,7 @@ public class HashHelper {
 
   }
 
-  public static String fromSpanAttributes(final SpanAttributes attribute) {
+  public static String fromSpanAttributes(final AttributesReader attribute) {
     return createHash(
         attribute.getLandscapeToken(),
         attribute.getHostIPAddress(),

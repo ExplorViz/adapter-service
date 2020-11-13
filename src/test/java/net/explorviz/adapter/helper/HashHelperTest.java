@@ -2,16 +2,16 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+import net.explorviz.adapter.service.converter.AttributesReader;
 import net.explorviz.adapter.service.converter.HashHelper;
 
-import net.explorviz.adapter.service.converter.SpanAttributes;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class HashHelperTest {
-
-
-
+  
   @Test
   void testHashFunction() {
     final String token = "tok";
@@ -19,7 +19,7 @@ public class HashHelperTest {
     final String appPid = "1234";
     final String fqn = "foo.bar.TestClass.testMethod()";
 
-    SpanAttributes attr = Mockito.mock(SpanAttributes.class);
+    AttributesReader attr = Mockito.mock(AttributesReader.class);
     Mockito.when(attr.getLandscapeToken()).thenReturn(token);
     Mockito.when(attr.getHostIPAddress()).thenReturn(hostIp);
     Mockito.when(attr.getApplicationPID()).thenReturn(appPid);

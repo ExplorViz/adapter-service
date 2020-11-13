@@ -9,7 +9,7 @@ import net.explorviz.avro.Timestamp;
  * Converts a {@link Span} to a {@link SpanDynamic}.
  */
 @ApplicationScoped
-public class SpanDynamicConverter implements SpanConverter<SpanDynamic>{
+public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
 
   @Override
   public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
@@ -19,7 +19,8 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic>{
     final Timestamp endTime =
         new Timestamp(ocSpan.getEndTime().getSeconds(), ocSpan.getEndTime().getNanos());
 
-    SpanAttributes spanAttributes = new SpanAttributes(ocSpan);
+    AttributesReader attributesReader = new AttributesReader(ocSpan);
+
 
     String parentSpan = "";
     if (ocSpan.getParentSpanId().size() > 0) {
@@ -28,8 +29,8 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic>{
 
 
 
-    SpanDynamic spanDynamic =  SpanDynamic.newBuilder()
-        .setLandscapeToken(spanAttributes.getLandscapeToken())
+    SpanDynamic spanDynamic = SpanDynamic.newBuilder()
+        .setLandscapeToken(attributesReader.getLandscapeToken())
         .setParentSpanId(parentSpan)
         .setSpanId(IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()))
         .setTraceId(IdHelper.converterTraceId(ocSpan.getTraceId().toByteArray()))
@@ -38,7 +39,8 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic>{
         .setEndTime(endTime)
         .build();
 
-    String hashValue = HashHelper.fromSpanAttributes(new SpanAttributes(ocSpan));
+    String hashValue = HashHelper.fromSpanAttributes(new AttributesReader(ocSpan));
+
     spanDynamic.setHashCode(hashValue);
     return spanDynamic;
   }

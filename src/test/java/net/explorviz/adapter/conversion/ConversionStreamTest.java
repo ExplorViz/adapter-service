@@ -20,17 +20,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+
 import net.explorviz.adapter.service.TokenService;
-import net.explorviz.adapter.service.converter.SpanAttributes;
+
+import net.explorviz.adapter.service.converter.AttributesReader;
 import net.explorviz.adapter.service.converter.SpanDynamicConverter;
 import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
 import net.explorviz.adapter.conversion.transformer.StructureTransformer;
 import net.explorviz.adapter.injection.KafkaConfig;
-import net.explorviz.adapter.service.validation.NoOpStructureSanitizer;
-import net.explorviz.adapter.service.validation.SpanStructureSanitizer;
 import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.adapter.service.validation.StrictValidator;
+
+
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
@@ -63,12 +65,13 @@ class ConversionStreamTest {
   void setUp() {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
+
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
     Mockito.when(mockTokenService.exists(Mockito.anyString())).thenReturn(true);
     final SpanValidator v = new StrictValidator(mockTokenService);
-    final SpanStructureSanitizer s = new NoOpStructureSanitizer();
+
     final SpanStructureConverter c = new SpanStructureConverter();
-    final StructureTransformer structureTransformer = new StructureTransformer(s, c);
+    final StructureTransformer structureTransformer = new StructureTransformer(c);
     final DynamicTransformer dynamicTransformer =
         new DynamicTransformer(new SpanDynamicConverter());
 
@@ -111,19 +114,19 @@ class ConversionStreamTest {
   private Span sampleSpan() {
 
     final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(SpanAttributes.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(SpanAttributes.HOST_IP, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(SpanAttributes.HOST_NAME, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.HOST_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(SpanAttributes.APPLICATION_NAME, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(SpanAttributes.APPLICATION_PID, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_PID, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(SpanAttributes.METHOD_FQN, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
 
 
@@ -148,18 +151,18 @@ class ConversionStreamTest {
 
     final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
     final String expectedToken =
-        attrs.get(SpanAttributes.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
     final String expectedHostName =
-        attrs.get(SpanAttributes.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIP = attrs.get(SpanAttributes.HOST_IP).getStringValue().getValue();
+        attrs.get(AttributesReader.HOST_NAME).getStringValue().getValue();
+    final String expectedHostIP = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
     final String expectedAppName =
-        attrs.get(SpanAttributes.APPLICATION_NAME).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
-        attrs.get(SpanAttributes.APPLICATION_LANGUAGE).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
     final String expectedAppPID =
-        attrs.get(SpanAttributes.APPLICATION_PID).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_PID).getStringValue().getValue();
     final String expectedOperationName =
-        attrs.get(SpanAttributes.METHOD_FQN).getStringValue().getValue();
+        attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 
