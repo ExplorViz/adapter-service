@@ -31,6 +31,7 @@ public class TokenEventConsumer {
     switch (event.getType()) {
       case CREATED:
         tokenService.add(event.getToken());
+        break;
       case DELETED:
         tokenService.delete(event.getToken());
         break;
