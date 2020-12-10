@@ -92,7 +92,6 @@ public class DumpSpanConverter {
 
   private void exposeMetrics() {
     Set<String> processed = new HashSet<>();
-
     for (Metric metric : streams.metrics().values()) {
       String name = metric.metricName().group() +
           ":" + metric.metricName().name();
@@ -105,10 +104,10 @@ public class DumpSpanConverter {
       if (name.contentEquals("app-info:commit-id") ||
           name.contentEquals("app-info:version")) {
         continue;
-      } else if (name.endsWith("count") || name.endsWith("total")) {
-        registerCounter(metric, name);
-      } else {
-        registerGauge(metric, name);
+      }
+
+      if (metric.metricValue() instanceof  Long || metric.metricValue() instanceof  Double) {
+        this.registerGauge(metric, name);
       }
 
       processed.add(name);
@@ -131,7 +130,11 @@ public class DumpSpanConverter {
 
       @Override
       public long getCount() {
-        return (long) metric.metricValue();
+        try {
+          return (long) metric.metricValue();
+        } catch (ClassCastException e) {
+          return ((Double) metric.metricValue()).longValue();
+        }
       }
     } );
   }
@@ -143,12 +146,14 @@ public class DumpSpanConverter {
         .withDescription(metric.metricName().description())
         .build();
 
-    metricRegistry.register(metadata, new Gauge<Double>() {
-      @Override
-      public Double getValue() {
+    metricRegistry.register(metadata, (Gauge<Double>) () -> {
+      if (metric.metricValue() instanceof Long) {
+        return  ((Long) metric.metricValue()).doubleValue();
+      } else if (metric.metricValue() instanceof Double) {
         return (Double) metric.metricValue();
       }
-    } );
+      return 0D;
+    });
   }
 
   private void buildTopology() {
