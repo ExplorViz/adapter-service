@@ -20,3 +20,20 @@ spec:
         ports:
           - containerPort: 80
         imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: explorviz-adapter-service
+  labels:
+    app: explorviz-adapter-service
+spec:
+  type: NodePort
+  ports:
+    - name: explorviz-adapter-service
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 32683
+  selector:
+    app: explorviz-adapter-service
