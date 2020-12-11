@@ -4,6 +4,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
@@ -21,7 +23,6 @@ import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.avro.specific.SpecificRecord;
 
-import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -30,17 +31,12 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.Gauge;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
 
 @ApplicationScoped
 public class DumpSpanConverter {
 
   @Inject
-  MetricRegistry metricRegistry;
+  MeterRegistry metricRegistry;
 
   private final SchemaRegistryClient registry;
 
@@ -76,7 +72,10 @@ public class DumpSpanConverter {
     this.streams = new KafkaStreams(this.topology, this.streamsConfig);
     this.streams.cleanUp();
     this.streams.start();
-    exposeMetrics();
+
+    KafkaStreamsMetrics ksm = new KafkaStreamsMetrics(this.streams);
+    ksm.bindTo(this.metricRegistry);
+
   }
 
   void onStop(@Observes final ShutdownEvent event) {
@@ -90,71 +89,6 @@ public class DumpSpanConverter {
   }
 
 
-  private void exposeMetrics() {
-    Set<String> processed = new HashSet<>();
-    for (Metric metric : streams.metrics().values()) {
-      String name = metric.metricName().group() +
-          ":" + metric.metricName().name();
-
-      if (processed.contains(name)) {
-        continue;
-      }
-
-      // string-typed metric not supported
-      if (name.contentEquals("app-info:commit-id") ||
-          name.contentEquals("app-info:version")) {
-        continue;
-      }
-
-      if (metric.metricValue() instanceof  Long || metric.metricValue() instanceof  Double) {
-        this.registerGauge(metric, name);
-      }
-
-      processed.add(name);
-    }
-  }
-
-  private void registerCounter(Metric metric, String name) {
-    Metadata metadata = Metadata.builder()
-      .withName(name)
-      .withType(MetricType.COUNTER)
-      .withDescription(metric.metricName().description())
-      .build();
-    metricRegistry.register(metadata, new Counter() {
-
-      @Override
-      public void inc() {}
-
-      @Override
-      public void inc(final long n) {}
-
-      @Override
-      public long getCount() {
-        try {
-          return (long) metric.metricValue();
-        } catch (ClassCastException e) {
-          return ((Double) metric.metricValue()).longValue();
-        }
-      }
-    } );
-  }
-
-  private void registerGauge(Metric metric, String name) {
-    Metadata metadata = Metadata.builder()
-        .withName(name)
-        .withType(MetricType.GAUGE)
-        .withDescription(metric.metricName().description())
-        .build();
-
-    metricRegistry.register(metadata, (Gauge<Double>) () -> {
-      if (metric.metricValue() instanceof Long) {
-        return  ((Long) metric.metricValue()).doubleValue();
-      } else if (metric.metricValue() instanceof Double) {
-        return (Double) metric.metricValue();
-      }
-      return 0D;
-    });
-  }
 
   private void buildTopology() {
 
