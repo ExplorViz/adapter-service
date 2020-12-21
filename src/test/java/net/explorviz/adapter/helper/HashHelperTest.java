@@ -2,15 +2,16 @@ package net.explorviz.adapter.helper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import net.explorviz.adapter.translation.HashHelper;
-import net.explorviz.adapter.translation.AttributesReader;
+
+import net.explorviz.adapter.service.converter.AttributesReader;
+import net.explorviz.adapter.service.converter.HashHelper;
+
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class HashHelperTest {
-
-
-
+  
   @Test
   void testHashFunction() {
     final String token = "tok";

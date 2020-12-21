@@ -1,4 +1,4 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,11 +20,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanDynamicConverter;
-import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.translation.AttributesReader;
-import net.explorviz.adapter.validation.SpanValidator;
-import net.explorviz.adapter.validation.StrictValidator;
+
+import net.explorviz.adapter.service.TokenService;
+
+import net.explorviz.adapter.service.converter.AttributesReader;
+import net.explorviz.adapter.service.converter.SpanDynamicConverter;
+import net.explorviz.adapter.service.converter.SpanStructureConverter;
+import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
+import net.explorviz.adapter.conversion.transformer.StructureTransformer;
+import net.explorviz.adapter.injection.KafkaConfig;
+import net.explorviz.adapter.service.validation.SpanValidator;
+import net.explorviz.adapter.service.validation.StrictValidator;
+
+
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
@@ -36,9 +44,10 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @QuarkusTest
-class DumpSpanConverterTest {
+class ConversionStreamTest {
 
   private TopologyTestDriver driver;
 
@@ -57,14 +66,17 @@ class DumpSpanConverterTest {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    final SpanValidator v = new StrictValidator();
+    final TokenService mockTokenService = Mockito.mock(TokenService.class);
+    Mockito.when(mockTokenService.exists(Mockito.anyString())).thenReturn(true);
+    final SpanValidator v = new StrictValidator(mockTokenService);
+
     final SpanStructureConverter c = new SpanStructureConverter();
     final StructureTransformer structureTransformer = new StructureTransformer(c);
     final DynamicTransformer dynamicTransformer =
         new DynamicTransformer(new SpanDynamicConverter());
 
     final Topology topology =
-        new DumpSpanConverter(schemaRegistryClient, this.config, structureTransformer,
+        new ConversionStream(schemaRegistryClient, this.config, structureTransformer,
             dynamicTransformer, v).getTopology();
 
     final Properties props = new Properties();
@@ -203,9 +215,6 @@ class DumpSpanConverterTest {
     final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
-
-    final SpanDynamic result = this.dynamicOutputTopic.readKeyValue().value;
-    System.out.println(result);
 
   }
 

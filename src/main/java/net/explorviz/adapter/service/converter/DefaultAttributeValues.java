@@ -1,4 +1,4 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.service.converter;
 
 /**
  * Contains constants for missing attribute values of spans.

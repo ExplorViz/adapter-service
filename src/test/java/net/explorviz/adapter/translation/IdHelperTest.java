@@ -1,6 +1,7 @@
 package net.explorviz.adapter.translation;
 
 import com.google.common.io.BaseEncoding;
+import net.explorviz.adapter.service.converter.IdHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

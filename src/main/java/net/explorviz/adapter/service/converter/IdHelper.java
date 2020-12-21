@@ -1,7 +1,6 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.service.converter;
 
 import com.google.common.io.BaseEncoding;
-import com.google.protobuf.ByteString;
 
 /**
  * Helper class to convert IDs given as byte arrays to strings.

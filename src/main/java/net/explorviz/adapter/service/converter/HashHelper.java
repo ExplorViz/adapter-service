@@ -1,4 +1,4 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.service.converter;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

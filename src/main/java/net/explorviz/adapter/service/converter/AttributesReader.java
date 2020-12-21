@@ -1,11 +1,8 @@
-package net.explorviz.adapter.translation;
+package net.explorviz.adapter.service.converter;
 
-import static net.explorviz.adapter.translation.DefaultAttributeValues.DEFAULT_APP_LANG;
-import static net.explorviz.adapter.translation.DefaultAttributeValues.DEFAULT_APP_NAME;
-import static net.explorviz.adapter.translation.DefaultAttributeValues.DEFAULT_APP_PID;
-import static net.explorviz.adapter.translation.DefaultAttributeValues.DEFAULT_FQN;
-import static net.explorviz.adapter.translation.DefaultAttributeValues.DEFAULT_HOST_IP;
-import static net.explorviz.adapter.translation.DefaultAttributeValues.DEFAULT_HOST_NAME;
+
+
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.*;
 
 import io.opencensus.proto.trace.v1.Span;
 import java.util.HashMap;

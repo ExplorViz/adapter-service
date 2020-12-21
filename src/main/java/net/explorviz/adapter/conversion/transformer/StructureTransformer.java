@@ -1,24 +1,17 @@
-package net.explorviz.adapter.kafka;
+package net.explorviz.adapter.conversion.transformer;
 
 import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import net.explorviz.adapter.translation.SpanStructureConverter;
-import net.explorviz.adapter.util.PerfomanceLogger;
+import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class StructureTransformer
     implements Transformer<byte[], Span, KeyValue<String, SpanStructure>> {
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(StructureTransformer.class);
-  private PerfomanceLogger perfLogger =
-      PerfomanceLogger.newOperationPerformanceLogger(LOGGER, 1000, "Converted {} spans in {} ms");
 
 
 
@@ -36,8 +29,7 @@ public class StructureTransformer
 
   @Override
   public KeyValue<String, SpanStructure> transform(final byte[] key, final Span s) {
-    SpanStructure span = this.converter.toSpanStructure(s);
-    perfLogger.logOperation();
+    SpanStructure span = this.converter.fromOpenCensusSpan(s);
     return new KeyValue<>(span.getLandscapeToken(), span);
   }
 

@@ -1,11 +1,13 @@
-package net.explorviz.adapter.validation;
+package net.explorviz.adapter.service.validation;
 
 import java.time.Instant;
+import net.explorviz.adapter.service.TokenService;
 import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class StrictValidatorTest {
 
@@ -14,7 +16,9 @@ class StrictValidatorTest {
 
   @BeforeEach
   void setUp() {
-    this.validator = new StrictValidator();
+    TokenService mockTokenService = Mockito.mock(TokenService.class);
+    Mockito.when(mockTokenService.exists(Mockito.anyString())).thenReturn(true);
+    this.validator = new StrictValidator(mockTokenService);
 
     final Instant now = Instant.now();
     final String token = "tok";
