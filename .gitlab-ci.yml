@@ -11,7 +11,7 @@ before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
 build:
-  stage: Build
+  stage: build
   tags:
     - exec-docker
   script: ./gradlew --build-cache assemble
@@ -22,8 +22,8 @@ build:
       - build
       - .gradle
 
-test:
-  stage: Unit Testing
+unit-test:
+  stage: test
   tags:
     - exec-docker
   script: ./gradlew test --continue
