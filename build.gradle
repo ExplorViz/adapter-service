@@ -23,12 +23,12 @@ repositories {
  */
 
 dependencies {
+    implementation 'io.quarkus:quarkus-container-image-jib'
   implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
   implementation 'io.quarkus:quarkus-jackson'
 
   implementation 'io.quarkus:quarkus-kafka-streams'    
-  implementation 'io.quarkus:quarkus-container-image-docker'
 
 
   implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging-kafka'
