@@ -38,8 +38,16 @@ public class TokenService {
    */
   public Cancellable add(String token) {
     return add(token,
-        item -> LOGGER.info("Added token {}", token),
-        error -> LOGGER.info("Failed to add token {}: {}", token, error.toString()));
+        item -> {
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Added token {}", token);
+          }          
+        },
+        error -> {
+          if (LOGGER.isErrorEnabled()) {
+            LOGGER.error("Failed to add token {}: {}", token, error.toString());
+          }          
+        });
   }
 
   /**
@@ -50,7 +58,9 @@ public class TokenService {
    */
   public Cancellable add(String token, Consumer<? super Response> onItem,
                          Consumer<Throwable> onError) {
-    LOGGER.info("Adding token {} non-blocking", token);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Adding token {} non-blocking", token);
+    }    
     return reactiveRedisClient.set(Arrays.asList(token, "")).subscribe().with(onItem, onError);
   }
 
@@ -60,7 +70,9 @@ public class TokenService {
    * @param token the token to add.
    */
   public void addBlocking(String token) {
-    LOGGER.info("Adding token {}", token);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Adding token {}", token);
+    }
     redisClient.set(Arrays.asList(token, ""));
   }
 
@@ -84,8 +96,16 @@ public class TokenService {
    */
   public Cancellable delete(String token) {
     return delete(token,
-        item -> LOGGER.info("Deleted token {}", token),
-        error -> LOGGER.info("Failed to delete token {}: {}", token, error.toString()));
+        item -> {
+          if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Deleted token {}", token);
+          }          
+        },
+        error -> {          
+          if (LOGGER.isErrorEnabled()) {
+            LOGGER.error("Failed to delete token {}: {}", token, error.toString());
+          }
+        });
   }
 
   /**

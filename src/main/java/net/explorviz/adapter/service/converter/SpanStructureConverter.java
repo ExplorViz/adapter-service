@@ -40,8 +40,8 @@ public class SpanStructureConverter implements SpanConverter<SpanStructure> {
     final String hashCode = HashHelper.fromSpanAttributes(attributesReader);
     span.setHashCode(hashCode);
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Converted SpanStructure: {}", span.toString());
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Converted SpanStructure: {}", span.toString());
     }
     return span;
   }
