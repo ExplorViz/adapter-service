@@ -9,6 +9,7 @@ import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
@@ -29,9 +30,13 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ConversionStream {
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(ConversionStream.class);
 
   private final SchemaRegistryClient registry;
 
@@ -88,7 +93,13 @@ public class ConversionStream {
 
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
-        return DumpSpans.parseFrom(d).getSpansList();
+        List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
+
+        if(LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Received {} spans.", spanList.size());
+        }
+
+        return spanList;
       } catch (final InvalidProtocolBufferException e) {
         return new ArrayList<>();
       }
