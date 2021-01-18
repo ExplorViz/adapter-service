@@ -9,6 +9,9 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 
+/**
+ * Kafka-Streams transformer which builds a {@link StructureTransformer} out of a {@link Span}.
+ */
 @ApplicationScoped
 public class StructureTransformer
     implements Transformer<byte[], Span, KeyValue<String, SpanStructure>> {

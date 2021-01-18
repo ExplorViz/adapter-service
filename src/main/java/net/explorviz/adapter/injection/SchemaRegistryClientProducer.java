@@ -7,6 +7,10 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+/**
+ * Returns a {@link SchemaRegistryClient} that is used by this application with a maximum number of
+ * 10 schemas.
+ */
 @Dependent
 public class SchemaRegistryClientProducer {
 
@@ -14,7 +18,8 @@ public class SchemaRegistryClientProducer {
 
   // CHECKSTYLE:OFF
 
-  @ConfigProperty(name = "explorviz.schema-registry.url") // NOPMD
+  @SuppressWarnings("PMD.DefaultPackage")
+  @ConfigProperty(name = "explorviz.schema-registry.url")
   /* default */ String schemaRegistryUrl;
 
   // CHECKSTYLE:OFF

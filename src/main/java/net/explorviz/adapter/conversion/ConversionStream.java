@@ -33,6 +33,9 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Builds KafkaStreams instance with all its transformers. Entry point of the stream analysis.
+ */
 @ApplicationScoped
 public class ConversionStream {
 

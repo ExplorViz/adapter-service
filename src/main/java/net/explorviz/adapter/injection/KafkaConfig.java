@@ -3,27 +3,31 @@ package net.explorviz.adapter.injection;
 import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+/**
+ * Wrapper class for ConfigProperties that are read out of the application.properties file.
+ */
 @ApplicationScoped
+@SuppressWarnings("PMD.DefaultPackage")
 public class KafkaConfig {
 
   // CHECKSTYLE:OFF
 
-  @ConfigProperty(name = "quarkus.kafka-streams.application-id") // NOPMD
+  @ConfigProperty(name = "quarkus.kafka-streams.application-id")
   /* default */ String applicationId;
 
-  @ConfigProperty(name = "quarkus.kafka-streams.bootstrap-servers") // NOPMD
+  @ConfigProperty(name = "quarkus.kafka-streams.bootstrap-servers")
   /* default */ String bootstrapServers;
 
-  @ConfigProperty(name = "quarkus.kafka-streams.topics") // NOPMD
+  @ConfigProperty(name = "quarkus.kafka-streams.topics")
   /* default */ String inTopic;
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure") // NOPMD
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
   /* default */ String structureOutTopic;
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic") // NOPMD
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
   /* default */ String dynamicOutTopic;
 
-  @ConfigProperty(name = "explorviz.schema-registry.url") // NOPMD
+  @ConfigProperty(name = "explorviz.schema-registry.url")
   /* default */ String schemaRegistryUrl;
 
   // CHECKSTYLE:ON

@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * Kafka consumer which reads {@link TokenEvent} and passes them to the {@link TokenService}.
+ */
 @ApplicationScoped
 public class TokenEventConsumer {
 

@@ -9,6 +9,9 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 
+/**
+ * Kafka-Streams transformer which builds a {@link SpanDynamic} out of a {@link Span}.
+ */
 @ApplicationScoped
 public class DynamicTransformer
     implements Transformer<byte[], Span, KeyValue<String, SpanDynamic>> {
