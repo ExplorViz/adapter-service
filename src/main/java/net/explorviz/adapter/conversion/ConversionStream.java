@@ -55,9 +55,9 @@ public class ConversionStream {
 
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                          final StructureTransformer structureTransformer,
-                          final DynamicTransformer dynamicTransformer,
-                          final SpanValidator validator) {
+      final StructureTransformer structureTransformer,
+      final DynamicTransformer dynamicTransformer,
+      final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -93,9 +93,9 @@ public class ConversionStream {
 
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
-        List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
+        final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
 
-        if(LOGGER.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("Received {} spans.", spanList.size());
         }
 
@@ -105,8 +105,8 @@ public class ConversionStream {
       }
     });
 
-    KStream<String, SpanStructure> spanStructureStream =
-        spanKStream.transform(() -> structureTransformer);
+    final KStream<String, SpanStructure> spanStructureStream =
+        spanKStream.transform(() -> this.structureTransformer);
 
     final KStream<String, SpanStructure> validSpanStructureStream =
         spanStructureStream.filter(($, v) -> this.validator.isValid(v));
@@ -114,8 +114,8 @@ public class ConversionStream {
     // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
 
 
-    KStream<String, SpanDynamic> spanDynamicStream =
-        spanKStream.transform(() -> dynamicTransformer);
+    final KStream<String, SpanDynamic> spanDynamicStream =
+        spanKStream.transform(() -> this.dynamicTransformer);
 
 
     validSpanStructureStream

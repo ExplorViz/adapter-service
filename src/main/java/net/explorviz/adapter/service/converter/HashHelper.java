@@ -22,8 +22,9 @@ public class HashHelper {
     // helper
   }
 
-  private static String createHash(String landscapeToken, String hostIp, String appPid,
-                                  String methodFqn) {
+  private static String createHash(final String landscapeToken, final String hostIp,
+      final String appPid,
+      final String methodFqn) {
 
     final StringJoiner joiner = new StringJoiner(";");
 

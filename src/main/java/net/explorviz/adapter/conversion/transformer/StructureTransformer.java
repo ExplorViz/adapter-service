@@ -29,7 +29,7 @@ public class StructureTransformer
 
   @Override
   public KeyValue<String, SpanStructure> transform(final byte[] key, final Span s) {
-    SpanStructure span = this.converter.fromOpenCensusSpan(s);
+    final SpanStructure span = this.converter.fromOpenCensusSpan(s);
     return new KeyValue<>(span.getLandscapeToken(), span);
   }
 

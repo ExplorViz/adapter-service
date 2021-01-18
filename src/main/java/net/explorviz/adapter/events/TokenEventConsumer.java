@@ -14,7 +14,7 @@ public class TokenEventConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TokenEventConsumer.class);
 
-  private TokenService tokenService;
+  private final TokenService tokenService;
 
   @Inject
   public TokenEventConsumer(final TokenService tokenService) {
@@ -22,7 +22,7 @@ public class TokenEventConsumer {
   }
 
   @Incoming("token-events")
-  public void process(TokenEvent event) {
+  public void process(final TokenEvent event) {
 
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Received event {}", event);
@@ -30,10 +30,10 @@ public class TokenEventConsumer {
 
     switch (event.getType()) {
       case CREATED:
-        tokenService.add(event.getToken());
+        this.tokenService.add(event.getToken());
         break;
       case DELETED:
-        tokenService.delete(event.getToken());
+        this.tokenService.delete(event.getToken());
         break;
       default:
         // Irrelevant event, do nothing

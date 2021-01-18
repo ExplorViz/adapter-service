@@ -27,7 +27,7 @@ public class DynamicTransformer
 
   @Override
   public KeyValue<String, SpanDynamic> transform(final byte[] key, final Span value) {
-    SpanDynamic dynamic = converter.fromOpenCensusSpan(value);
+    final SpanDynamic dynamic = this.converter.fromOpenCensusSpan(value);
     return new KeyValue<>(dynamic.getTraceId(), dynamic);
   }
 

@@ -42,7 +42,7 @@ public class KafkaConfig {
   }
 
   public String getDynamicOutTopic() {
-    return dynamicOutTopic;
+    return this.dynamicOutTopic;
   }
 
   public String getSchemaRegistryUrl() {

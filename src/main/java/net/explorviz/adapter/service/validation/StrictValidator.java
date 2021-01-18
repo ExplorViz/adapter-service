@@ -18,7 +18,7 @@ public class StrictValidator implements SpanValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
 
-  private TokenService tokenService;
+  private final TokenService tokenService;
 
   @Inject
   public StrictValidator(final TokenService tokenService) {
@@ -42,11 +42,11 @@ public class StrictValidator implements SpanValidator {
         this.validateOperation(span);
   }
 
-  private boolean validateToken(String token) {
+  private boolean validateToken(final String token) {
     if (token == null || token.isBlank()) {
       return false;
     }
-    return tokenService.exists(token);
+    return this.tokenService.exists(token);
   }
 
   private boolean validateTimestamp(final SpanStructure span) {
@@ -61,7 +61,7 @@ public class StrictValidator implements SpanValidator {
     } catch (DateTimeException | NumberFormatException e) {
       if (LOGGER.isErrorEnabled()) {
         LOGGER.error("Invalid timestamp: {}, {}", span, e);
-      }      
+      }
       return false;
     }
     return true;
