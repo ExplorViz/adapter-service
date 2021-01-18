@@ -42,7 +42,9 @@ public class HashHelper {
     try {
       digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
     } catch (final NoSuchAlgorithmException e) {
-      LOGGER.error("Set digest algorithm is not available. Did you use 'SHA3-256'?", e);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("Set digest algorithm is not available. Did you use 'SHA3-256'?", e);
+      }
       throw new RuntimeException(e);
     }
 

@@ -29,7 +29,9 @@ public class StrictValidator implements SpanValidator {
   public boolean isValid(final SpanStructure span) {
 
     if (span.getHashCode() == null || span.getHashCode().isBlank()) {
-      LOGGER.error("No hash code: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No hash code: {}", span);
+      }
       return false;
     }
 
@@ -57,7 +59,9 @@ public class StrictValidator implements SpanValidator {
         throw new NumberFormatException("Time must be positive");
       }
     } catch (DateTimeException | NumberFormatException e) {
-      LOGGER.error("Invalid timestamp: {}, {}", span, e);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("Invalid timestamp: {}, {}", span, e);
+      }      
       return false;
     }
     return true;
@@ -65,11 +69,15 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateHost(final SpanStructure span) {
     if (this.isBlank(span.getHostname())) {
-      LOGGER.error("No hostname: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No hostname: {}", span);
+      }
       return false;
     }
     if (this.isBlank(span.getHostIpAddress())) {
-      LOGGER.error("No IP address: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No IP address: {}", span);
+      }
       return false;
     }
     return true;
@@ -77,17 +85,23 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateApp(final SpanStructure span) {
     if (this.isBlank(span.getAppName())) {
-      LOGGER.error("No application name: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No application name: {}", span);
+      }
       return false;
     }
 
     if (this.isBlank(span.getAppLanguage())) {
-      LOGGER.error("No application language: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No application language: {}", span);
+      }
       return false;
     }
 
     if (this.isBlank(span.getAppPid())) {
-      LOGGER.error("No application PID: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No application PID: {}", span);
+      }
       return false;
     }
 
@@ -101,7 +115,9 @@ public class StrictValidator implements SpanValidator {
      */
     final String[] operationFqnSplit = span.getFullyQualifiedOperationName().split("\\.");
     if (operationFqnSplit.length < 3) {
-      LOGGER.error("Invalid operation name: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("Invalid operation name: {}", span);
+      }
       return false;
     }
     return true;
