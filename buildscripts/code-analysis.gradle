@@ -1,0 +1,35 @@
+apply plugin: 'pmd'
+apply plugin: 'checkstyle'
+
+pmd {
+  // Empty ruleset is necessary for exclude-pattern
+  // https://stackoverflow.com/questions/32247190/pmd-exclude-pattern-with-gradle
+  ruleSets = []
+  ruleSetFiles = files("code-analysis/pmd.xml")
+  ignoreFailures = false
+  toolVersion = "6.7.0"
+}
+
+checkstyle {
+  configDir = file("code-analysis")
+  configFile = file("code-analysis/checkstyle.xml")
+  maxWarnings = 0
+  ignoreFailures = false
+  toolVersion = "8.12"
+}
+
+task checkstyle {
+  group 'Quality Assurance'
+  description 'Run Checkstyle'
+  
+  dependsOn 'checkstyleMain'
+  dependsOn 'checkstyleTest'
+}
+
+task pmd {
+  group 'Quality Assurance'
+  description 'Run PMD'
+
+  dependsOn 'pmdMain'
+  dependsOn 'pmdTest'
+}

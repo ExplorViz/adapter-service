@@ -3,8 +3,10 @@ plugins {
   id 'idea'
   id 'io.quarkus'
   id 'com.adarshr.test-logger' version '2.1.0'
-  id "com.commercehub.gradle.plugin.avro" version "0.21.0"
+  id 'com.commercehub.gradle.plugin.avro' version '0.21.0'
 }
+
+apply from: 'buildscripts/code-analysis.gradle'
 
 repositories {
   mavenLocal()
