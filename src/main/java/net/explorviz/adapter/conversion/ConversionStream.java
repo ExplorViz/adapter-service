@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class ConversionStream {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(ConversionStream.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConversionStream.class);
 
   private final SchemaRegistryClient registry;
 
@@ -45,7 +45,6 @@ public class ConversionStream {
   private final Properties streamsConfig = new Properties();
 
   private Topology topology;
-
 
   private final SpanValidator validator;
   private final StructureTransformer structureTransformer;
@@ -68,13 +67,13 @@ public class ConversionStream {
     this.buildTopology();
   }
 
-  void onStart(@Observes final StartupEvent event) {
+  /* default */ void onStart(@Observes final StartupEvent event) { // NOPMD
     this.streams = new KafkaStreams(this.topology, this.streamsConfig);
     this.streams.cleanUp();
     this.streams.start();
   }
 
-  void onStop(@Observes final ShutdownEvent event) {
+  /* default */ void onStop(@Observes final ShutdownEvent event) { // NOPMD
     this.streams.close();
   }
 
@@ -109,7 +108,7 @@ public class ConversionStream {
         spanKStream.transform(() -> this.structureTransformer);
 
     final KStream<String, SpanStructure> validSpanStructureStream =
-        spanStructureStream.filter(($, v) -> this.validator.isValid(v));
+        spanStructureStream.filter((k, v) -> this.validator.isValid(v));
     // final KStream<String, SpanStructure> invalidSpanStructureStream =
     // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
 

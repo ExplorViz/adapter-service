@@ -24,7 +24,7 @@ public class StructureTransformer
 
   @Override
   public void init(final ProcessorContext context) {
-
+    // Nothing to do
   }
 
   @Override
@@ -35,6 +35,6 @@ public class StructureTransformer
 
   @Override
   public void close() {
-
+    // Nothing to do
   }
 }

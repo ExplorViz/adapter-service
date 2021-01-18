@@ -8,4 +8,6 @@
   <suppress checks="." files="[\\/]build[\\/]" />
   <suppress checks="." files="[\\/]bin[\\/]" />
   <suppress checks="." files="[\\/]target[\\/]" />
+  <suppress checks="." files="[\\/]src/test[\\/]" />
+  <suppress checks="." files="[\\/]src/main/java/io[\\/]" />
 </suppressions>

@@ -22,7 +22,7 @@ public class DynamicTransformer
 
   @Override
   public void init(final ProcessorContext context) {
-
+    // Nothing to do
   }
 
   @Override
@@ -33,6 +33,6 @@ public class DynamicTransformer
 
   @Override
   public void close() {
-
+    // Nothing to do
   }
 }

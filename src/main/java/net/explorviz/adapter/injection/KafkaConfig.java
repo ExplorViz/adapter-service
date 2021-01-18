@@ -4,26 +4,29 @@ import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
-// https://quarkus.io/guides/config#using-configproperties
 public class KafkaConfig {
 
-  @ConfigProperty(name = "quarkus.kafka-streams.application-id")
-  String applicationId;
+  // CHECKSTYLE:OFF
 
-  @ConfigProperty(name = "quarkus.kafka-streams.bootstrap-servers")
-  String bootstrapServers;
+  @ConfigProperty(name = "quarkus.kafka-streams.application-id") // NOPMD
+  /* default */ String applicationId;
 
-  @ConfigProperty(name = "quarkus.kafka-streams.topics")
-  String inTopic;
+  @ConfigProperty(name = "quarkus.kafka-streams.bootstrap-servers") // NOPMD
+  /* default */ String bootstrapServers;
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
-  String structureOutTopic;
+  @ConfigProperty(name = "quarkus.kafka-streams.topics") // NOPMD
+  /* default */ String inTopic;
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
-  String dynamicOutTopic;
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure") // NOPMD
+  /* default */ String structureOutTopic;
 
-  @ConfigProperty(name = "explorviz.schema-registry.url")
-  String schemaRegistryUrl;
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic") // NOPMD
+  /* default */ String dynamicOutTopic;
+
+  @ConfigProperty(name = "explorviz.schema-registry.url") // NOPMD
+  /* default */ String schemaRegistryUrl;
+
+  // CHECKSTYLE:ON
 
   public String getApplicationId() {
     return this.applicationId;

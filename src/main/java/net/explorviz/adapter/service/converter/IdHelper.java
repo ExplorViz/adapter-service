@@ -10,6 +10,10 @@ public final class IdHelper {
   private static final int SPAN_ID_LEN = 8;
   private static final int TRACE_ID_LEN = 16;
 
+  private IdHelper() {
+    // Nothing to do
+  }
+
   /**
    * Converts a span ID represented a byte string to a readable string encoded in base 16.
    *

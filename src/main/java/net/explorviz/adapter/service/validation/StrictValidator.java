@@ -1,6 +1,5 @@
 package net.explorviz.adapter.service.validation;
 
-
 import java.time.DateTimeException;
 import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
@@ -17,6 +16,8 @@ import org.slf4j.LoggerFactory;
 public class StrictValidator implements SpanValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
+
+  private static final int MIN_DEPTH_FQN_NAME = 3;
 
   private final TokenService tokenService;
 
@@ -35,11 +36,10 @@ public class StrictValidator implements SpanValidator {
       return false;
     }
 
-
-    return this.validateToken(span.getLandscapeToken()) && this.validateTimestamp(span) &&
-        this.validateHost(span) &&
-        this.validateApp(span) &&
-        this.validateOperation(span);
+    return this.validateToken(span.getLandscapeToken()) && this.validateTimestamp(span)
+        && this.validateHost(span)
+        && this.validateApp(span)
+        && this.validateOperation(span);
   }
 
   private boolean validateToken(final String token) {
@@ -114,7 +114,7 @@ public class StrictValidator implements SpanValidator {
      * last is class name, remaining elements form the package name which must not be empty
      */
     final String[] operationFqnSplit = span.getFullyQualifiedOperationName().split("\\.");
-    if (operationFqnSplit.length < 3) {
+    if (operationFqnSplit.length < MIN_DEPTH_FQN_NAME) {
       if (LOGGER.isErrorEnabled()) {
         LOGGER.error("Invalid operation name: {}", span);
       }

@@ -201,7 +201,7 @@
     <module name="CustomImportOrder">
       <property name="sortImportsInGroupAlphabetically"
         value="true" />
-      <property name="separateLineBetweenGroups" value="true" />
+      <property name="separateLineBetweenGroups" value="false" />
       <property name="customImportOrderRules"
         value="STATIC###THIRD_PARTY_PACKAGE" />
     </module>
@@ -314,14 +314,8 @@
       <property name="commentFormat" value="NOCS" />
     </module>
             
-    <module name="SuppressionCommentFilter">
-      <property name="offCommentFormat"
-        value="CHECKSTYLE.OFF\: ([\w\|]+)" />
-      <property name="onCommentFormat"
-        value="CHECKSTYLE.ON\: ([\w\|]+)" />
-      <property name="checkFormat" value="$1" />
-    </module>
-
+    <module name="SuppressionCommentFilter" />
+      
     <!-- TODO - we require a rule to enforce only fqn for @link (afterwards, 
       UnusedImports->processJavadoc can be removed) - we require a rule to enforce 
       declaring type arguments for generic types/methods -->

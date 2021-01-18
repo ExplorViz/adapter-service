@@ -1,7 +1,5 @@
 package net.explorviz.adapter.service.converter;
 
-
-
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_PID;
@@ -39,17 +37,17 @@ public class AttributesReader {
   public static final String APPLICATION_NAME = "application_name";
 
   /**
-   * The PID of the applicatino a span belongs to
+   * The PID of the applicatino a span belongs to.
    */
   public static final String APPLICATION_PID = "application_pid";
 
   /**
-   * The PID of the applicatino a span belongs to
+   * The PID of the applicatino a span belongs to.
    */
   public static final String APPLICATION_LANGUAGE = "application_language";
 
   /**
-   * The fully qualified name of the operation/method called
+   * The fully qualified name of the operation/method called.
    */
   public static final String METHOD_FQN = "method_fqn";
 
@@ -66,7 +64,7 @@ public class AttributesReader {
    *
    * @param span the span to read attributes out of
    */
-  AttributesReader(final Span span) {
+  public AttributesReader(final Span span) {
     span.getAttributes().getAttributeMapMap().forEach((k, v) -> {
       this.attributes.put(k, v.getStringValue().getValue());
     });
@@ -80,7 +78,7 @@ public class AttributesReader {
     return this.attributes.getOrDefault(HOST_NAME, DEFAULT_HOST_NAME);
   }
 
-  public String getHostIPAddress() {
+  public String getHostIpAddress() {
     return this.attributes.getOrDefault(HOST_IP, DEFAULT_HOST_IP);
   }
 
@@ -88,7 +86,7 @@ public class AttributesReader {
     return this.attributes.getOrDefault(APPLICATION_NAME, DEFAULT_APP_NAME);
   }
 
-  public String getApplicationPID() {
+  public String getApplicationPid() {
     return this.attributes.getOrDefault(APPLICATION_PID, DEFAULT_APP_PID);
   }
 
@@ -96,7 +94,7 @@ public class AttributesReader {
     return this.attributes.getOrDefault(APPLICATION_LANGUAGE, DEFAULT_APP_LANG);
   }
 
-  public String getMethodFQN() {
+  public String getMethodFqn() {
     return this.attributes.getOrDefault(METHOD_FQN, DEFAULT_FQN);
   }
 
@@ -109,11 +107,11 @@ public class AttributesReader {
     builder
         .setLandscapeToken(this.getLandscapeToken())
         .setHostname(this.getHostName())
-        .setHostIpAddress(this.getHostIPAddress())
-        .setAppPid(this.getApplicationPID())
+        .setHostIpAddress(this.getHostIpAddress())
+        .setAppPid(this.getApplicationPid())
         .setAppName(this.getApplicationName())
         .setAppLanguage(this.getApplicationLanguage())
-        .setFullyQualifiedOperationName(this.getMethodFQN());
+        .setFullyQualifiedOperationName(this.getMethodFqn());
   }
 
 }
