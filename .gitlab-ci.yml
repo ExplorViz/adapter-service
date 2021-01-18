@@ -43,10 +43,10 @@ pmd:
   stage: code-analysis
   tags:
     - exec-docker
-  script: ./gradlew checkstyleMain
+  script: ./gradlew pmdMain
 
 checkstyle:
   stage: code-analysis
   tags:
     - exec-docker
-  script: ./gradlew pmdMain
+  script: ./gradlew checkstyleMain
