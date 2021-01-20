@@ -3,27 +3,34 @@ package net.explorviz.adapter.injection;
 import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+/**
+ * Wrapper class for ConfigProperties that are read out of the application.properties file.
+ */
 @ApplicationScoped
-// https://quarkus.io/guides/config#using-configproperties
+@SuppressWarnings("PMD.DefaultPackage")
 public class KafkaConfig {
 
+  // CHECKSTYLE:OFF
+
   @ConfigProperty(name = "quarkus.kafka-streams.application-id")
-  String applicationId;
+  /* default */ String applicationId;
 
   @ConfigProperty(name = "quarkus.kafka-streams.bootstrap-servers")
-  String bootstrapServers;
+  /* default */ String bootstrapServers;
 
   @ConfigProperty(name = "quarkus.kafka-streams.topics")
-  String inTopic;
+  /* default */ String inTopic;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
-  String structureOutTopic;
+  /* default */ String structureOutTopic;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
-  String dynamicOutTopic;
+  /* default */ String dynamicOutTopic;
 
   @ConfigProperty(name = "explorviz.schema-registry.url")
-  String schemaRegistryUrl;
+  /* default */ String schemaRegistryUrl;
+
+  // CHECKSTYLE:ON
 
   public String getApplicationId() {
     return this.applicationId;
@@ -42,7 +49,7 @@ public class KafkaConfig {
   }
 
   public String getDynamicOutTopic() {
-    return dynamicOutTopic;
+    return this.dynamicOutTopic;
   }
 
   public String getSchemaRegistryUrl() {

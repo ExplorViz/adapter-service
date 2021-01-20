@@ -10,6 +10,11 @@ variables:
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
+stages:
+  - code-analysis
+  - build
+  - test
+
 build:
   stage: build
   tags:
@@ -33,3 +38,15 @@ unit-test:
     paths:
       - build
       - .gradle
+
+pmd:
+  stage: code-analysis
+  tags:
+    - exec-docker
+  script: ./gradlew pmdMain
+
+checkstyle:
+  stage: code-analysis
+  tags:
+    - exec-docker
+  script: ./gradlew checkstyleMain

@@ -9,6 +9,9 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 
+/**
+ * Kafka-Streams transformer which builds a {@link SpanDynamic} out of a {@link Span}.
+ */
 @ApplicationScoped
 public class DynamicTransformer
     implements Transformer<byte[], Span, KeyValue<String, SpanDynamic>> {
@@ -22,17 +25,17 @@ public class DynamicTransformer
 
   @Override
   public void init(final ProcessorContext context) {
-
+    // Nothing to do
   }
 
   @Override
   public KeyValue<String, SpanDynamic> transform(final byte[] key, final Span value) {
-    SpanDynamic dynamic = converter.fromOpenCensusSpan(value);
+    final SpanDynamic dynamic = this.converter.fromOpenCensusSpan(value);
     return new KeyValue<>(dynamic.getTraceId(), dynamic);
   }
 
   @Override
   public void close() {
-
+    // Nothing to do
   }
 }

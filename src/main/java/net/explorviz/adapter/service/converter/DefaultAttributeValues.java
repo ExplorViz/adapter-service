@@ -5,7 +5,7 @@ package net.explorviz.adapter.service.converter;
  */
 public final class DefaultAttributeValues {
 
-  public static final String DEFAULT_HOST_IP = "0.0.0.0";
+  public static final String DEFAULT_HOST_IP = "0.0.0.0"; // NOPMD
   public static final String DEFAULT_HOST_NAME = "UNKNOWN-HOST";
   public static final String DEFAULT_APP_PID = "-1";
   public static final String DEFAULT_APP_NAME = "UNKNOWN-APPLICATION";

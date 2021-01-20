@@ -9,17 +9,17 @@ class IdHelperTest {
 
   @Test
   void spanId() {
-    String id = "7ef83c66eabd5fbb";
-    byte[] spanId = BaseEncoding.base16().lowerCase().decode(id);
-    String got = IdHelper.converterSpanId(spanId);
+    final String id = "7ef83c66eabd5fbb";
+    final byte[] spanId = BaseEncoding.base16().lowerCase().decode(id);
+    final String got = IdHelper.converterSpanId(spanId);
     Assertions.assertEquals("7ef83c66eabd5fbb", got);
   }
 
   @Test
   void traceId() {
-    String id = "50c246ad9c9883d1558df9f19b9ae7a6";
-    byte[] traceId = BaseEncoding.base16().lowerCase().decode(id);
-    String got = IdHelper.converterTraceId(traceId);
+    final String id = "50c246ad9c9883d1558df9f19b9ae7a6";
+    final byte[] traceId = BaseEncoding.base16().lowerCase().decode(id);
+    final String got = IdHelper.converterTraceId(traceId);
     Assertions.assertEquals("50c246ad9c9883d1558df9f19b9ae7a6", got);
   }
 

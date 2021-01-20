@@ -16,12 +16,12 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
   private static final long serialVersionUID = 0L;
 
   // Use DumpSpans.newBuilder() to construct.
-  private DumpSpans(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  private DumpSpans(final com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
 
   private DumpSpans() {
-    spans_ = java.util.Collections.emptyList();
+    this.spans_ = java.util.Collections.emptyList();
   }
 
   @Override
@@ -29,51 +29,51 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     return this.unknownFields;
   }
 
-  private DumpSpans(com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+  private DumpSpans(final com.google.protobuf.CodedInputStream input,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     this();
     if (extensionRegistry == null) {
       throw new NullPointerException();
     }
     int mutable_bitField0_ = 0;
-    com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+    final com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
       boolean done = false;
       while (!done) {
-        int tag = input.readTag();
+        final int tag = input.readTag();
         switch (tag) {
           case 0:
             done = true;
             break;
           case 10: {
             if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              spans_ = new java.util.ArrayList<io.opencensus.proto.trace.v1.Span>();
+              this.spans_ = new java.util.ArrayList<>();
               mutable_bitField0_ |= 0x00000001;
             }
-            spans_.add(
+            this.spans_.add(
                 input.readMessage(io.opencensus.proto.trace.v1.Span.parser(), extensionRegistry));
             break;
           }
           default: {
-            if (!parseUnknownField(input, unknownFields, extensionRegistry, tag)) {
+            if (!this.parseUnknownField(input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
             break;
           }
         }
       }
-    } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+    } catch (final com.google.protobuf.InvalidProtocolBufferException e) {
       throw e.setUnfinishedMessage(this);
-    } catch (java.io.IOException e) {
+    } catch (final java.io.IOException e) {
       throw new com.google.protobuf.InvalidProtocolBufferException(e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) != 0)) {
-        spans_ = java.util.Collections.unmodifiableList(spans_);
+      if ((mutable_bitField0_ & 0x00000001) != 0) {
+        this.spans_ = java.util.Collections.unmodifiableList(this.spans_);
       }
       this.unknownFields = unknownFields.build();
-      makeExtensionsImmutable();
+      this.makeExtensionsImmutable();
     }
   }
 
@@ -93,72 +93,81 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
   /**
    * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
    */
+  @Override
   public java.util.List<io.opencensus.proto.trace.v1.Span> getSpansList() {
-    return spans_;
+    return this.spans_;
   }
 
   /**
    * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
    */
+  @Override
   public java.util.List<? extends io.opencensus.proto.trace.v1.SpanOrBuilder> getSpansOrBuilderList() {
-    return spans_;
+    return this.spans_;
   }
 
   /**
    * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
    */
+  @Override
   public int getSpansCount() {
-    return spans_.size();
+    return this.spans_.size();
   }
 
   /**
    * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
    */
-  public io.opencensus.proto.trace.v1.Span getSpans(int index) {
-    return spans_.get(index);
+  @Override
+  public io.opencensus.proto.trace.v1.Span getSpans(final int index) {
+    return this.spans_.get(index);
   }
 
   /**
    * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
    */
-  public io.opencensus.proto.trace.v1.SpanOrBuilder getSpansOrBuilder(int index) {
-    return spans_.get(index);
+  @Override
+  public io.opencensus.proto.trace.v1.SpanOrBuilder getSpansOrBuilder(final int index) {
+    return this.spans_.get(index);
   }
 
   private byte memoizedIsInitialized = -1;
 
   @Override
   public final boolean isInitialized() {
-    byte isInitialized = memoizedIsInitialized;
-    if (isInitialized == 1)
+    final byte isInitialized = this.memoizedIsInitialized;
+    if (isInitialized == 1) {
       return true;
-    if (isInitialized == 0)
+    }
+    if (isInitialized == 0) {
       return false;
+    }
 
-    memoizedIsInitialized = 1;
+    this.memoizedIsInitialized = 1;
     return true;
   }
 
   @Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output) throws java.io.IOException {
-    for (int i = 0; i < spans_.size(); i++) {
-      output.writeMessage(1, spans_.get(i));
+  public void writeTo(final com.google.protobuf.CodedOutputStream output)
+      throws java.io.IOException {
+    for (int i = 0; i < this.spans_.size(); i++) {
+      output.writeMessage(1, this.spans_.get(i));
     }
-    unknownFields.writeTo(output);
+    this.unknownFields.writeTo(output);
   }
 
   @Override
   public int getSerializedSize() {
-    int size = memoizedSize;
-    if (size != -1)
+    int size = this.memoizedSize;
+    if (size != -1) {
       return size;
+    }
 
     size = 0;
-    for (int i = 0; i < spans_.size(); i++) {
-      size += com.google.protobuf.CodedOutputStream.computeMessageSize(1, spans_.get(i));
+    for (int i = 0; i < this.spans_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream.computeMessageSize(1, this.spans_.get(i));
     }
-    size += unknownFields.getSerializedSize();
-    memoizedSize = size;
+    size += this.unknownFields.getSerializedSize();
+    this.memoizedSize = size;
     return size;
   }
 
@@ -170,92 +179,98 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     if (!(obj instanceof DumpSpans)) {
       return super.equals(obj);
     }
-    DumpSpans other = (DumpSpans) obj;
+    final DumpSpans other = (DumpSpans) obj;
 
-    if (!getSpansList().equals(other.getSpansList()))
+    if (!this.getSpansList().equals(other.getSpansList())) {
       return false;
-    if (!unknownFields.equals(other.unknownFields))
+    }
+    if (!this.unknownFields.equals(other.unknownFields)) {
       return false;
+    }
     return true;
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public int hashCode() {
-    if (memoizedHashCode != 0) {
-      return memoizedHashCode;
+    if (this.memoizedHashCode != 0) {
+      return this.memoizedHashCode;
     }
     int hash = 41;
-    hash = (19 * hash) + getDescriptor().hashCode();
-    if (getSpansCount() > 0) {
-      hash = (37 * hash) + SPANS_FIELD_NUMBER;
-      hash = (53 * hash) + getSpansList().hashCode();
+    hash = 19 * hash + getDescriptor().hashCode();
+    if (this.getSpansCount() > 0) {
+      hash = 37 * hash + SPANS_FIELD_NUMBER;
+      hash = 53 * hash + this.getSpansList().hashCode();
     }
-    hash = (29 * hash) + unknownFields.hashCode();
-    memoizedHashCode = hash;
+    hash = 29 * hash + this.unknownFields.hashCode();
+    this.memoizedHashCode = hash;
     return hash;
   }
 
-  public static DumpSpans parseFrom(java.nio.ByteBuffer data)
+  public static DumpSpans parseFrom(final java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
 
-  public static DumpSpans parseFrom(java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+  public static DumpSpans parseFrom(final java.nio.ByteBuffer data,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
 
-  public static DumpSpans parseFrom(com.google.protobuf.ByteString data)
+  public static DumpSpans parseFrom(final com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
 
-  public static DumpSpans parseFrom(com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+  public static DumpSpans parseFrom(final com.google.protobuf.ByteString data,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
 
-  public static DumpSpans parseFrom(byte[] data)
+  public static DumpSpans parseFrom(final byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
 
-  public static DumpSpans parseFrom(byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+  public static DumpSpans parseFrom(final byte[] data,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
 
-  public static DumpSpans parseFrom(java.io.InputStream input) throws java.io.IOException {
+  public static DumpSpans parseFrom(final java.io.InputStream input) throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3.parseWithIOException(PARSER, input);
   }
 
-  public static DumpSpans parseFrom(java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry) throws java.io.IOException {
+  public static DumpSpans parseFrom(final java.io.InputStream input,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3.parseWithIOException(PARSER, input,
         extensionRegistry);
   }
 
-  public static DumpSpans parseDelimitedFrom(java.io.InputStream input) throws java.io.IOException {
+  public static DumpSpans parseDelimitedFrom(final java.io.InputStream input)
+      throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3.parseDelimitedWithIOException(PARSER, input);
   }
 
-  public static DumpSpans parseDelimitedFrom(java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry) throws java.io.IOException {
+  public static DumpSpans parseDelimitedFrom(final java.io.InputStream input,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3.parseDelimitedWithIOException(PARSER, input,
         extensionRegistry);
   }
 
-  public static DumpSpans parseFrom(com.google.protobuf.CodedInputStream input)
+  public static DumpSpans parseFrom(final com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3.parseWithIOException(PARSER, input);
   }
 
-  public static DumpSpans parseFrom(com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry) throws java.io.IOException {
+  public static DumpSpans parseFrom(final com.google.protobuf.CodedInputStream input,
+      final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+      throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3.parseWithIOException(PARSER, input,
         extensionRegistry);
   }
@@ -269,7 +284,7 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     return DEFAULT_INSTANCE.toBuilder();
   }
 
-  public static Builder newBuilder(DumpSpans prototype) {
+  public static Builder newBuilder(final DumpSpans prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
 
@@ -279,8 +294,8 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
   }
 
   @Override
-  protected Builder newBuilderForType(BuilderParent parent) {
-    Builder builder = new Builder(parent);
+  protected Builder newBuilderForType(final BuilderParent parent) {
+    final Builder builder = new Builder(parent);
     return builder;
   }
 
@@ -307,28 +322,28 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
 
     // Construct using io.opencensus.proto.dump.DumpSpans.newBuilder()
     private Builder() {
-      maybeForceBuilderInitialization();
+      this.maybeForceBuilderInitialization();
     }
 
-    private Builder(BuilderParent parent) {
+    private Builder(final BuilderParent parent) {
       super(parent);
-      maybeForceBuilderInitialization();
+      this.maybeForceBuilderInitialization();
     }
 
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders) {
-        getSpansFieldBuilder();
+        this.getSpansFieldBuilder();
       }
     }
 
     @Override
     public Builder clear() {
       super.clear();
-      if (spansBuilder_ == null) {
-        spans_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
+      if (this.spansBuilder_ == null) {
+        this.spans_ = java.util.Collections.emptyList();
+        this.bitField0_ = this.bitField0_ & ~0x00000001;
       } else {
-        spansBuilder_.clear();
+        this.spansBuilder_.clear();
       }
       return this;
     }
@@ -345,7 +360,7 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
 
     @Override
     public DumpSpans build() {
-      DumpSpans result = buildPartial();
+      final DumpSpans result = this.buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -354,19 +369,19 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
 
     @Override
     public DumpSpans buildPartial() {
-      DumpSpans result = new DumpSpans(this);
+      final DumpSpans result = new DumpSpans(this);
       @SuppressWarnings("unused")
-      int from_bitField0_ = bitField0_;
-      if (spansBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) != 0)) {
-          spans_ = java.util.Collections.unmodifiableList(spans_);
-          bitField0_ = (bitField0_ & ~0x00000001);
+      final int from_bitField0_ = this.bitField0_;
+      if (this.spansBuilder_ == null) {
+        if ((this.bitField0_ & 0x00000001) != 0) {
+          this.spans_ = java.util.Collections.unmodifiableList(this.spans_);
+          this.bitField0_ = this.bitField0_ & ~0x00000001;
         }
-        result.spans_ = spans_;
+        result.spans_ = this.spans_;
       } else {
-        result.spans_ = spansBuilder_.build();
+        result.spans_ = this.spansBuilder_.build();
       }
-      onBuilt();
+      this.onBuilt();
       return result;
     }
 
@@ -376,73 +391,75 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     }
 
     @Override
-    public Builder setField(com.google.protobuf.Descriptors.FieldDescriptor field, Object value) {
+    public Builder setField(final com.google.protobuf.Descriptors.FieldDescriptor field,
+        final Object value) {
       return super.setField(field, value);
     }
 
     @Override
-    public Builder clearField(com.google.protobuf.Descriptors.FieldDescriptor field) {
+    public Builder clearField(final com.google.protobuf.Descriptors.FieldDescriptor field) {
       return super.clearField(field);
     }
 
     @Override
-    public Builder clearOneof(com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+    public Builder clearOneof(final com.google.protobuf.Descriptors.OneofDescriptor oneof) {
       return super.clearOneof(oneof);
     }
 
     @Override
-    public Builder setRepeatedField(com.google.protobuf.Descriptors.FieldDescriptor field,
-        int index, Object value) {
+    public Builder setRepeatedField(final com.google.protobuf.Descriptors.FieldDescriptor field,
+        final int index, final Object value) {
       return super.setRepeatedField(field, index, value);
     }
 
     @Override
-    public Builder addRepeatedField(com.google.protobuf.Descriptors.FieldDescriptor field,
-        Object value) {
+    public Builder addRepeatedField(final com.google.protobuf.Descriptors.FieldDescriptor field,
+        final Object value) {
       return super.addRepeatedField(field, value);
     }
 
     @Override
-    public Builder mergeFrom(com.google.protobuf.Message other) {
+    public Builder mergeFrom(final com.google.protobuf.Message other) {
       if (other instanceof DumpSpans) {
-        return mergeFrom((DumpSpans) other);
+        return this.mergeFrom((DumpSpans) other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(DumpSpans other) {
-      if (other == DumpSpans.getDefaultInstance())
+    public Builder mergeFrom(final DumpSpans other) {
+      if (other == DumpSpans.getDefaultInstance()) {
         return this;
-      if (spansBuilder_ == null) {
+      }
+      if (this.spansBuilder_ == null) {
         if (!other.spans_.isEmpty()) {
-          if (spans_.isEmpty()) {
-            spans_ = other.spans_;
-            bitField0_ = (bitField0_ & ~0x00000001);
+          if (this.spans_.isEmpty()) {
+            this.spans_ = other.spans_;
+            this.bitField0_ = this.bitField0_ & ~0x00000001;
           } else {
-            ensureSpansIsMutable();
-            spans_.addAll(other.spans_);
+            this.ensureSpansIsMutable();
+            this.spans_.addAll(other.spans_);
           }
-          onChanged();
+          this.onChanged();
         }
       } else {
         if (!other.spans_.isEmpty()) {
-          if (spansBuilder_.isEmpty()) {
-            spansBuilder_.dispose();
-            spansBuilder_ = null;
-            spans_ = other.spans_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-            spansBuilder_ = com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders
-                ? getSpansFieldBuilder()
+          if (this.spansBuilder_.isEmpty()) {
+            this.spansBuilder_.dispose();
+            this.spansBuilder_ = null;
+            this.spans_ = other.spans_;
+            this.bitField0_ = this.bitField0_ & ~0x00000001;
+            this.spansBuilder_ = com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders
+                ? this.getSpansFieldBuilder()
                 : null;
           } else {
-            spansBuilder_.addAllMessages(other.spans_);
+            this.spansBuilder_.addAllMessages(other.spans_);
           }
         }
       }
       this.mergeUnknownFields(other.unknownFields);
-      onChanged();
+      this.onChanged();
       return this;
     }
 
@@ -452,17 +469,18 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     }
 
     @Override
-    public Builder mergeFrom(com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) throws java.io.IOException {
+    public Builder mergeFrom(final com.google.protobuf.CodedInputStream input,
+        final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
       DumpSpans parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+      } catch (final com.google.protobuf.InvalidProtocolBufferException e) {
         parsedMessage = (DumpSpans) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
-          mergeFrom(parsedMessage);
+          this.mergeFrom(parsedMessage);
         }
       }
       return this;
@@ -474,9 +492,9 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
         java.util.Collections.emptyList();
 
     private void ensureSpansIsMutable() {
-      if (!((bitField0_ & 0x00000001) != 0)) {
-        spans_ = new java.util.ArrayList<io.opencensus.proto.trace.v1.Span>(spans_);
-        bitField0_ |= 0x00000001;
+      if (!((this.bitField0_ & 0x00000001) != 0)) {
+        this.spans_ = new java.util.ArrayList<>(this.spans_);
+        this.bitField0_ |= 0x00000001;
       }
     }
 
@@ -485,49 +503,52 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
+    @Override
     public java.util.List<io.opencensus.proto.trace.v1.Span> getSpansList() {
-      if (spansBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(spans_);
+      if (this.spansBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(this.spans_);
       } else {
-        return spansBuilder_.getMessageList();
+        return this.spansBuilder_.getMessageList();
       }
     }
 
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
+    @Override
     public int getSpansCount() {
-      if (spansBuilder_ == null) {
-        return spans_.size();
+      if (this.spansBuilder_ == null) {
+        return this.spans_.size();
       } else {
-        return spansBuilder_.getCount();
+        return this.spansBuilder_.getCount();
       }
     }
 
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public io.opencensus.proto.trace.v1.Span getSpans(int index) {
-      if (spansBuilder_ == null) {
-        return spans_.get(index);
+    @Override
+    public io.opencensus.proto.trace.v1.Span getSpans(final int index) {
+      if (this.spansBuilder_ == null) {
+        return this.spans_.get(index);
       } else {
-        return spansBuilder_.getMessage(index);
+        return this.spansBuilder_.getMessage(index);
       }
     }
 
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder setSpans(int index, io.opencensus.proto.trace.v1.Span value) {
-      if (spansBuilder_ == null) {
+    public Builder setSpans(final int index, final io.opencensus.proto.trace.v1.Span value) {
+      if (this.spansBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureSpansIsMutable();
-        spans_.set(index, value);
-        onChanged();
+        this.ensureSpansIsMutable();
+        this.spans_.set(index, value);
+        this.onChanged();
       } else {
-        spansBuilder_.setMessage(index, value);
+        this.spansBuilder_.setMessage(index, value);
       }
       return this;
     }
@@ -535,13 +556,14 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder setSpans(int index, io.opencensus.proto.trace.v1.Span.Builder builderForValue) {
-      if (spansBuilder_ == null) {
-        ensureSpansIsMutable();
-        spans_.set(index, builderForValue.build());
-        onChanged();
+    public Builder setSpans(final int index,
+        final io.opencensus.proto.trace.v1.Span.Builder builderForValue) {
+      if (this.spansBuilder_ == null) {
+        this.ensureSpansIsMutable();
+        this.spans_.set(index, builderForValue.build());
+        this.onChanged();
       } else {
-        spansBuilder_.setMessage(index, builderForValue.build());
+        this.spansBuilder_.setMessage(index, builderForValue.build());
       }
       return this;
     }
@@ -549,16 +571,16 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder addSpans(io.opencensus.proto.trace.v1.Span value) {
-      if (spansBuilder_ == null) {
+    public Builder addSpans(final io.opencensus.proto.trace.v1.Span value) {
+      if (this.spansBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureSpansIsMutable();
-        spans_.add(value);
-        onChanged();
+        this.ensureSpansIsMutable();
+        this.spans_.add(value);
+        this.onChanged();
       } else {
-        spansBuilder_.addMessage(value);
+        this.spansBuilder_.addMessage(value);
       }
       return this;
     }
@@ -566,16 +588,16 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder addSpans(int index, io.opencensus.proto.trace.v1.Span value) {
-      if (spansBuilder_ == null) {
+    public Builder addSpans(final int index, final io.opencensus.proto.trace.v1.Span value) {
+      if (this.spansBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        ensureSpansIsMutable();
-        spans_.add(index, value);
-        onChanged();
+        this.ensureSpansIsMutable();
+        this.spans_.add(index, value);
+        this.onChanged();
       } else {
-        spansBuilder_.addMessage(index, value);
+        this.spansBuilder_.addMessage(index, value);
       }
       return this;
     }
@@ -583,13 +605,13 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder addSpans(io.opencensus.proto.trace.v1.Span.Builder builderForValue) {
-      if (spansBuilder_ == null) {
-        ensureSpansIsMutable();
-        spans_.add(builderForValue.build());
-        onChanged();
+    public Builder addSpans(final io.opencensus.proto.trace.v1.Span.Builder builderForValue) {
+      if (this.spansBuilder_ == null) {
+        this.ensureSpansIsMutable();
+        this.spans_.add(builderForValue.build());
+        this.onChanged();
       } else {
-        spansBuilder_.addMessage(builderForValue.build());
+        this.spansBuilder_.addMessage(builderForValue.build());
       }
       return this;
     }
@@ -597,13 +619,14 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder addSpans(int index, io.opencensus.proto.trace.v1.Span.Builder builderForValue) {
-      if (spansBuilder_ == null) {
-        ensureSpansIsMutable();
-        spans_.add(index, builderForValue.build());
-        onChanged();
+    public Builder addSpans(final int index,
+        final io.opencensus.proto.trace.v1.Span.Builder builderForValue) {
+      if (this.spansBuilder_ == null) {
+        this.ensureSpansIsMutable();
+        this.spans_.add(index, builderForValue.build());
+        this.onChanged();
       } else {
-        spansBuilder_.addMessage(index, builderForValue.build());
+        this.spansBuilder_.addMessage(index, builderForValue.build());
       }
       return this;
     }
@@ -611,13 +634,13 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder addAllSpans(Iterable<? extends io.opencensus.proto.trace.v1.Span> values) {
-      if (spansBuilder_ == null) {
-        ensureSpansIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(values, spans_);
-        onChanged();
+    public Builder addAllSpans(final Iterable<? extends io.opencensus.proto.trace.v1.Span> values) {
+      if (this.spansBuilder_ == null) {
+        this.ensureSpansIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(values, this.spans_);
+        this.onChanged();
       } else {
-        spansBuilder_.addAllMessages(values);
+        this.spansBuilder_.addAllMessages(values);
       }
       return this;
     }
@@ -626,12 +649,12 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
     public Builder clearSpans() {
-      if (spansBuilder_ == null) {
-        spans_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
+      if (this.spansBuilder_ == null) {
+        this.spans_ = java.util.Collections.emptyList();
+        this.bitField0_ = this.bitField0_ & ~0x00000001;
+        this.onChanged();
       } else {
-        spansBuilder_.clear();
+        this.spansBuilder_.clear();
       }
       return this;
     }
@@ -639,13 +662,13 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public Builder removeSpans(int index) {
-      if (spansBuilder_ == null) {
-        ensureSpansIsMutable();
-        spans_.remove(index);
-        onChanged();
+    public Builder removeSpans(final int index) {
+      if (this.spansBuilder_ == null) {
+        this.ensureSpansIsMutable();
+        this.spans_.remove(index);
+        this.onChanged();
       } else {
-        spansBuilder_.remove(index);
+        this.spansBuilder_.remove(index);
       }
       return this;
     }
@@ -653,29 +676,31 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public io.opencensus.proto.trace.v1.Span.Builder getSpansBuilder(int index) {
-      return getSpansFieldBuilder().getBuilder(index);
+    public io.opencensus.proto.trace.v1.Span.Builder getSpansBuilder(final int index) {
+      return this.getSpansFieldBuilder().getBuilder(index);
     }
 
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public io.opencensus.proto.trace.v1.SpanOrBuilder getSpansOrBuilder(int index) {
-      if (spansBuilder_ == null) {
-        return spans_.get(index);
+    @Override
+    public io.opencensus.proto.trace.v1.SpanOrBuilder getSpansOrBuilder(final int index) {
+      if (this.spansBuilder_ == null) {
+        return this.spans_.get(index);
       } else {
-        return spansBuilder_.getMessageOrBuilder(index);
+        return this.spansBuilder_.getMessageOrBuilder(index);
       }
     }
 
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
+    @Override
     public java.util.List<? extends io.opencensus.proto.trace.v1.SpanOrBuilder> getSpansOrBuilderList() {
-      if (spansBuilder_ != null) {
-        return spansBuilder_.getMessageOrBuilderList();
+      if (this.spansBuilder_ != null) {
+        return this.spansBuilder_.getMessageOrBuilderList();
       } else {
-        return java.util.Collections.unmodifiableList(spans_);
+        return java.util.Collections.unmodifiableList(this.spans_);
       }
     }
 
@@ -683,15 +708,15 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
     public io.opencensus.proto.trace.v1.Span.Builder addSpansBuilder() {
-      return getSpansFieldBuilder()
+      return this.getSpansFieldBuilder()
           .addBuilder(io.opencensus.proto.trace.v1.Span.getDefaultInstance());
     }
 
     /**
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
-    public io.opencensus.proto.trace.v1.Span.Builder addSpansBuilder(int index) {
-      return getSpansFieldBuilder().addBuilder(index,
+    public io.opencensus.proto.trace.v1.Span.Builder addSpansBuilder(final int index) {
+      return this.getSpansFieldBuilder().addBuilder(index,
           io.opencensus.proto.trace.v1.Span.getDefaultInstance());
     }
 
@@ -699,17 +724,18 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
      * <code>repeated .opencensus.proto.trace.v1.Span spans = 1;</code>
      */
     public java.util.List<io.opencensus.proto.trace.v1.Span.Builder> getSpansBuilderList() {
-      return getSpansFieldBuilder().getBuilderList();
+      return this.getSpansFieldBuilder().getBuilderList();
     }
 
     private com.google.protobuf.RepeatedFieldBuilderV3<io.opencensus.proto.trace.v1.Span, io.opencensus.proto.trace.v1.Span.Builder, io.opencensus.proto.trace.v1.SpanOrBuilder> getSpansFieldBuilder() {
-      if (spansBuilder_ == null) {
-        spansBuilder_ =
-            new com.google.protobuf.RepeatedFieldBuilderV3<io.opencensus.proto.trace.v1.Span, io.opencensus.proto.trace.v1.Span.Builder, io.opencensus.proto.trace.v1.SpanOrBuilder>(
-                spans_, ((bitField0_ & 0x00000001) != 0), getParentForChildren(), isClean());
-        spans_ = null;
+      if (this.spansBuilder_ == null) {
+        this.spansBuilder_ =
+            new com.google.protobuf.RepeatedFieldBuilderV3<>(
+                this.spans_, (this.bitField0_ & 0x00000001) != 0, this.getParentForChildren(),
+                this.isClean());
+        this.spans_ = null;
       }
-      return spansBuilder_;
+      return this.spansBuilder_;
     }
 
     @Override
@@ -738,10 +764,10 @@ public final class DumpSpans extends com.google.protobuf.GeneratedMessageV3 impl
   }
 
   private static final com.google.protobuf.Parser<DumpSpans> PARSER =
-      new com.google.protobuf.AbstractParser<DumpSpans>() {
+      new com.google.protobuf.AbstractParser<>() {
         @Override
-        public DumpSpans parsePartialFrom(com.google.protobuf.CodedInputStream input,
-            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        public DumpSpans parsePartialFrom(final com.google.protobuf.CodedInputStream input,
+            final com.google.protobuf.ExtensionRegistryLite extensionRegistry)
             throws com.google.protobuf.InvalidProtocolBufferException {
           return new DumpSpans(input, extensionRegistry);
         }

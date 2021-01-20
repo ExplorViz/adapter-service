@@ -1,9 +1,11 @@
 package net.explorviz.adapter.service.converter;
 
-
-
-import static net.explorviz.adapter.service.converter.DefaultAttributeValues.*;
-
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_PID;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
 import io.opencensus.proto.trace.v1.Span;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,17 +37,17 @@ public class AttributesReader {
   public static final String APPLICATION_NAME = "application_name";
 
   /**
-   * The PID of the applicatino a span belongs to
+   * The PID of the applicatino a span belongs to.
    */
   public static final String APPLICATION_PID = "application_pid";
 
   /**
-   * The PID of the applicatino a span belongs to
+   * The PID of the applicatino a span belongs to.
    */
   public static final String APPLICATION_LANGUAGE = "application_language";
 
   /**
-   * The fully qualified name of the operation/method called
+   * The fully qualified name of the operation/method called.
    */
   public static final String METHOD_FQN = "method_fqn";
 
@@ -62,38 +64,38 @@ public class AttributesReader {
    *
    * @param span the span to read attributes out of
    */
-  AttributesReader(final Span span) {
+  public AttributesReader(final Span span) {
     span.getAttributes().getAttributeMapMap().forEach((k, v) -> {
-      attributes.put(k, v.getStringValue().getValue());
+      this.attributes.put(k, v.getStringValue().getValue());
     });
   }
 
   public String getLandscapeToken() {
-    return attributes.getOrDefault(LANDSCAPE_TOKEN, "");
+    return this.attributes.getOrDefault(LANDSCAPE_TOKEN, "");
   }
 
   public String getHostName() {
-    return attributes.getOrDefault(HOST_NAME, DEFAULT_HOST_NAME);
+    return this.attributes.getOrDefault(HOST_NAME, DEFAULT_HOST_NAME);
   }
 
-  public String getHostIPAddress() {
-    return attributes.getOrDefault(HOST_IP, DEFAULT_HOST_IP);
+  public String getHostIpAddress() {
+    return this.attributes.getOrDefault(HOST_IP, DEFAULT_HOST_IP);
   }
 
   public String getApplicationName() {
-    return attributes.getOrDefault(APPLICATION_NAME, DEFAULT_APP_NAME);
+    return this.attributes.getOrDefault(APPLICATION_NAME, DEFAULT_APP_NAME);
   }
 
-  public String getApplicationPID() {
-    return attributes.getOrDefault(APPLICATION_PID, DEFAULT_APP_PID);
+  public String getApplicationPid() {
+    return this.attributes.getOrDefault(APPLICATION_PID, DEFAULT_APP_PID);
   }
 
   public String getApplicationLanguage() {
-    return attributes.getOrDefault(APPLICATION_LANGUAGE, DEFAULT_APP_LANG);
+    return this.attributes.getOrDefault(APPLICATION_LANGUAGE, DEFAULT_APP_LANG);
   }
 
-  public String getMethodFQN() {
-    return attributes.getOrDefault(METHOD_FQN, DEFAULT_FQN);
+  public String getMethodFqn() {
+    return this.attributes.getOrDefault(METHOD_FQN, DEFAULT_FQN);
   }
 
   /**
@@ -103,13 +105,13 @@ public class AttributesReader {
    */
   public void appendToStructure(final SpanStructure.Builder builder) {
     builder
-        .setLandscapeToken(getLandscapeToken())
-        .setHostname(getHostName())
-        .setHostIpAddress(getHostIPAddress())
-        .setAppPid(getApplicationPID())
-        .setAppName(getApplicationName())
-        .setAppLanguage(getApplicationLanguage())
-        .setFullyQualifiedOperationName(getMethodFQN());
+        .setLandscapeToken(this.getLandscapeToken())
+        .setHostname(this.getHostName())
+        .setHostIpAddress(this.getHostIpAddress())
+        .setAppPid(this.getApplicationPid())
+        .setAppName(this.getApplicationName())
+        .setAppLanguage(this.getApplicationLanguage())
+        .setFullyQualifiedOperationName(this.getMethodFqn());
   }
 
 }
