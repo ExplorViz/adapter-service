@@ -76,6 +76,7 @@ public class AttributesReader {
 
   /**
    * Unwraps an AttributeValue of into a string.
+   *
    * @param key the attribute's key
    * @return the string value of the attribute or empty if no such key exists
    */
@@ -93,7 +94,12 @@ public class AttributesReader {
     if (av == null) {
       return Optional.empty();
     }
-    return Optional.of(av.getIntValue());
+    try {
+      long l = Long.parseLong(av.getStringValue().getValue());
+      return Optional.of(l);
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
   }
 
   public String getLandscapeToken() {
