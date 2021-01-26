@@ -120,8 +120,8 @@ class ConversionStreamTest {
         .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
     attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(AttributesReader.APPLICATION_PID, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
+    attrMap.put(AttributesReader.APPLICATION_INSTANCE_ID, AttributeValue.newBuilder()
+        .setIntValue(1234L).build());
     attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
 
@@ -158,8 +158,8 @@ class ConversionStreamTest {
         attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
         attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
-    final String expectedAppPid =
-        attrs.get(AttributesReader.APPLICATION_PID).getStringValue().getValue();
+    final Long expectedInstanceId =
+        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getIntValue();
     final String expectedOperationName =
         attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
 
@@ -169,7 +169,7 @@ class ConversionStreamTest {
     assertEquals(expectedHostName, result.getHostname(), "Invalid host name");
 
     assertEquals(expectedAppName, result.getAppName(), "Invalid application name");
-    assertEquals(expectedAppPid, result.getAppPid(), "Invalid application pid");
+    assertEquals(expectedInstanceId, result.getAppInstanceId(), "Invalid application pid");
     assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
 
     assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),

@@ -136,7 +136,7 @@ public class AttributesReader {
         .setLandscapeToken(this.getLandscapeToken())
         .setHostname(this.getHostName())
         .setHostIpAddress(this.getHostIpAddress())
-        .setApplicationInstanceId(this.getApplicationInstanceId())
+        .setAppInstanceId(this.getApplicationInstanceId())
         .setAppName(this.getApplicationName())
         .setAppLanguage(this.getApplicationLanguage())
         .setFullyQualifiedOperationName(this.getMethodFqn());

@@ -36,8 +36,8 @@
       "type": "string"
     },
     {
-      "name": "appPid",
-      "type": "string"
+      "name": "appInstanceId",
+      "type": "long"
     },
     {
       "name": "appLanguage",
