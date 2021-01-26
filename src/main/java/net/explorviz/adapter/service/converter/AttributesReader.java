@@ -1,15 +1,19 @@
 package net.explorviz.adapter.service.converter;
 
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APPLICATION_INSTANCE_ID;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
-import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_PID;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
+
+import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import net.explorviz.avro.SpanStructure;
+import org.checkerframework.checker.nullness.Opt;
 
 /**
  * Reads the attributes of a {@link Span}.
@@ -36,10 +40,11 @@ public class AttributesReader {
    */
   public static final String APPLICATION_NAME = "application_name";
 
+
   /**
-   * The PID of the applicatino a span belongs to.
+   * The instance id of the application
    */
-  public static final String APPLICATION_PID = "application_pid";
+  public static final String APPLICATION_INSTANCE_ID = "application_instance_id";
 
   /**
    * The PID of the applicatino a span belongs to.
@@ -57,7 +62,7 @@ public class AttributesReader {
 
 
 
-  private final Map<String, String> attributes = new HashMap<>(7);
+  private final Map<String, AttributeValue> attributes = new HashMap<>(7);
 
   /**
    * Reads attributes from a span.
@@ -65,37 +70,60 @@ public class AttributesReader {
    * @param span the span to read attributes out of
    */
   public AttributesReader(final Span span) {
-    span.getAttributes().getAttributeMapMap().forEach((k, v) -> {
-      this.attributes.put(k, v.getStringValue().getValue());
-    });
+    // Load attributes into map
+    span.getAttributes().getAttributeMapMap().forEach(this.attributes::put);
+  }
+
+
+  /**
+   * Unwraps an AttributeValue of into a string.
+   * @param key the attribute's key
+   * @return the string value of the attribute or empty if no such key exists
+   */
+  private Optional<String> getAsString(String key) {
+    AttributeValue av = this.attributes.get(key);
+    if (av == null) {
+      return Optional.empty();
+    }
+
+    return Optional.of(av.getStringValue().getValue());
+  }
+
+  private Optional<Long> getAsLong(String key) {
+    AttributeValue av = this.attributes.get(key);
+    if (av == null) {
+      return Optional.empty();
+    }
+    return Optional.of(av.getIntValue());
   }
 
   public String getLandscapeToken() {
-    return this.attributes.getOrDefault(LANDSCAPE_TOKEN, "");
+    return this.getAsString(LANDSCAPE_TOKEN).orElse("");
   }
 
   public String getHostName() {
-    return this.attributes.getOrDefault(HOST_NAME, DEFAULT_HOST_NAME);
+    return this.getAsString(HOST_NAME).orElse(DEFAULT_HOST_NAME);
   }
 
   public String getHostIpAddress() {
-    return this.attributes.getOrDefault(HOST_IP, DEFAULT_HOST_IP);
+    return this.getAsString(HOST_IP).orElse(DEFAULT_HOST_IP);
   }
 
   public String getApplicationName() {
-    return this.attributes.getOrDefault(APPLICATION_NAME, DEFAULT_APP_NAME);
+    return this.getAsString(APPLICATION_NAME).orElse(DEFAULT_APP_NAME);
+
   }
 
-  public String getApplicationPid() {
-    return this.attributes.getOrDefault(APPLICATION_PID, DEFAULT_APP_PID);
+  public long getApplicationInstanceId() {
+    return this.getAsLong(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APPLICATION_INSTANCE_ID);
   }
 
   public String getApplicationLanguage() {
-    return this.attributes.getOrDefault(APPLICATION_LANGUAGE, DEFAULT_APP_LANG);
+    return this.getAsString(APPLICATION_LANGUAGE).orElse(DEFAULT_APP_LANG);
   }
 
   public String getMethodFqn() {
-    return this.attributes.getOrDefault(METHOD_FQN, DEFAULT_FQN);
+    return this.getAsString(METHOD_FQN).orElse(DEFAULT_FQN);
   }
 
   /**
@@ -108,7 +136,7 @@ public class AttributesReader {
         .setLandscapeToken(this.getLandscapeToken())
         .setHostname(this.getHostName())
         .setHostIpAddress(this.getHostIpAddress())
-        .setAppPid(this.getApplicationPid())
+        .setApplicationInstanceId(this.getApplicationInstanceId())
         .setAppName(this.getApplicationName())
         .setAppLanguage(this.getApplicationLanguage())
         .setFullyQualifiedOperationName(this.getMethodFqn());
