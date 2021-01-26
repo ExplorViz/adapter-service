@@ -95,7 +95,7 @@ public class AttributesReader {
       return Optional.empty();
     }
     try {
-      long l = Long.parseLong(av.getStringValue().getValue());
+      final long l = Long.parseLong(av.getStringValue().getValue());
       return Optional.of(l);
     } catch (NumberFormatException e) {
       return Optional.empty();
