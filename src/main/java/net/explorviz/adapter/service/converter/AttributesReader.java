@@ -1,6 +1,6 @@
 package net.explorviz.adapter.service.converter;
 
-import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APPLICATION_INSTANCE_ID;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import net.explorviz.avro.SpanStructure;
-import org.checkerframework.checker.nullness.Opt;
 
 /**
  * Reads the attributes of a {@link Span}.
@@ -42,7 +41,7 @@ public class AttributesReader {
 
 
   /**
-   * The instance id of the application
+   * The instance id of the application.
    */
   public static final String APPLICATION_INSTANCE_ID = "application_instance_id";
 
@@ -80,8 +79,8 @@ public class AttributesReader {
    * @param key the attribute's key
    * @return the string value of the attribute or empty if no such key exists
    */
-  private Optional<String> getAsString(String key) {
-    AttributeValue av = this.attributes.get(key);
+  private Optional<String> getAsString(final String key) {
+    final AttributeValue av = this.attributes.get(key);
     if (av == null) {
       return Optional.empty();
     }
@@ -89,8 +88,8 @@ public class AttributesReader {
     return Optional.of(av.getStringValue().getValue());
   }
 
-  private Optional<Long> getAsLong(String key) {
-    AttributeValue av = this.attributes.get(key);
+  private Optional<Long> getAsLong(final String key) {
+    final AttributeValue av = this.attributes.get(key);
     if (av == null) {
       return Optional.empty();
     }
@@ -115,7 +114,7 @@ public class AttributesReader {
   }
 
   public long getApplicationInstanceId() {
-    return this.getAsLong(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APPLICATION_INSTANCE_ID);
+    return this.getAsLong(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
   }
 
   public String getApplicationLanguage() {
