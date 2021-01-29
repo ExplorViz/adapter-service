@@ -1,15 +1,11 @@
 package net.explorviz.adapter.service.validation;
 
-import io.quarkus.runtime.StartupEvent;
 import java.time.DateTimeException;
 import java.time.Instant;
-import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.avro.SpanStructure;
-import org.apache.kafka.streams.KafkaStreams;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +20,11 @@ public class StrictValidator implements SpanValidator {
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
 
+  @ConfigProperty(name = "explorviz.validate.token-existence") // NOPMD
+  /* default */ boolean validateTokens; // NOCS
+
   private final TokenService tokenService;
 
-  @ConfigProperty(name = "explorviz.validate.token-existence")
-  boolean validateTokens;
 
   @Inject
   public StrictValidator(final TokenService tokenService) {
@@ -56,9 +53,7 @@ public class StrictValidator implements SpanValidator {
     }
 
     // validateTokens -> tokenExists
-    boolean exists = !validateTokens | this.tokenService.exists(token) ;
-
-    return exists;
+    return !validateTokens | this.tokenService.exists(token);
   }
 
   private boolean validateTimestamp(final SpanStructure span) {
