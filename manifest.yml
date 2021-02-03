@@ -19,7 +19,4 @@ spec:
           image: explorviz/adapter-service-jvm:latest
           ports:
             - containerPort: 80
-          env:
-            - name: EXPLORVIZ_VALIDATE_TOKEN_EXISTANCE
-              value: "false"
           imagePullPolicy: IfNotPresent
