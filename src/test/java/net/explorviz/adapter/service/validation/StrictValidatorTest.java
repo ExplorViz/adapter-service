@@ -26,7 +26,7 @@ class StrictValidatorTest {
     final String hostname = "Host";
     final String hostIp = "1.2.3.4";
     final String appName = "Test App";
-    final String appPid = "1234";
+    final long appInstanceId = 1234L;
     final String appLang = "java";
 
     this.validSpan = SpanStructure
@@ -38,7 +38,7 @@ class StrictValidatorTest {
         .setHostname(hostname)
         .setHostIpAddress(hostIp)
         .setAppName(appName)
-        .setAppPid(appPid)
+        .setAppInstanceId(appInstanceId)
         .setAppLanguage(appLang)
         .setFullyQualifiedOperationName("foo.bar.TestClass.testMethod()")
         .build();
@@ -94,9 +94,8 @@ class StrictValidatorTest {
     final SpanStructure noName = SpanStructure.newBuilder(this.validSpan).setAppName(" ").build();
     final SpanStructure noLanguage =
         SpanStructure.newBuilder(this.validSpan).setAppLanguage(" ").build();
-    final SpanStructure noPid = SpanStructure.newBuilder(this.validSpan).setAppPid(" ").build();
 
-    for (final SpanStructure tt : new SpanStructure[] {noName, noLanguage, noPid}) {
+    for (final SpanStructure tt : new SpanStructure[] {noName, noLanguage}) {
       Assertions.assertFalse(this.validator.isValid(tt));
     }
   }

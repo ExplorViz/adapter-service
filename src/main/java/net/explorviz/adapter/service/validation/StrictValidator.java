@@ -98,13 +98,6 @@ public class StrictValidator implements SpanValidator {
       return false;
     }
 
-    if (this.isBlank(span.getAppPid())) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("No application PID: {}", span);
-      }
-      return false;
-    }
-
     return true;
   }
 
