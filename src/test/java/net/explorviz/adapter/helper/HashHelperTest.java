@@ -12,13 +12,13 @@ public class HashHelperTest {
   void testHashFunction() {
     final String token = "tok";
     final String hostIp = "1.2.3.4";
-    final String appPid = "1234";
+    final Long appInstancedId = 1234L;
     final String fqn = "foo.bar.TestClass.testMethod()";
 
     final AttributesReader attr = Mockito.mock(AttributesReader.class);
     Mockito.when(attr.getLandscapeToken()).thenReturn(token);
     Mockito.when(attr.getHostIpAddress()).thenReturn(hostIp);
-    Mockito.when(attr.getApplicationPid()).thenReturn(appPid);
+    Mockito.when(attr.getApplicationInstanceId()).thenReturn(appInstancedId);
     Mockito.when(attr.getMethodFqn()).thenReturn(fqn);
 
 
