@@ -6,7 +6,6 @@ import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEF
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
-
 import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import java.util.HashMap;
@@ -97,7 +96,7 @@ public class AttributesReader {
     try {
       final long l = Long.parseLong(av.getStringValue().getValue());
       return Optional.of(l);
-    } catch (NumberFormatException e) {
+    } catch (final NumberFormatException e) {
       return Optional.empty();
     }
   }

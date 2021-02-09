@@ -20,11 +20,11 @@ public class StrictValidator implements SpanValidator {
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
 
-  @ConfigProperty(name = "explorviz.validate.token-existence") // NOPMD
+  @SuppressWarnings("PMD.DefaultPackage")
+  @ConfigProperty(name = "explorviz.validate.token-existence")
   /* default */ boolean validateTokens; // NOCS
 
   private final TokenService tokenService;
-
 
   @Inject
   public StrictValidator(final TokenService tokenService) {
@@ -53,7 +53,7 @@ public class StrictValidator implements SpanValidator {
     }
 
     // validateTokens -> tokenExists
-    return !validateTokens | this.tokenService.exists(token);
+    return !this.validateTokens | this.tokenService.exists(token);
   }
 
   private boolean validateTimestamp(final SpanStructure span) {
