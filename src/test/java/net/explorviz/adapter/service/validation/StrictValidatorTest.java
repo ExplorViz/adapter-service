@@ -26,7 +26,7 @@ class StrictValidatorTest {
     final String hostname = "Host";
     final String hostIp = "1.2.3.4";
     final String appName = "Test App";
-    final long appInstanceId = 1234L;
+    final String appInstanceId = "1234L";
     final String appLang = "java";
 
     this.validSpan = SpanStructure

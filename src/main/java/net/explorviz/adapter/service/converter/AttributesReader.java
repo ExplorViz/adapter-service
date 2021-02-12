@@ -119,8 +119,8 @@ public class AttributesReader {
 
   }
 
-  public long getApplicationInstanceId() {
-    return this.getAsLong(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
+  public String getApplicationInstanceId() {
+    return this.getAsString(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
   }
 
   public String getApplicationLanguage() {
@@ -134,7 +134,7 @@ public class AttributesReader {
   /**
    * Appends all attributes to the given SpanStructure builder.
    *
-   * @param builder the builder to append the attributes to
+   long* @param builder the builder to append the attributes to
    */
   public void appendToStructure(final SpanStructure.Builder builder) {
     builder

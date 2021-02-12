@@ -12,7 +12,7 @@ public class HashHelperTest {
   void testHashFunction() {
     final String token = "tok";
     final String hostIp = "1.2.3.4";
-    final Long appInstancedId = 1234L;
+    final String appInstancedId = "1234L";
     final String fqn = "foo.bar.TestClass.testMethod()";
 
     final AttributesReader attr = Mockito.mock(AttributesReader.class);
@@ -22,7 +22,7 @@ public class HashHelperTest {
     Mockito.when(attr.getMethodFqn()).thenReturn(fqn);
 
 
-    final String expectedValue = "429756767f5de088856ba6d2dbbb973ee7d740b75e5cfb9cfc60610e07941136";
+    final String expectedValue = "bc2527c89c57dbd9e0e6528335a338ba389a1fef97fd1f15e2ab6134c27341f2";
     assertEquals(expectedValue, HashHelper.fromSpanAttributes(attr), "Hashes are not equal");
   }
 

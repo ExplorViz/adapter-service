@@ -25,7 +25,7 @@ public final class HashHelper {
   }
 
   private static String createHash(final String landscapeToken, final String hostIp, // NOPMD
-      final long appInstanceId,
+      final String appInstanceId,
       final String methodFqn) {
 
     final StringJoiner joiner = new StringJoiner(";");
@@ -38,7 +38,7 @@ public final class HashHelper {
 
     joiner.add(landscapeToken);
     joiner.add(hostIp);
-    joiner.add(Long.toString(appInstanceId));
+    joiner.add(appInstanceId);
     joiner.add(fullyQualifiedOperationName);
 
     MessageDigest digest;
