@@ -89,19 +89,6 @@ public class AttributesReader {
     return Optional.of(av.getStringValue().getValue());
   }
 
-  private Optional<Long> getAsLong(final String key) {
-    final AttributeValue av = this.attributes.get(key);
-    if (av == null) {
-      return Optional.empty();
-    }
-    try {
-      final long l = Long.parseLong(av.getStringValue().getValue());
-      return Optional.of(l);
-    } catch (NumberFormatException e) {
-      return Optional.empty();
-    }
-  }
-
   public String getLandscapeToken() {
     return this.getAsString(LANDSCAPE_TOKEN).orElse("");
   }
@@ -134,7 +121,7 @@ public class AttributesReader {
   /**
    * Appends all attributes to the given SpanStructure builder.
    *
-   long* @param builder the builder to append the attributes to
+   * @param builder the builder to append the attributes to
    */
   public void appendToStructure(final SpanStructure.Builder builder) {
     builder
