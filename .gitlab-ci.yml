@@ -14,6 +14,7 @@ stages:
   - code-analysis
   - build
   - test
+  - deploy
 
 build:
   stage: build
@@ -50,3 +51,19 @@ checkstyle:
   tags:
     - exec-docker
   script: ./gradlew checkstyleMain
+
+push-dockerhub:
+  stage: deploy
+  only:
+    - master
+  tags:
+    - exec-docker
+  script: 
+    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.image=explorviz/adapter-service-jvm:$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
