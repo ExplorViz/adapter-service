@@ -7,6 +7,7 @@ import net.explorviz.avro.Timestamp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 class StrictValidatorTest {
@@ -16,8 +17,8 @@ class StrictValidatorTest {
 
   @BeforeEach
   void setUp() {
-    TokenService mockTokenService = Mockito.mock(TokenService.class);
-    Mockito.when(mockTokenService.exists(Mockito.anyString())).thenReturn(true);
+    final TokenService mockTokenService = Mockito.mock(TokenService.class);
+    Mockito.when(mockTokenService.exists(Matchers.anyString())).thenReturn(true);
     this.validator = new StrictValidator(mockTokenService);
 
     final Instant now = Instant.now();
@@ -25,7 +26,7 @@ class StrictValidatorTest {
     final String hostname = "Host";
     final String hostIp = "1.2.3.4";
     final String appName = "Test App";
-    final String appPid = "1234";
+    final long appInstanceId = 1234L;
     final String appLang = "java";
 
     this.validSpan = SpanStructure
@@ -37,7 +38,7 @@ class StrictValidatorTest {
         .setHostname(hostname)
         .setHostIpAddress(hostIp)
         .setAppName(appName)
-        .setAppPid(appPid)
+        .setAppInstanceId(appInstanceId)
         .setAppLanguage(appLang)
         .setFullyQualifiedOperationName("foo.bar.TestClass.testMethod()")
         .build();
@@ -50,8 +51,10 @@ class StrictValidatorTest {
 
   @Test
   void invalidToken() {
-    final SpanStructure noToken = SpanStructure.newBuilder(this.validSpan).setLandscapeToken("").build();
-    final SpanStructure blankToken = SpanStructure.newBuilder(this.validSpan).setLandscapeToken("   ").build();
+    final SpanStructure noToken =
+        SpanStructure.newBuilder(this.validSpan).setLandscapeToken("").build();
+    final SpanStructure blankToken =
+        SpanStructure.newBuilder(this.validSpan).setLandscapeToken("   ").build();
 
     for (final SpanStructure tt : new SpanStructure[] {noToken, blankToken}) {
       Assertions.assertFalse(this.validator.isValid(tt));
@@ -63,7 +66,8 @@ class StrictValidatorTest {
     final SpanStructure negative =
         SpanStructure.newBuilder(this.validSpan).setTimestamp(new Timestamp(-1L, 0)).build();
     final SpanStructure overflow =
-        SpanStructure.newBuilder(this.validSpan).setTimestamp(new Timestamp(1000000000000000000L, 0))
+        SpanStructure.newBuilder(this.validSpan)
+            .setTimestamp(new Timestamp(1000000000000000000L, 0))
             .build();
 
     for (final SpanStructure tt : new SpanStructure[] {negative, overflow}) {
@@ -73,8 +77,10 @@ class StrictValidatorTest {
 
   @Test
   void invalidHost() {
-    final SpanStructure noHostname = SpanStructure.newBuilder(this.validSpan).setHostname(" ").build();
-    final SpanStructure noIpAddress = SpanStructure.newBuilder(this.validSpan).setHostIpAddress("\t").build();
+    final SpanStructure noHostname =
+        SpanStructure.newBuilder(this.validSpan).setHostname(" ").build();
+    final SpanStructure noIpAddress =
+        SpanStructure.newBuilder(this.validSpan).setHostIpAddress("\t").build();
 
 
     for (final SpanStructure tt : new SpanStructure[] {noHostname, noIpAddress}) {
@@ -86,10 +92,10 @@ class StrictValidatorTest {
   @Test
   void invalidApp() {
     final SpanStructure noName = SpanStructure.newBuilder(this.validSpan).setAppName(" ").build();
-    final SpanStructure noLanguage = SpanStructure.newBuilder(this.validSpan).setAppLanguage(" ").build();
-    final SpanStructure noPid = SpanStructure.newBuilder(this.validSpan).setAppPid(" ").build();
+    final SpanStructure noLanguage =
+        SpanStructure.newBuilder(this.validSpan).setAppLanguage(" ").build();
 
-    for (final SpanStructure tt : new SpanStructure[] {noName, noLanguage, noPid}) {
+    for (final SpanStructure tt : new SpanStructure[] {noName, noLanguage}) {
       Assertions.assertFalse(this.validator.isValid(tt));
     }
   }

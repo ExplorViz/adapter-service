@@ -1,12 +1,12 @@
 package net.explorviz.adapter.service.validation;
 
-
 import java.time.DateTimeException;
 import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.avro.SpanStructure;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,13 @@ public class StrictValidator implements SpanValidator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
 
-  private TokenService tokenService;
+  private static final int MIN_DEPTH_FQN_NAME = 3;
+
+  @SuppressWarnings("PMD.DefaultPackage")
+  @ConfigProperty(name = "explorviz.validate.token-existence")
+  /* default */ boolean validateTokens; // NOCS
+
+  private final TokenService tokenService;
 
   @Inject
   public StrictValidator(final TokenService tokenService) {
@@ -29,22 +35,25 @@ public class StrictValidator implements SpanValidator {
   public boolean isValid(final SpanStructure span) {
 
     if (span.getHashCode() == null || span.getHashCode().isBlank()) {
-      LOGGER.error("No hash code: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No hash code: {}", span);
+      }
       return false;
     }
 
-
-    return this.validateToken(span.getLandscapeToken()) && this.validateTimestamp(span) &&
-        this.validateHost(span) &&
-        this.validateApp(span) &&
-        this.validateOperation(span);
+    return this.validateToken(span.getLandscapeToken()) && this.validateTimestamp(span)
+        && this.validateHost(span)
+        && this.validateApp(span)
+        && this.validateOperation(span);
   }
 
-  private boolean validateToken(String token) {
+  private boolean validateToken(final String token) {
     if (token == null || token.isBlank()) {
       return false;
     }
-    return tokenService.exists(token);
+
+    // validateTokens -> tokenExists
+    return !this.validateTokens | this.tokenService.exists(token);
   }
 
   private boolean validateTimestamp(final SpanStructure span) {
@@ -57,7 +66,9 @@ public class StrictValidator implements SpanValidator {
         throw new NumberFormatException("Time must be positive");
       }
     } catch (DateTimeException | NumberFormatException e) {
-      LOGGER.error("Invalid timestamp: {}, {}", span, e);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("Invalid timestamp: {}, {}", span, e);
+      }
       return false;
     }
     return true;
@@ -65,11 +76,15 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateHost(final SpanStructure span) {
     if (this.isBlank(span.getHostname())) {
-      LOGGER.error("No hostname: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No hostname: {}", span);
+      }
       return false;
     }
     if (this.isBlank(span.getHostIpAddress())) {
-      LOGGER.error("No IP address: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No IP address: {}", span);
+      }
       return false;
     }
     return true;
@@ -77,17 +92,16 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateApp(final SpanStructure span) {
     if (this.isBlank(span.getAppName())) {
-      LOGGER.error("No application name: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No application name: {}", span);
+      }
       return false;
     }
 
     if (this.isBlank(span.getAppLanguage())) {
-      LOGGER.error("No application language: {}", span);
-      return false;
-    }
-
-    if (this.isBlank(span.getAppPid())) {
-      LOGGER.error("No application PID: {}", span);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("No application language: {}", span);
+      }
       return false;
     }
 
@@ -100,8 +114,10 @@ public class StrictValidator implements SpanValidator {
      * last is class name, remaining elements form the package name which must not be empty
      */
     final String[] operationFqnSplit = span.getFullyQualifiedOperationName().split("\\.");
-    if (operationFqnSplit.length < 3) {
-      LOGGER.error("Invalid operation name: {}", span);
+    if (operationFqnSplit.length < MIN_DEPTH_FQN_NAME) {
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("Invalid operation name: {}", span);
+      }
       return false;
     }
     return true;

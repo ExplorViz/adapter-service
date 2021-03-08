@@ -12,18 +12,21 @@ import org.slf4j.LoggerFactory;
 /**
  * This class holds the hashing function for an {@link SpanStructure}.
  */
-public class HashHelper {
+public final class HashHelper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HashHelper.class);
 
   private static final String DIGEST_ALGORITHM = "SHA3-256";
 
+  private static final int EIGHT_BIT_CAP = 0xff;
+
   private HashHelper() {
-    // helper
+    // Helper
   }
 
-  private static String createHash(String landscapeToken, String hostIp, String appPid,
-                                  String methodFqn) {
+  private static String createHash(final String landscapeToken, final String hostIp, // NOPMD
+      final long appInstanceId,
+      final String methodFqn) {
 
     final StringJoiner joiner = new StringJoiner(";");
 
@@ -35,15 +38,17 @@ public class HashHelper {
 
     joiner.add(landscapeToken);
     joiner.add(hostIp);
-    joiner.add(appPid);
+    joiner.add(Long.toString(appInstanceId));
     joiner.add(fullyQualifiedOperationName);
 
     MessageDigest digest;
     try {
       digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
     } catch (final NoSuchAlgorithmException e) {
-      LOGGER.error("Set digest algorithm is not available. Did you use 'SHA3-256'?", e);
-      throw new RuntimeException(e);
+      if (LOGGER.isErrorEnabled()) {
+        LOGGER.error("Set digest algorithm is not available. Did you use 'SHA3-256'?", e);
+      }
+      throw new IllegalArgumentException("Not supported algorithm detected.", e);
     }
 
     final byte[] hashbytes = digest.digest(joiner.toString().getBytes(StandardCharsets.UTF_8));
@@ -55,17 +60,17 @@ public class HashHelper {
   public static String fromSpanAttributes(final AttributesReader attribute) {
     return createHash(
         attribute.getLandscapeToken(),
-        attribute.getHostIPAddress(),
-        attribute.getApplicationPID(),
-        attribute.getMethodFQN());
+        attribute.getHostIpAddress(),
+        attribute.getApplicationInstanceId(),
+        attribute.getMethodFqn());
   }
 
 
   private static String bytesToHex(final byte[] hash) {
     final StringBuffer hexString = new StringBuffer();
     for (final byte element : hash) {
-      final String hex = Integer.toHexString(0xff & element);
-      if (hex.length() == 1) {
+      final String hex = Integer.toHexString(EIGHT_BIT_CAP & element);
+      if (hex.length() == 1) { // NOPMD
         hexString.append('0');
       }
       hexString.append(hex);

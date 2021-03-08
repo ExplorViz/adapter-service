@@ -4,12 +4,16 @@ import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.Timestamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Converts a {@link Span} to a {@link SpanDynamic}.
  */
 @ApplicationScoped
 public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(SpanDynamicConverter.class);
 
   @Override
   public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
@@ -19,7 +23,7 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
     final Timestamp endTime =
         new Timestamp(ocSpan.getEndTime().getSeconds(), ocSpan.getEndTime().getNanos());
 
-    AttributesReader attributesReader = new AttributesReader(ocSpan);
+    final AttributesReader attributesReader = new AttributesReader(ocSpan);
 
 
     String parentSpan = "";
@@ -27,9 +31,7 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
       parentSpan = IdHelper.converterSpanId(ocSpan.getParentSpanId().toByteArray());
     }
 
-
-
-    SpanDynamic spanDynamic = SpanDynamic.newBuilder()
+    final SpanDynamic spanDynamic = SpanDynamic.newBuilder()
         .setLandscapeToken(attributesReader.getLandscapeToken())
         .setParentSpanId(parentSpan)
         .setSpanId(IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()))
@@ -39,9 +41,14 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
         .setEndTime(endTime)
         .build();
 
-    String hashValue = HashHelper.fromSpanAttributes(new AttributesReader(ocSpan));
+    final String hashValue = HashHelper.fromSpanAttributes(new AttributesReader(ocSpan));
 
     spanDynamic.setHashCode(hashValue);
+
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Converted SpanDynamic: {}", spanDynamic.toString());
+    }
+
     return spanDynamic;
   }
 }

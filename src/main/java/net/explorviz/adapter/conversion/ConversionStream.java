@@ -9,6 +9,7 @@ import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
@@ -29,9 +30,16 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Builds KafkaStreams instance with all its transformers. Entry point of the stream analysis.
+ */
 @ApplicationScoped
 public class ConversionStream {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConversionStream.class);
 
   private final SchemaRegistryClient registry;
 
@@ -41,7 +49,6 @@ public class ConversionStream {
 
   private Topology topology;
 
-
   private final SpanValidator validator;
   private final StructureTransformer structureTransformer;
   private final DynamicTransformer dynamicTransformer;
@@ -50,9 +57,9 @@ public class ConversionStream {
 
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                          final StructureTransformer structureTransformer,
-                          final DynamicTransformer dynamicTransformer,
-                          final SpanValidator validator) {
+      final StructureTransformer structureTransformer,
+      final DynamicTransformer dynamicTransformer,
+      final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -63,13 +70,13 @@ public class ConversionStream {
     this.buildTopology();
   }
 
-  void onStart(@Observes final StartupEvent event) {
+  /* default */ void onStart(@Observes final StartupEvent event) { // NOPMD
     this.streams = new KafkaStreams(this.topology, this.streamsConfig);
     this.streams.cleanUp();
     this.streams.start();
   }
 
-  void onStop(@Observes final ShutdownEvent event) {
+  /* default */ void onStop(@Observes final ShutdownEvent event) { // NOPMD
     this.streams.close();
   }
 
@@ -88,23 +95,29 @@ public class ConversionStream {
 
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
-        return DumpSpans.parseFrom(d).getSpansList();
+        final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
+
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Received {} spans.", spanList.size());
+        }
+
+        return spanList;
       } catch (final InvalidProtocolBufferException e) {
         return new ArrayList<>();
       }
     });
 
-    KStream<String, SpanStructure> spanStructureStream =
-        spanKStream.transform(() -> structureTransformer);
+    final KStream<String, SpanStructure> spanStructureStream =
+        spanKStream.transform(() -> this.structureTransformer);
 
     final KStream<String, SpanStructure> validSpanStructureStream =
-        spanStructureStream.filter(($, v) -> this.validator.isValid(v));
+        spanStructureStream.filter((k, v) -> this.validator.isValid(v));
     // final KStream<String, SpanStructure> invalidSpanStructureStream =
     // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
 
 
-    KStream<String, SpanDynamic> spanDynamicStream =
-        spanKStream.transform(() -> dynamicTransformer);
+    final KStream<String, SpanDynamic> spanDynamicStream =
+        spanKStream.transform(() -> this.dynamicTransformer);
 
 
     validSpanStructureStream

@@ -1,7 +1,6 @@
 package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -20,21 +19,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-
-import net.explorviz.adapter.service.TokenService;
-
-import net.explorviz.adapter.service.converter.AttributesReader;
-import net.explorviz.adapter.service.converter.SpanDynamicConverter;
-import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
 import net.explorviz.adapter.conversion.transformer.StructureTransformer;
 import net.explorviz.adapter.injection.KafkaConfig;
+import net.explorviz.adapter.service.TokenService;
+import net.explorviz.adapter.service.converter.AttributesReader;
+import net.explorviz.adapter.service.converter.SpanDynamicConverter;
+import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.adapter.service.validation.StrictValidator;
-
-
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
+import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
@@ -44,6 +40,7 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 @QuarkusTest
@@ -55,11 +52,11 @@ class ConversionStreamTest {
   private TestOutputTopic<String, SpanStructure> structureOutputTopic;
   private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
 
-  private SpecificAvroSerde<SpanStructure> SpanStructureSerDe;
-  private SpecificAvroSerde<SpanDynamic> SpanDynamicSerDe;
+  private SpecificAvroSerde<SpanStructure> spanStructureSerDe;
+  private SpecificAvroSerde<SpanDynamic> spanDynamicSerDe;
 
   @Inject
-  KafkaConfig config;
+  private KafkaConfig config;
 
   @BeforeEach
   void setUp() {
@@ -67,7 +64,7 @@ class ConversionStreamTest {
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
-    Mockito.when(mockTokenService.exists(Mockito.anyString())).thenReturn(true);
+    Mockito.when(mockTokenService.exists(Matchers.anyString())).thenReturn(true);
     final SpanValidator v = new StrictValidator(mockTokenService);
 
     final SpanStructureConverter c = new SpanStructureConverter();
@@ -85,29 +82,29 @@ class ConversionStreamTest {
 
     this.driver = new TopologyTestDriver(topology, props);
 
-    this.SpanStructureSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
-    this.SpanDynamicSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+    this.spanStructureSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
+    this.spanDynamicSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
 
 
-    this.SpanStructureSerDe.configure(
+    this.spanStructureSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
-    this.SpanDynamicSerDe.configure(
+    this.spanDynamicSerDe.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
 
 
     this.inputTopic = this.driver.createInputTopic("cluster-dump-spans",
         Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
-    this.structureOutputTopic = this.driver.createOutputTopic(config.getStructureOutTopic(),
-        Serdes.String().deserializer(), this.SpanStructureSerDe.deserializer());
-    this.dynamicOutputTopic = this.driver.createOutputTopic(config.getDynamicOutTopic(),
-        Serdes.String().deserializer(), this.SpanDynamicSerDe.deserializer());
+    this.structureOutputTopic = this.driver.createOutputTopic(this.config.getStructureOutTopic(),
+        Serdes.String().deserializer(), this.spanStructureSerDe.deserializer());
+    this.dynamicOutputTopic = this.driver.createOutputTopic(this.config.getDynamicOutTopic(),
+        Serdes.String().deserializer(), this.spanDynamicSerDe.deserializer());
   }
 
   @AfterEach
   void tearDown() {
-    this.SpanStructureSerDe.close();
-    this.SpanDynamicSerDe.close();
+    this.spanStructureSerDe.close();
+    this.spanDynamicSerDe.close();
     this.driver.close();
   }
 
@@ -124,11 +121,12 @@ class ConversionStreamTest {
         .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
     attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(AttributesReader.APPLICATION_PID, AttributeValue.newBuilder()
+    attrMap.put(AttributesReader.APPLICATION_INSTANCE_ID, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
     attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
 
+    // CHECKSTYLE:OFF
 
     return Span.newBuilder()
         .setTraceId(
@@ -139,6 +137,8 @@ class ConversionStreamTest {
         .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
         .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap))
         .build();
+
+    // CHECKSTYLE:ON
   }
 
   @Test
@@ -154,23 +154,23 @@ class ConversionStreamTest {
         attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
     final String expectedHostName =
         attrs.get(AttributesReader.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIP = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
+    final String expectedHostIp = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
     final String expectedAppName =
         attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
         attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
-    final String expectedAppPID =
-        attrs.get(AttributesReader.APPLICATION_PID).getStringValue().getValue();
+    final long expectedInstanceId = Long.parseLong(
+        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue());
     final String expectedOperationName =
         attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 
-    assertEquals(expectedHostIP, result.getHostIpAddress(), "Invalid host ip address");
+    assertEquals(expectedHostIp, result.getHostIpAddress(), "Invalid host ip address");
     assertEquals(expectedHostName, result.getHostname(), "Invalid host name");
 
     assertEquals(expectedAppName, result.getAppName(), "Invalid application name");
-    assertEquals(expectedAppPID, result.getAppPid(), "Invalid application pid");
+    assertEquals(expectedInstanceId, result.getAppInstanceId(), "Invalid application pid");
     assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
 
     assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),

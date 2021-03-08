@@ -4,6 +4,7 @@ import io.opencensus.proto.trace.v1.Span;
 
 /**
  * Converts OpenCensus spans into another type.
+ *
  * @param <T> the type spans are converted to.
  */
 public interface SpanConverter<T> {

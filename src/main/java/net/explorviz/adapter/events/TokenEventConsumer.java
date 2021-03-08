@@ -1,9 +1,5 @@
 package net.explorviz.adapter.events;
 
-
-import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.groups.UniSubscribe;
-import io.vertx.mutiny.redis.client.Response;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
@@ -13,12 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * Kafka consumer which reads {@link TokenEvent} and passes them to the {@link TokenService}.
+ */
 @ApplicationScoped
 public class TokenEventConsumer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TokenEventConsumer.class);
 
-  private TokenService tokenService;
+  private final TokenService tokenService;
 
   @Inject
   public TokenEventConsumer(final TokenService tokenService) {
@@ -26,14 +25,18 @@ public class TokenEventConsumer {
   }
 
   @Incoming("token-events")
-  public void process(TokenEvent event) {
-    LOGGER.info("Received event {}", event);
+  public void process(final TokenEvent event) {
+
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Received event {}", event);
+    }
+
     switch (event.getType()) {
       case CREATED:
-        tokenService.add(event.getToken());
+        this.tokenService.add(event.getToken());
         break;
       case DELETED:
-        tokenService.delete(event.getToken());
+        this.tokenService.delete(event.getToken());
         break;
       default:
         // Irrelevant event, do nothing

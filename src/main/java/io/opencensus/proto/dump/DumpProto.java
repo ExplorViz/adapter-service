@@ -6,9 +6,10 @@ package io.opencensus.proto.dump;
 public final class DumpProto {
   private DumpProto() {}
 
-  public static void registerAllExtensions(com.google.protobuf.ExtensionRegistryLite registry) {}
+  public static void registerAllExtensions(
+      final com.google.protobuf.ExtensionRegistryLite registry) {}
 
-  public static void registerAllExtensions(com.google.protobuf.ExtensionRegistry registry) {
+  public static void registerAllExtensions(final com.google.protobuf.ExtensionRegistry registry) {
     registerAllExtensions((com.google.protobuf.ExtensionRegistryLite) registry);
   }
 
@@ -21,16 +22,17 @@ public final class DumpProto {
 
   private static com.google.protobuf.Descriptors.FileDescriptor descriptor;
   static {
-    String[] descriptorData = {"\n\022dump/v1/dump.proto\022\030opencensus.proto.d"
+    final String[] descriptorData = {"\n\022dump/v1/dump.proto\022\030opencensus.proto.d"
         + "ump.v1\032%opencensus/proto/trace/v1/trace."
         + "proto\";\n\tDumpSpans\022.\n\005spans\030\001 \003(\0132\037.open"
         + "census.proto.trace.v1.SpanBe\n\030io.opencen"
         + "sus.proto.dumpB\tDumpProtoP\001Z<github.com/"
         + "yancl/opencensus-go-exporter-kafka/gen-g" + "o/dump/v1b\006proto3"};
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+    final com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
+          @Override
           public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
+              final com.google.protobuf.Descriptors.FileDescriptor root) {
             descriptor = root;
             return null;
           }
