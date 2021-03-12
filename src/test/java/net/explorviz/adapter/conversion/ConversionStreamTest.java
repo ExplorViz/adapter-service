@@ -1,7 +1,6 @@
 package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;

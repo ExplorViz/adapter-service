@@ -6,6 +6,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.avro.SpanStructure;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,10 @@ public class StrictValidator implements SpanValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
+
+  @SuppressWarnings("PMD.DefaultPackage")
+  @ConfigProperty(name = "explorviz.validate.token-existence")
+  /* default */ boolean validateTokens; // NOCS
 
   private final TokenService tokenService;
 
@@ -46,7 +51,9 @@ public class StrictValidator implements SpanValidator {
     if (token == null || token.isBlank()) {
       return false;
     }
-    return this.tokenService.exists(token);
+
+    // validateTokens -> tokenExists
+    return !this.validateTokens | this.tokenService.exists(token);
   }
 
   private boolean validateTimestamp(final SpanStructure span) {
