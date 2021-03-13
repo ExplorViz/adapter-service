@@ -88,19 +88,6 @@ public class AttributesReader {
     return Optional.of(av.getStringValue().getValue());
   }
 
-  private Optional<Long> getAsLong(final String key) {
-    final AttributeValue av = this.attributes.get(key);
-    if (av == null) {
-      return Optional.empty();
-    }
-    try {
-      final long l = Long.parseLong(av.getStringValue().getValue());
-      return Optional.of(l);
-    } catch (final NumberFormatException e) {
-      return Optional.empty();
-    }
-  }
-
   public String getLandscapeToken() {
     return this.getAsString(LANDSCAPE_TOKEN).orElse("");
   }
@@ -118,8 +105,8 @@ public class AttributesReader {
 
   }
 
-  public long getApplicationInstanceId() {
-    return this.getAsLong(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
+  public String getApplicationInstanceId() {
+    return this.getAsString(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
   }
 
   public String getApplicationLanguage() {

@@ -159,8 +159,7 @@ class ConversionStreamTest {
         attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
         attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
-    final long expectedInstanceId = Long.parseLong(
-        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue());
+    final String expectedInstanceId = attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue();
     final String expectedOperationName =
         attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
 
