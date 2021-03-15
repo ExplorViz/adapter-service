@@ -68,12 +68,13 @@ public class ConversionStream {
 
     this.setupStreamsConfig();
     this.buildTopology();
+
   }
 
   /* default */ void onStart(@Observes final StartupEvent event) { // NOPMD
-    this.streams = new KafkaStreams(this.topology, this.streamsConfig);
-    this.streams.cleanUp();
-    this.streams.start();
+    // this.streams = new KafkaStreams(this.topology, this.streamsConfig);
+    // this.streams.cleanUp();
+    // this.streams.start();
   }
 
   /* default */ void onStop(@Observes final ShutdownEvent event) { // NOPMD
@@ -136,6 +137,10 @@ public class ConversionStream {
 
   public Topology getTopology() {
     return this.topology;
+  }
+
+  public Properties getStreamsConfig() {
+    return streamsConfig;
   }
 
   private <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerde() {
