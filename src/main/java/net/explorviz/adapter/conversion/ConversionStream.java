@@ -147,7 +147,8 @@ public class ConversionStream {
 
         if (LOGGER.isErrorEnabled()) {
           LOGGER.error(
-              "Kafka Streams thread died. Are Kafka topic initialized? Quarkus application will shut down.");
+              "Kafka Streams thread died. "
+                  + "Are Kafka topic initialized? Quarkus application will shut down.");
         }
         Quarkus.asyncExit(-1);
       }
