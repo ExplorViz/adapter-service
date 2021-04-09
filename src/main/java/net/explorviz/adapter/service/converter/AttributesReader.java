@@ -26,7 +26,7 @@ public class AttributesReader {
   /**
    * The token's secret.
    */
-  public static final String TOKEN_SECRET = "secret";
+  public static final String TOKEN_SECRET = "token_secret";
 
   /**
    * The name of the host.

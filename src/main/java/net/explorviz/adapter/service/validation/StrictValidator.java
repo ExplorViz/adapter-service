@@ -56,14 +56,19 @@ public class StrictValidator implements SpanValidator {
   }
 
   private boolean validateToken(final String token, final String givenSecret) {
-    if (token == null || token.isBlank() || givenSecret == null || givenSecret.isBlank()) {
-      LOGGER.debug("Discarded span with no token");
+    if (token == null || token.isBlank()) {
+      LOGGER.info("Discarded span with no token");
+      return false;
+    }
+
+    if (givenSecret == null || givenSecret.isBlank()) {
+      LOGGER.info("Discarded span with no secret");
       return false;
     }
 
     Optional<String> secretOptional = tokenService.getSecret(token);
     if (secretOptional.isEmpty()) {
-      LOGGER.debug("Discarded span with unknown token");
+      LOGGER.info("Discarded span with unknown token");
       return false;
     } else {
       String secret = secretOptional.get();
