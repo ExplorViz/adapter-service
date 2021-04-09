@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.swing.text.html.Option;
 import net.explorviz.avro.LandscapeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +64,7 @@ public class TokenService {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Adding token {} non-blocking", token);
     }
-    List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
+    final List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
     return this.reactiveRedisClient.set(entry).subscribe().with(onItem, onError);
   }
 
@@ -78,7 +77,7 @@ public class TokenService {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Adding token {}", token);
     }
-    List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
+    final List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
     this.redisClient.set(entry);
   }
 
@@ -144,7 +143,7 @@ public class TokenService {
   public Optional<String> getSecret(final String tokenValue) {
     try {
       return Optional.of(this.redisClient.get(tokenValue).toString());
-    } catch (NullPointerException $) {
+    } catch (NullPointerException npe) { // NOPMD
       return Optional.empty();
     }
   }

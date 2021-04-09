@@ -9,12 +9,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
-import net.explorviz.adapter.service.converter.HashHelper;
 import net.explorviz.avro.SpanStructure;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Attr;
 
 /**
  * Validator that enforces that all values of the {@link SpanStructure} are set and valid.
@@ -40,7 +38,7 @@ public class StrictValidator implements SpanValidator {
   @Override
   public boolean isValid(final Span span) {
 
-    AttributesReader attr = new AttributesReader(span);
+    final AttributesReader attr = new AttributesReader(span);
 
     return this.validateTimestamp(span.getStartTime())
         && this.validateTimestamp(span.getEndTime())
@@ -51,7 +49,8 @@ public class StrictValidator implements SpanValidator {
   public boolean isValid(final AttributesReader spanAttributes) {
     return this.validateToken(spanAttributes.getLandscapeToken(), spanAttributes.getSecret())
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
-        && this.validateApp(spanAttributes.getApplicationName(), spanAttributes.getApplicationLanguage())
+        && this.validateApp(spanAttributes.getApplicationName(),
+        spanAttributes.getApplicationLanguage())
         && this.validateOperation(spanAttributes.getMethodFqn());
   }
 
@@ -66,13 +65,13 @@ public class StrictValidator implements SpanValidator {
       return false;
     }
 
-    Optional<String> secretOptional = tokenService.getSecret(token);
+    final Optional<String> secretOptional = tokenService.getSecret(token);
     if (secretOptional.isEmpty()) {
       LOGGER.info("Discarded span with unknown token");
       return false;
     } else {
-      String secret = secretOptional.get();
-      if (! secret.equals(givenSecret)) {
+      final String secret = secretOptional.get();
+      if (!secret.equals(givenSecret)) {
         LOGGER.warn("Discarded span with invalid secret");
       }
     }
