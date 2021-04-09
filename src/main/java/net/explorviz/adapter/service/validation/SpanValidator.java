@@ -1,5 +1,6 @@
 package net.explorviz.adapter.service.validation;
 
+import io.opencensus.proto.trace.v1.Span;
 import net.explorviz.avro.SpanStructure;
 
 /**
@@ -13,7 +14,7 @@ public interface SpanValidator {
    * @param span the span
    * @return Boolean that indicates if span is valid.
    */
-  boolean isValid(SpanStructure span);
+  boolean isValid(Span span);
 
 
 }

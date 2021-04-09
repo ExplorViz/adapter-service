@@ -7,9 +7,11 @@ import io.vertx.mutiny.redis.client.Response;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.swing.text.html.Option;
 import net.explorviz.avro.LandscapeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +29,7 @@ public class TokenService {
 
   @Inject
   public TokenService(final RedisClient redisClient,
-      final ReactiveRedisClient reactiveRedisClient) {
+                      final ReactiveRedisClient reactiveRedisClient) {
     this.redisClient = redisClient;
     this.reactiveRedisClient = reactiveRedisClient;
   }
@@ -59,11 +61,11 @@ public class TokenService {
    * @return Uni future of the response
    */
   public Cancellable add(final LandscapeToken token, final Consumer<? super Response> onItem,
-      final Consumer<Throwable> onError) {
+                         final Consumer<Throwable> onError) {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Adding token {} non-blocking", token);
     }
-    List<String> entry = Arrays.asList(token.getValue(), token.getAlias());
+    List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
     return this.reactiveRedisClient.set(entry).subscribe().with(onItem, onError);
   }
 
@@ -76,7 +78,7 @@ public class TokenService {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Adding token {}", token);
     }
-    List<String> entry = Arrays.asList(token.getValue(), token.getAlias());
+    List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
     this.redisClient.set(entry);
   }
 
@@ -87,7 +89,7 @@ public class TokenService {
    * @return Uni future of the response
    */
   public Cancellable delete(final LandscapeToken token, final Consumer<? super Response> onItem,
-      final Consumer<Throwable> onError) {
+                            final Consumer<Throwable> onError) {
     return this.reactiveRedisClient.del(Collections.singletonList(token.getValue())).subscribe()
         .with(onItem, onError);
   }
@@ -126,7 +128,7 @@ public class TokenService {
    *
    * @param tokenValue the token to check
    * @return {@code true} iff the given token is in the list of valid tokens, {@code false}
-   *         otherwise.
+   *     otherwise.
    */
   public boolean exists(final String tokenValue) {
     return this.redisClient.exists(Collections.singletonList(tokenValue)).toInteger() == 1;
@@ -137,10 +139,14 @@ public class TokenService {
    *
    * @param tokenValue the token to check
    * @return {@code true} iff the given token is in the list of valid tokens, {@code false}
-   *         otherwise.
+   *     otherwise.
    */
-  public String getSecret(final String tokenValue) {
-    return this.redisClient.get(tokenValue).get("secret").toString();
+  public Optional<String> getSecret(final String tokenValue) {
+    try {
+      return Optional.of(this.redisClient.get(tokenValue).toString());
+    } catch (NullPointerException $) {
+      return Optional.empty();
+    }
   }
 
 

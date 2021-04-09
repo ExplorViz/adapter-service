@@ -1,9 +1,11 @@
 package net.explorviz.adapter.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.quarkus.test.junit.QuarkusTest;
+import java.util.Optional;
 import javax.inject.Inject;
 import net.explorviz.avro.LandscapeToken;
 import org.junit.jupiter.api.AfterEach;
@@ -51,9 +53,21 @@ class TokenServiceTest {
   }
 
   @Test
+  void testGetSecret() {
+    service.addBlocking(token);
+    String got = service.getSecret(token.getValue()).get();
+    assertEquals(token.getSecret(), got);
+  }
+
+  @Test
+  void testGetSecretOfUnknown() {
+    Optional<String> got = service.getSecret(token.getValue());
+    assertTrue(got.isEmpty());
+  }
+
+  @Test
   void testNonExisting() {
-    final String token = "123456789";
-    assertFalse(this.service.exists(token));
+    assertFalse(this.service.exists(token.getValue()));
   }
 
   @Test

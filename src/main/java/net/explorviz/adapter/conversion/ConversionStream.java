@@ -60,9 +60,9 @@ public class ConversionStream {
 
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
-      final StructureTransformer structureTransformer,
-      final DynamicTransformer dynamicTransformer,
-      final SpanValidator validator) {
+                          final StructureTransformer structureTransformer,
+                          final DynamicTransformer dynamicTransformer,
+                          final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -112,21 +112,24 @@ public class ConversionStream {
       }
     });
 
+    // Validate Spans
+    final KStream<byte[], Span> validSpanStream =
+        spanKStream.filter((k, v) -> this.validator.isValid(v));
+
+    // Convert to Span Structure
     final KStream<String, SpanStructure> spanStructureStream =
-        spanKStream.transform(() -> this.structureTransformer);
+        validSpanStream.transform(() -> this.structureTransformer);
 
-    final KStream<String, SpanStructure> validSpanStructureStream =
-        spanStructureStream.filter((k, v) -> this.validator.isValid(v));
-    // final KStream<String, SpanStructure> invalidSpanStructureStream =
-    // spanStructureStream.filterNot(($, v) -> this.validator.isValid(v));
-
+    // Convert to Span Dynamic
     final KStream<String, SpanDynamic> spanDynamicStream =
         spanKStream.transform(() -> this.dynamicTransformer);
 
-    validSpanStructureStream
+    // Forward Span Structure
+    spanStructureStream
         .to(this.config.getStructureOutTopic(),
             Produced.with(Serdes.String(), this.getValueSerde()));
 
+    // Forward Span Dynamic
     spanDynamicStream.to(this.config.getDynamicOutTopic(),
         Produced.with(Serdes.String(), this.getValueSerde()));
 
