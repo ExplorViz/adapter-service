@@ -2,8 +2,10 @@ package net.explorviz.adapter.service;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.quarkus.test.junit.QuarkusTest;
 import javax.inject.Inject;
+import net.explorviz.avro.LandscapeToken;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,13 @@ class TokenServiceTest {
   TokenService service;
 
   RedisServer redisServer;
+
+  private LandscapeToken token = LandscapeToken.newBuilder()
+      .setValue("123456789")
+      .setAlias("Alias")
+      .setSecret("Secret")
+      .setCreated(0)
+      .setOwnerId("user123").build();
 
   @BeforeEach
   void setUp() {
@@ -30,15 +39,14 @@ class TokenServiceTest {
 
   @Test
   synchronized void testAdd() {
-    final String tokenToAdd = "123456789";
-    this.service.addBlocking(tokenToAdd);
-    assertTrue(this.service.exists(tokenToAdd));
+
+    this.service.addBlocking(token);
+    assertTrue(this.service.exists(token.getValue()));
   }
 
   @Test
-  synchronized void testAddNonBlocking() throws InterruptedException {
-    final String tokenToAdd = "123456789";
-    this.service.add(tokenToAdd, i -> assertTrue(this.service.exists(tokenToAdd)), e -> {
+  synchronized void testAddNonBlocking() {
+    this.service.add(token, i -> assertTrue(this.service.exists(token.getValue())), e -> {
     });
   }
 
@@ -50,17 +58,15 @@ class TokenServiceTest {
 
   @Test
   void testDelete() {
-    final String token = "123456789";
     this.service.addBlocking(token); // Make sure key was actually added
     this.service.deleteBlocking(token);
-    assertFalse(this.service.exists(token));
+    assertFalse(this.service.exists(token.getValue()));
   }
 
   @Test
   void testDeleteNonBlocking() {
-    final String token = "123456789";
     this.service.addBlocking(token); // Make sure key was actually added
-    this.service.delete(token, i -> assertFalse(this.service.exists(token)), e -> {
+    this.service.delete(token, i -> assertFalse(this.service.exists(token.getValue())), e -> {
     });
   }
 

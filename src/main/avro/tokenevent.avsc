@@ -3,15 +3,50 @@
   "type": "record",
   "name": "TokenEvent",
   "fields": [
+
     {
       "name": "type",
       "type": {
         "name": "EventType",
         "type": "enum",
-        "symbols" : ["CREATED", "DELETED", "ACCESS_GRANTED", "ACCESS_REVOKED"]
+        "symbols": [
+          "CREATED",
+          "DELETED",
+          "ACCESS_GRANTED",
+          "ACCESS_REVOKED"
+        ]
       }
     },
-    {"name": "token", "type": "string"},
-    {"name": "userId", "type": "string"}
+
+    {
+      "name": "token",
+      "type": {
+        "type": "record",
+        "name": "LandscapeToken",
+        "fields": [
+          {
+            "name": "value",
+            "type": "string"
+          },
+          {
+            "name": "ownerId",
+            "type": "string"
+          },
+          {
+            "name": "secret",
+            "type": "string"
+          },
+          {
+            "name": "created",
+            "type": "long"
+          },
+          {
+            "name": "alias",
+            "type": "string"
+          }
+        ]
+      }
+    }
+
   ]
 }
