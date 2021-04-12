@@ -8,10 +8,11 @@
       "type": {
         "name": "EventType",
         "type": "enum",
-        "symbols" : ["CREATED", "DELETED", "ACCESS_GRANTED", "ACCESS_REVOKED"]
+        "symbols" : ["CREATED", "DELETED", "ACCESS_GRANTED", "ACCESS_REVOKED", "CLONED"]
       }
     },
     {"name": "token", "type": "string"},
-    {"name": "userId", "type": "string"}
+    {"name": "userId", "type": "string"},
+    {"name": "clonedToken", "type": "string"}
   ]
 }
