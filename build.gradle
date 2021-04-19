@@ -41,6 +41,7 @@ dependencies {
 
   implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'
   implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '5.5.0'
+  implementation 'io.quarkus:quarkus-avro'
 
   testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
   testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.4.1'
