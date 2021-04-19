@@ -55,17 +55,19 @@ checkstyle:
 push-dockerhub-native:
   stage: deploy
   only:
-    - scheduled
+    - schedules
   tags:
     - exec-docker
   script: 
-    - ./gradlew clean build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true -Dquarkus.container-image.image=explorviz/adapter-service-native -Dquarkus.container-image.push=true -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
-    - ./gradlew clean build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true -Dquarkus.container-image.image=explorviz/adapter-service-native:$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.push=true -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true -Dquarkus.container-image.image=explorviz/adapter-service-native -Dquarkus.container-image.push=true -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true -Dquarkus.container-image.image=explorviz/adapter-service-native:$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.push=true -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
 
 push-dockerhub:
   stage: deploy
   only:
     - master
+  except:
+    - schedules
   tags:
     - exec-docker
   script: 
