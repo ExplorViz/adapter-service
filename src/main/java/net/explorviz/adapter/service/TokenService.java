@@ -97,8 +97,8 @@ public class TokenService {
   public Cancellable delete(final String token) {
     return this.delete(token,
         item -> {
-          if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Deleted token {}", token);
+          if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Deleted token {}", token);
           }
         },
         error -> {
