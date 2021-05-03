@@ -39,8 +39,8 @@ public class TokenService {
   public Cancellable add(final String token) {
     return this.add(token,
         item -> {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Added token {}", token);
+          if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Added token {}", token);
           }
         },
         error -> {
@@ -58,8 +58,8 @@ public class TokenService {
    */
   public Cancellable add(final String token, final Consumer<? super Response> onItem,
       final Consumer<Throwable> onError) {
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Adding token {} non-blocking", token);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Adding token {} non-blocking", token);
     }
     return this.reactiveRedisClient.set(Arrays.asList(token, "")).subscribe().with(onItem, onError);
   }
@@ -70,8 +70,8 @@ public class TokenService {
    * @param token the token to add.
    */
   public void addBlocking(final String token) {
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Adding token {}", token);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Adding token {}", token);
     }
     this.redisClient.set(Arrays.asList(token, ""));
   }
