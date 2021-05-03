@@ -27,8 +27,8 @@ public class TokenEventConsumer {
   @Incoming("token-events")
   public void process(final TokenEvent event) {
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Received event {}", event);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Received event {}", event);
     }
 
     switch (event.getType()) {
