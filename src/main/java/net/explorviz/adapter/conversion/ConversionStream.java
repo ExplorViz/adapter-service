@@ -102,8 +102,8 @@ public class ConversionStream {
       try {
         final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
 
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("Received {} spans.", spanList.size());
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace("Received {} spans.", spanList.size());
         }
 
         return spanList;

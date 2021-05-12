@@ -1,4 +1,4 @@
-image: openjdk:11-jdk
+image: ghcr.io/graalvm/graalvm-ce:java11-21.0.0
 
 # Disable the Gradle daemon for Continuous Integration servers as correctness
 # is usually a priority over speed in CI environments. Using a fresh
@@ -52,18 +52,24 @@ checkstyle:
     - exec-docker
   script: ./gradlew checkstyleMain
 
+push-dockerhub-native:
+  stage: deploy
+  only:
+    - schedules
+  before_script:
+    - gu install native-image
+  tags:
+    - exec-docker
+  script: 
+    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+
 push-dockerhub:
   stage: deploy
   only:
     - master
+  except:
+    - schedules
   tags:
     - exec-docker
   script: 
-    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
-    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.image=explorviz/adapter-service-jvm:$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
-  cache:
-    key: "$CI_COMMIT_REF_NAME"
-    policy: pull
-    paths:
-      - build
-      - .gradle
+    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD

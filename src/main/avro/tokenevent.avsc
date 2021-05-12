@@ -3,7 +3,6 @@
   "type": "record",
   "name": "TokenEvent",
   "fields": [
-
     {
       "name": "type",
       "type": {
@@ -13,7 +12,8 @@
           "CREATED",
           "DELETED",
           "ACCESS_GRANTED",
-          "ACCESS_REVOKED"
+          "ACCESS_REVOKED",
+          "CLONED"
         ]
       }
     },
@@ -46,7 +46,7 @@
           }
         ]
       }
-    }
-
+    },
+    {"name": "clonedToken", "type": "string"}
   ]
 }

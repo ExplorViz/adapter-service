@@ -42,8 +42,8 @@ public class TokenService {
   public Cancellable add(final LandscapeToken token) {
     return this.add(token,
         item -> {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Added token {}", token);
+          if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Added token {}", token);
           }
         },
         error -> {
@@ -61,8 +61,8 @@ public class TokenService {
    */
   public Cancellable add(final LandscapeToken token, final Consumer<? super Response> onItem,
                          final Consumer<Throwable> onError) {
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Adding token {} non-blocking", token);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Adding token {} non-blocking", token);
     }
     final List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
     return this.reactiveRedisClient.set(entry).subscribe().with(onItem, onError);
@@ -74,8 +74,8 @@ public class TokenService {
    * @param token the token to add.
    */
   public void addBlocking(final LandscapeToken token) {
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Adding token {}", token);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Adding token {}", token);
     }
     final List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
     this.redisClient.set(entry);
@@ -102,8 +102,8 @@ public class TokenService {
   public Cancellable delete(final LandscapeToken token) {
     return this.delete(token,
         item -> {
-          if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Deleted token {}", token);
+          if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Deleted token {}", token);
           }
         },
         error -> {
