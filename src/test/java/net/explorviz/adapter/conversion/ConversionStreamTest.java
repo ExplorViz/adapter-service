@@ -1,6 +1,7 @@
 package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -22,7 +23,6 @@ import javax.inject.Inject;
 import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
 import net.explorviz.adapter.conversion.transformer.StructureTransformer;
 import net.explorviz.adapter.injection.KafkaConfig;
-import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import net.explorviz.adapter.service.converter.SpanDynamicConverter;
 import net.explorviz.adapter.service.converter.SpanStructureConverter;
@@ -30,7 +30,6 @@ import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.adapter.service.validation.StrictValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
-import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
@@ -63,9 +62,9 @@ class ConversionStreamTest {
 
     final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
 
-    final TokenService mockTokenService = Mockito.mock(TokenService.class);
-    Mockito.when(mockTokenService.exists(Matchers.anyString())).thenReturn(true);
-    final SpanValidator v = new StrictValidator(mockTokenService);
+    // Skip validation
+    final SpanValidator v = Mockito.mock(StrictValidator.class);
+    Mockito.when(v.isValid(Matchers.any())).thenReturn(true);
 
     final SpanStructureConverter c = new SpanStructureConverter();
     final StructureTransformer structureTransformer = new StructureTransformer(c);
@@ -159,7 +158,8 @@ class ConversionStreamTest {
         attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
     final String expectedAppLang =
         attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
-    final String expectedInstanceId = attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue();
+    final String expectedInstanceId =
+        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue();
     final String expectedOperationName =
         attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
 

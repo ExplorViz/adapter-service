@@ -6,9 +6,12 @@ import io.smallrye.mutiny.subscription.Cancellable;
 import io.vertx.mutiny.redis.client.Response;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import net.explorviz.avro.LandscapeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +28,7 @@ public class TokenService {
 
   @Inject
   public TokenService(final RedisClient redisClient,
-      final ReactiveRedisClient reactiveRedisClient) {
+                      final ReactiveRedisClient reactiveRedisClient) {
     this.redisClient = redisClient;
     this.reactiveRedisClient = reactiveRedisClient;
   }
@@ -36,7 +39,7 @@ public class TokenService {
    * @param token the token to add.
    * @return Uni future of the response
    */
-  public Cancellable add(final String token) {
+  public Cancellable add(final LandscapeToken token) {
     return this.add(token,
         item -> {
           if (LOGGER.isTraceEnabled()) {
@@ -56,12 +59,13 @@ public class TokenService {
    * @param token the token to add.
    * @return Uni future of the response
    */
-  public Cancellable add(final String token, final Consumer<? super Response> onItem,
-      final Consumer<Throwable> onError) {
+  public Cancellable add(final LandscapeToken token, final Consumer<? super Response> onItem,
+                         final Consumer<Throwable> onError) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Adding token {} non-blocking", token);
     }
-    return this.reactiveRedisClient.set(Arrays.asList(token, "")).subscribe().with(onItem, onError);
+    final List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
+    return this.reactiveRedisClient.set(entry).subscribe().with(onItem, onError);
   }
 
   /**
@@ -69,11 +73,12 @@ public class TokenService {
    *
    * @param token the token to add.
    */
-  public void addBlocking(final String token) {
+  public void addBlocking(final LandscapeToken token) {
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Adding token {}", token);
     }
-    this.redisClient.set(Arrays.asList(token, ""));
+    final List<String> entry = Arrays.asList(token.getValue(), token.getSecret());
+    this.redisClient.set(entry);
   }
 
   /**
@@ -82,9 +87,9 @@ public class TokenService {
    * @param token the token to remove
    * @return Uni future of the response
    */
-  public Cancellable delete(final String token, final Consumer<? super Response> onItem,
-      final Consumer<Throwable> onError) {
-    return this.reactiveRedisClient.del(Collections.singletonList(token)).subscribe()
+  public Cancellable delete(final LandscapeToken token, final Consumer<? super Response> onItem,
+                            final Consumer<Throwable> onError) {
+    return this.reactiveRedisClient.del(Collections.singletonList(token.getValue())).subscribe()
         .with(onItem, onError);
   }
 
@@ -94,7 +99,7 @@ public class TokenService {
    * @param token the token to remove
    * @return Uni future of the response
    */
-  public Cancellable delete(final String token) {
+  public Cancellable delete(final LandscapeToken token) {
     return this.delete(token,
         item -> {
           if (LOGGER.isTraceEnabled()) {
@@ -113,19 +118,34 @@ public class TokenService {
    *
    * @param token the token to remove
    */
-  public void deleteBlocking(final String token) {
-    this.reactiveRedisClient.delAndAwait(Collections.singletonList(token));
+  public void deleteBlocking(final LandscapeToken token) {
+    this.reactiveRedisClient.delAndAwait(Collections.singletonList(token.getValue()));
   }
 
   /**
    * Checks whether a given token exists.
    *
-   * @param token the token to check
+   * @param tokenValue the token to check
    * @return {@code true} iff the given token is in the list of valid tokens, {@code false}
-   *         otherwise.
+   *     otherwise.
    */
-  public boolean exists(final String token) {
-    return this.redisClient.exists(Collections.singletonList(token)).toInteger() == 1;
+  public boolean exists(final String tokenValue) {
+    return this.redisClient.exists(Collections.singletonList(tokenValue)).toInteger() == 1;
+  }
+
+  /**
+   * Checks whether a given token exists.
+   *
+   * @param tokenValue the token to check
+   * @return {@code true} iff the given token is in the list of valid tokens, {@code false}
+   *     otherwise.
+   */
+  public Optional<String> getSecret(final String tokenValue) {
+    try {
+      return Optional.of(this.redisClient.get(tokenValue).toString());
+    } catch (NullPointerException npe) { // NOPMD
+      return Optional.empty();
+    }
   }
 
 

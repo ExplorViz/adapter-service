@@ -24,6 +24,11 @@ public class AttributesReader {
   public static final String LANDSCAPE_TOKEN = "landscape_token";
 
   /**
+   * The token's secret.
+   */
+  public static final String TOKEN_SECRET = "token_secret";
+
+  /**
    * The name of the host.
    */
   public static final String HOST_NAME = "host_name";
@@ -90,6 +95,10 @@ public class AttributesReader {
 
   public String getLandscapeToken() {
     return this.getAsString(LANDSCAPE_TOKEN).orElse("");
+  }
+
+  public String getSecret() {
+    return this.getAsString(TOKEN_SECRET).orElse("");
   }
 
   public String getHostName() {
