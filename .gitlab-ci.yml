@@ -33,7 +33,10 @@ unit-test:
   stage: test
   tags:
     - exec-docker
-  script: ./gradlew test jacocoTestReport
+  script: 
+    - ./gradlew test jacocoTestReport
+    # Print test coverage to console (for coverage badge)
+    - cat build/reports/jacoco/test/html/index.html | grep -o 'Total[^%]*%'
   artifacts:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml
