@@ -122,7 +122,7 @@ public class ConversionStream {
 
     // Convert to Span Dynamic
     final KStream<String, SpanDynamic> spanDynamicStream =
-        spanKStream.transform(() -> this.dynamicTransformer);
+        validSpanStream.transform(() -> this.dynamicTransformer);
 
     // Forward Span Structure
     spanStructureStream
