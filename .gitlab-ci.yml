@@ -1,4 +1,4 @@
-image: ghcr.io/graalvm/graalvm-ce:java11-21.0.0
+image: openjdk:11-jdk
 
 # Disable the Gradle daemon for Continuous Integration servers as correctness
 # is usually a priority over speed in CI environments. Using a fresh
@@ -11,17 +11,15 @@ before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
   policy: pull
   paths:
-    - build
     - .gradle
 
 stages:
   - build
   - code-analysis
-  - test:code
-  - test:coverage
+  - test
+  - coverage
   - visualize
   - deploy
 
@@ -31,11 +29,12 @@ build:
     - exec-docker
   script: ./gradlew --build-cache assemble
   cache:
-    key: ${CI_COMMIT_REF_SLUG}
     policy: push
     paths:
-      - build
       - .gradle
+  artifacts:
+    paths:
+      - build
 
 pmd:
   stage: code-analysis
@@ -50,20 +49,17 @@ checkstyle:
   script: ./gradlew checkstyleMain
 
 unit-test:
-  stage: test:code
+  stage: code
   tags:
     - exec-docker
   script: 
     - ./gradlew test
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    policy: pull-push
+  artifacts:
     paths:
       - build
-      - .gradle
 
 jacoco-coverage:
-  stage: test:coverage
+  stage: coverage
   tags:
     - exec-docker
   script: 
@@ -93,6 +89,7 @@ coverage:
       cobertura: build/cobertura.xml
 
 push-dockerhub-native:
+  image: ghcr.io/graalvm/graalvm-ce:java11-21.0.0
   stage: deploy
   only:
     - schedules
