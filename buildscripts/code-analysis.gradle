@@ -2,8 +2,6 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'jacoco'
 
-
-
 jacocoTestReport {
 
   reports {
