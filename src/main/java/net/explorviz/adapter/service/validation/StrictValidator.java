@@ -62,7 +62,7 @@ public class StrictValidator implements SpanValidator {
 
 
     if (validateTokens) {
-      if ((givenSecret == null || givenSecret.isBlank())) {
+      if (givenSecret == null || givenSecret.isBlank()) {
         LOGGER.info("Discarded span with no secret");
         return false;
       }
