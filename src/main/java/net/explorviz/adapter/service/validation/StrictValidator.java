@@ -60,19 +60,22 @@ public class StrictValidator implements SpanValidator {
       return false;
     }
 
-    if (givenSecret == null || givenSecret.isBlank()) {
-      LOGGER.info("Discarded span with no secret");
-      return false;
-    }
 
-    final Optional<String> secretOptional = tokenService.getSecret(token);
-    if (secretOptional.isEmpty()) {
-      LOGGER.info("Discarded span with unknown token");
-      return false;
-    } else {
-      final String secret = secretOptional.get();
-      if (!secret.equals(givenSecret)) {
-        LOGGER.warn("Discarded span with invalid secret");
+    if (validateTokens) {
+      if ((givenSecret == null || givenSecret.isBlank())) {
+        LOGGER.info("Discarded span with no secret");
+        return false;
+      }
+
+      final Optional<String> secretOptional = tokenService.getSecret(token);
+      if (secretOptional.isEmpty()) {
+        LOGGER.info("Discarded span with unknown token");
+        return false;
+      } else {
+        final String secret = secretOptional.get();
+        if (!secret.equals(givenSecret)) {
+          LOGGER.warn("Discarded span with invalid secret");
+        }
       }
     }
 
