@@ -2,9 +2,8 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'jacoco'
 
-
-
 jacocoTestReport {
+
   reports {
     xml.enabled true
     html.enabled true
@@ -19,7 +18,7 @@ jacocoTestReport {
   }
 }
 
-
+jacocoTestReport.dependsOn assemble
 
 pmd {
   // Empty ruleset is necessary for exclude-pattern
