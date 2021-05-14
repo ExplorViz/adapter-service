@@ -49,7 +49,7 @@ checkstyle:
   script: ./gradlew checkstyleMain
 
 unit-test:
-  stage: code
+  stage: test
   tags:
     - exec-docker
   script: 
