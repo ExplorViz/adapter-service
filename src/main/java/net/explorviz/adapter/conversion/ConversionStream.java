@@ -56,13 +56,15 @@ public class ConversionStream {
   private final StructureTransformer structureTransformer;
   private final DynamicTransformer dynamicTransformer;
 
+  private boolean logInitData = true;
+
   private KafkaStreams streams;
 
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                          final StructureTransformer structureTransformer,
-                          final DynamicTransformer dynamicTransformer,
-                          final SpanValidator validator) {
+      final StructureTransformer structureTransformer,
+      final DynamicTransformer dynamicTransformer,
+      final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -101,6 +103,11 @@ public class ConversionStream {
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
         final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
+
+        if (this.logInitData && LOGGER.isDebugEnabled()) {
+          this.logInitData = false;
+          LOGGER.debug("Received data via Kafka.");
+        }
 
         if (LOGGER.isTraceEnabled()) {
           LOGGER.trace("Received {} spans.", spanList.size());

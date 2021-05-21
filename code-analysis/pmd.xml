@@ -83,5 +83,20 @@
         value="[A-Z][a-zA-Z0-9]+" />
     </properties>
   </rule>
+  
+  <rule ref="category/java/design.xml/CyclomaticComplexity">
+    <properties>
+        <property name="classReportLevel" value="40" />
+        <property name="methodReportLevel" value="15" />
+    </properties>
+  </rule>
+  
+  <rule ref="category/java/design.xml/NPathComplexity">
+    <properties>
+        <property name="minimum" value="250.0" />
+    </properties>
+  </rule>
+  
+  
 
 </ruleset>

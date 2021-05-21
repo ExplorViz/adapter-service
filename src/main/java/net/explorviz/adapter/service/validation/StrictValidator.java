@@ -42,7 +42,7 @@ public class StrictValidator implements SpanValidator {
 
     return this.validateTimestamp(span.getStartTime())
         && this.validateTimestamp(span.getEndTime())
-        && isValid(attr);
+        && this.isValid(attr);
 
   }
 
@@ -50,29 +50,46 @@ public class StrictValidator implements SpanValidator {
     return this.validateToken(spanAttributes.getLandscapeToken(), spanAttributes.getSecret())
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
         && this.validateApp(spanAttributes.getApplicationName(),
-        spanAttributes.getApplicationLanguage())
+            spanAttributes.getApplicationLanguage())
         && this.validateOperation(spanAttributes.getMethodFqn());
   }
 
   private boolean validateToken(final String token, final String givenSecret) {
+
     if (token == null || token.isBlank()) {
-      LOGGER.info("Discarded span with no token");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Discarded span with no token");
+      }
       return false;
     }
 
     if (givenSecret == null || givenSecret.isBlank()) {
-      LOGGER.info("Discarded span with no secret");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Discarded span with no secret");
+      }
       return false;
     }
 
-    final Optional<String> secretOptional = tokenService.getSecret(token);
+    if (!this.validateTokens) {
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Discarded validation of token and secret. Property is set.");
+      }
+      return true;
+    }
+
+    final Optional<String> secretOptional = this.tokenService.getSecret(token);
     if (secretOptional.isEmpty()) {
-      LOGGER.info("Discarded span with unknown token");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Discarded span with unknown token");
+      }
       return false;
     } else {
       final String secret = secretOptional.get();
       if (!secret.equals(givenSecret)) {
-        LOGGER.warn("Discarded span with invalid secret");
+        if (LOGGER.isWarnEnabled()) {
+          LOGGER.warn("Discarded span with invalid secret");
+        }
+        return false;
       }
     }
 
