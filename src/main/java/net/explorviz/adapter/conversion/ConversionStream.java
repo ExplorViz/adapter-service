@@ -103,7 +103,6 @@ public class ConversionStream {
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
         final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
-
         if (this.logInitData && LOGGER.isDebugEnabled()) {
           this.logInitData = false;
           LOGGER.debug("Received data via Kafka.");
@@ -142,8 +141,6 @@ public class ConversionStream {
 
     this.topology = builder.build();
   }
-
-
 
   public Topology getTopology() {
     return this.topology;
