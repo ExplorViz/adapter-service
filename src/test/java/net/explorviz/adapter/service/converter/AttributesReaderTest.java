@@ -1,10 +1,12 @@
 package net.explorviz.adapter.service.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import io.opencensus.proto.trace.v1.Span.Attributes;
+import io.opencensus.proto.trace.v1.TruncatableString;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,28 +23,40 @@ public class AttributesReaderTest {
 
   private Span validSpan;
 
+  private final String token = "tok";
+  private final String secret = "secret";
+  private final String hostname = "Host";
+  private final String hostIp = "1.2.3.4";
+  private final String appName = "Test App";
+  private final String appInstanceId = "1234L";
+  private final String appLang = "java";
+  private final String fqn = "foo.bar.test()";
+
   @BeforeEach
   void setUp() throws InvalidProtocolBufferException {
 
-    final String token = "tok";
-    final String secret = "secret";
-    final String hostname = "Host";
-    final String hostIp = "1.2.3.4";
-    final String appName = "Test App";
-    final String appInstanceId = "1234L";
-    final String appLang = "java";
-    final String fqn = "foo.bar.test()";
+
 
     final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(LANDSCAPE_TOKEN, AttributeValue.parseFrom(token.getBytes()))
-        .putAttributeMap(TOKEN_SECRET, AttributeValue.parseFrom(secret.getBytes()))
-        .putAttributeMap(HOST_NAME, AttributeValue.parseFrom(hostname.getBytes()))
-        .putAttributeMap(HOST_IP, AttributeValue.parseFrom(hostIp.getBytes()))
-        .putAttributeMap(APPLICATION_NAME, AttributeValue.parseFrom(appName.getBytes()))
+        .putAttributeMap(LANDSCAPE_TOKEN,
+            AttributeValue.newBuilder()
+                .setStringValue(TruncatableString.newBuilder().setValue(token).build()).build())
+        .putAttributeMap(TOKEN_SECRET, AttributeValue.newBuilder()
+            .setStringValue(TruncatableString.newBuilder().setValue(secret).build()).build())
+        .putAttributeMap(HOST_NAME, AttributeValue.newBuilder()
+            .setStringValue(TruncatableString.newBuilder().setValue(hostname).build()).build())
+        .putAttributeMap(HOST_IP, AttributeValue.newBuilder()
+            .setStringValue(TruncatableString.newBuilder().setValue(hostIp).build()).build())
+        .putAttributeMap(APPLICATION_NAME, AttributeValue.newBuilder()
+            .setStringValue(TruncatableString.newBuilder().setValue(appName).build()).build())
         .putAttributeMap(APPLICATION_INSTANCE_ID,
-            AttributeValue.parseFrom(appInstanceId.getBytes()))
-        .putAttributeMap(APPLICATION_LANGUAGE, AttributeValue.parseFrom(appLang.getBytes()))
-        .putAttributeMap(METHOD_FQN, AttributeValue.parseFrom(fqn.getBytes()))
+            AttributeValue.newBuilder()
+                .setStringValue(TruncatableString.newBuilder().setValue(appInstanceId).build())
+                .build())
+        .putAttributeMap(APPLICATION_LANGUAGE, AttributeValue.newBuilder()
+            .setStringValue(TruncatableString.newBuilder().setValue(appLang).build()).build())
+        .putAttributeMap(METHOD_FQN, AttributeValue.newBuilder()
+            .setStringValue(TruncatableString.newBuilder().setValue(fqn).build()).build())
         .build();
 
     this.validSpan = Span.newBuilder().setAttributes(attr).build();
@@ -53,7 +67,15 @@ public class AttributesReaderTest {
   void testValidSpanReadOut() {
     final AttributesReader reader = new AttributesReader(this.validSpan);
 
-    assertEquals(reader.getLandscapeToken(), "tok");
+    assertEquals(reader.getLandscapeToken(), token);
+    assertEquals(reader.getSecret(), secret);
+    assertEquals(reader.getHostName(), hostname);
+    assertEquals(reader.getHostIpAddress(), hostIp);
+    assertEquals(reader.getApplicationName(), appName);
+    assertEquals(reader.getApplicationInstanceId(), appInstanceId);
+    assertEquals(reader.getApplicationLanguage(), appLang);
+    assertEquals(reader.getMethodFqn(), fqn);
+
   }
 
 }
