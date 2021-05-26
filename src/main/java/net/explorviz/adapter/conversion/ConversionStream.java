@@ -108,8 +108,8 @@ public class ConversionStream {
           LOGGER.debug("Received data via Kafka.");
         }
 
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("Received {} spans.", spanList.size());
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace("Received {} spans.", spanList.size());
         }
 
         return spanList;
@@ -121,11 +121,6 @@ public class ConversionStream {
     // Validate Spans
     final KStream<byte[], Span> validSpanStream =
         spanKStream.filter((k, v) -> this.validator.isValid(v));
-
-    validSpanStream.foreach((k,v) -> System.out.println(v));
-
-    //spanKStream.filter((k, v) -> !this.validator.isValid(v))
-    //    .foreach((k,v) -> System.out.println(v));
 
     // Convert to Span Structure
     final KStream<String, SpanStructure> spanStructureStream =
@@ -146,8 +141,6 @@ public class ConversionStream {
 
     this.topology = builder.build();
   }
-
-
 
   public Topology getTopology() {
     return this.topology;
