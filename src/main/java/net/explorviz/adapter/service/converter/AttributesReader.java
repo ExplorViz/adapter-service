@@ -6,6 +6,8 @@ import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEF
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN;
 import io.opencensus.proto.trace.v1.AttributeValue;
 import io.opencensus.proto.trace.v1.Span;
 import java.util.HashMap;
@@ -94,11 +96,11 @@ public class AttributesReader {
   }
 
   public String getLandscapeToken() {
-    return this.getAsString(LANDSCAPE_TOKEN).orElse("");
+    return this.getAsString(LANDSCAPE_TOKEN).orElse(DEFAULT_LANDSCAPE_TOKEN);
   }
 
   public String getSecret() {
-    return this.getAsString(TOKEN_SECRET).orElse("");
+    return this.getAsString(TOKEN_SECRET).orElse(DEFAULT_LANDSCAPE_SECRET);
   }
 
   public String getHostName() {
@@ -111,7 +113,6 @@ public class AttributesReader {
 
   public String getApplicationName() {
     return this.getAsString(APPLICATION_NAME).orElse(DEFAULT_APP_NAME);
-
   }
 
   public String getApplicationInstanceId() {
