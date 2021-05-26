@@ -103,14 +103,13 @@ public class ConversionStream {
     final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
       try {
         final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
-
         if (this.logInitData && LOGGER.isDebugEnabled()) {
           this.logInitData = false;
           LOGGER.debug("Received data via Kafka.");
         }
 
-        if (LOGGER.isTraceEnabled()) {
-          LOGGER.trace("Received {} spans.", spanList.size());
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Received {} spans.", spanList.size());
         }
 
         return spanList;
@@ -122,6 +121,11 @@ public class ConversionStream {
     // Validate Spans
     final KStream<byte[], Span> validSpanStream =
         spanKStream.filter((k, v) -> this.validator.isValid(v));
+
+    validSpanStream.foreach((k,v) -> System.out.println(v));
+
+    //spanKStream.filter((k, v) -> !this.validator.isValid(v))
+    //    .foreach((k,v) -> System.out.println(v));
 
     // Convert to Span Structure
     final KStream<String, SpanStructure> spanStructureStream =
