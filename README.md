@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/ExplorViz/adapter-service.svg?branch=master)](https://travis-ci.org/ExplorViz/adapter-service)
+[![pipeline status](https://git.se.informatik.uni-kiel.de/ExplorViz/code/adapter-service/badges/master/pipeline.svg)](https://git.se.informatik.uni-kiel.de/ExplorViz/code/adapter-service/-/commits/master) 
+
+[![coverage report](https://git.se.informatik.uni-kiel.de/ExplorViz/code/adapter-service/badges/master/coverage.svg)](https://git.se.informatik.uni-kiel.de/ExplorViz/code/adapter-service/-/commits/master)
 
 # adapter-service
 

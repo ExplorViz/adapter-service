@@ -33,12 +33,12 @@ public class AttributesReader {
   /**
    * The name of the host.
    */
-  public static final String HOST_NAME = "host_name";
+  public static final String HOST_NAME = "host";
 
   /**
    * The IP address the application runs on.
    */
-  public static final String HOST_IP = "host_ip";
+  public static final String HOST_IP = "host_address";
 
   /**
    * The name of the application a span belongs to.
@@ -59,7 +59,7 @@ public class AttributesReader {
   /**
    * The fully qualified name of the operation/method called.
    */
-  public static final String METHOD_FQN = "method_fqn";
+  public static final String METHOD_FQN = "java.fqn";
 
   /*
    * Default values
