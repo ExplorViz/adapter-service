@@ -18,8 +18,10 @@ In essence, the Adapter-Service performs three steps on each span.
 1. **Token validation**: 
    Prior to monitoring any application, the client has to request a unique identifier for the landscape, the so-called *landscape token*, at the User-Service.
    All spans of a landscape have to contain the landscape token given to the user for that particular landscape.
-   To this end, the user needs to specify the token within the instrumentation configuration of the applications.
-   The User-Service keeps track of all existing tokens in a Redis database, which the Adapter-Service can access to check a token's integrity.
+   To this end, the user needs to specify the token within the instrumentation configuration of the applications. 
+   
+   Whenever a landscape token is createn/deleted/update, the event gets broadcasted via Kafka.
+   The Adapter-Service uses these events to keep track of all existing tokens in a Redis database. 
    If a span's token is missing, unknown, or invalid, the span gets discarded.
 2. **Input Validation**: 
    If the token is valid, all other attributes of the span get validated, too. 
