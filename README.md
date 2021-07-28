@@ -2,11 +2,41 @@
 
 [![coverage report](https://git.se.informatik.uni-kiel.de/ExplorViz/code/adapter-service/badges/master/coverage.svg)](https://git.se.informatik.uni-kiel.de/ExplorViz/code/adapter-service/-/commits/master)
 
-# adapter-service
+# ExplorViz Adapter-Service
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+The entry point to ExplorViz that validates and preprocesses all incoming raw spans.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+
+## Features
+
+![adapter-service](.docs/adapter-service.png)
+
+At its core, the Adapter-Service is a Kafka Streams application that steadily processes every span emitted by a monitored application.
+All monitoring data is at first gathered at the OpenCensus Collector, which in turn forwards all spans to this service via GRPC.
+In essence, the Adapter-Service performs three steps on each span.
+
+1. **Token validation**: 
+   Prior to monitoring any application, the client has to request a unique identifier for the landscape, the so-called *landscape token*, at the User-Service.
+   All spans of a landscape have to contain the landscape token given to the user for that particular landscape.
+   To this end, the user needs to specify the token within the instrumentation configuration of the applications.
+   The User-Service keeps track of all existing tokens in a Redis database, which the Adapter-Service can access to check a token's integrity.
+   If a span's token is missing, unknown, or invalid, the span gets discarded.
+2. **Input Validation**: 
+   If the token is valid, all other attributes of the span get validated, too. 
+   If any non-optional attribute is missing or invalid, the span is discarded. 
+   This step is essential as all downstream services assume that incoming data is syntactically valid.
+3. **Splitting Spans**: 
+   The information contained in a span can be divided into two parts. 
+   One part containing data referring to the structural composition of the observed landscape (hostnames, applications, package structures, ...),
+   and one containing runtime information of interactions between different entities within the landscape (call hierarchies, timings, ...).
+   In ExplorViz, the former part is called *structure* and the latter *dynamic* span data.
+   The last step of the Adapter-Service is to split each span into its two parts and write them to different Kafka topics.
+   They are subsequently procesed by the ExplorViz/landscape-service and ExplorViz/traces-service, respectively.
+
+
+## Instruction
+
+Make sure to run the [ExplorViz software stack](https://git.se.informatik.uni-kiel.de/ExplorViz/code/deployment) before starting the service.
 
 ## Running the application in dev mode
 
