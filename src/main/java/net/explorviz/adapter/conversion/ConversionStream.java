@@ -9,10 +9,12 @@ import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.quarkus.scheduler.Scheduled;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -49,6 +51,10 @@ public class ConversionStream {
   private final KafkaConfig config;
 
   private final Properties streamsConfig = new Properties();
+
+  // Logged and reset every n seconds
+  private final AtomicInteger lastReceivedSpans = new AtomicInteger(0);
+  private final AtomicInteger lastInvalidSpans = new AtomicInteger(0);
 
   private Topology topology;
 
@@ -93,6 +99,16 @@ public class ConversionStream {
     this.streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, this.config.getApplicationId());
   }
 
+  @Scheduled(every = "{explorviz.log.span.interval}") // NOPMD
+  void logStatus() { // NOPMD
+    final int spans = this.lastReceivedSpans.getAndSet(0);
+    final int invalidSpans = this.lastInvalidSpans.getAndSet(0);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Received {} spans: {} valid, {} invalid ", spans, spans - invalidSpans,
+          invalidSpans);
+    }
+  }
+
   private void buildTopology() {
 
     final StreamsBuilder builder = new StreamsBuilder();
@@ -108,9 +124,7 @@ public class ConversionStream {
           LOGGER.debug("Received data via Kafka.");
         }
 
-        if (LOGGER.isTraceEnabled()) {
-          LOGGER.trace("Received {} spans.", spanList.size());
-        }
+        this.lastReceivedSpans.addAndGet(spanList.size());
 
         return spanList;
       } catch (final InvalidProtocolBufferException e) {
@@ -122,6 +136,10 @@ public class ConversionStream {
     final KStream<byte[], Span> validSpanStream =
         spanKStream.filter((k, v) -> this.validator.isValid(v));
 
+    // Invalid Spans, just log
+    spanKStream.filter((k, v) -> !this.validator.isValid(v))
+        .foreach((k, v) -> this.lastInvalidSpans.incrementAndGet());
+
     // Convert to Span Structure
     final KStream<String, SpanStructure> spanStructureStream =
         validSpanStream.transform(() -> this.structureTransformer);
@@ -129,6 +147,7 @@ public class ConversionStream {
     // Convert to Span Dynamic
     final KStream<String, SpanDynamic> spanDynamicStream =
         validSpanStream.transform(() -> this.dynamicTransformer);
+
 
     // Forward Span Structure
     spanStructureStream
