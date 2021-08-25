@@ -4,16 +4,12 @@ import io.opencensus.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.Timestamp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Converts a {@link Span} to a {@link SpanDynamic}.
  */
 @ApplicationScoped
 public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SpanDynamicConverter.class);
 
   @Override
   public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
@@ -44,10 +40,6 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
     final String hashValue = HashHelper.fromSpanAttributes(new AttributesReader(ocSpan));
 
     spanDynamic.setHashCode(hashValue);
-
-    if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("Converted SpanDynamic: {}", spanDynamic.toString());
-    }
 
     return spanDynamic;
   }

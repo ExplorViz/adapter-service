@@ -51,6 +51,7 @@ public class ConversionStream {
   private final KafkaConfig config;
 
   private final Properties streamsConfig = new Properties();
+
   // Logged and reset every n seconds
   private final AtomicInteger lastReceivedSpans = new AtomicInteger(0);
   private final AtomicInteger lastInvalidSpans = new AtomicInteger(0);
@@ -65,13 +66,11 @@ public class ConversionStream {
 
   private KafkaStreams streams;
 
-
-
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
-                          final StructureTransformer structureTransformer,
-                          final DynamicTransformer dynamicTransformer,
-                          final SpanValidator validator) {
+      final StructureTransformer structureTransformer,
+      final DynamicTransformer dynamicTransformer,
+      final SpanValidator validator) {
     this.registry = registry;
     this.config = config;
     this.validator = validator;
@@ -100,14 +99,13 @@ public class ConversionStream {
     this.streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, this.config.getApplicationId());
   }
 
-
-
-  @Scheduled(every = "5s") // NOPMD
+  @Scheduled(every = "{explorviz.log.span.interval}") // NOPMD
   void logStatus() { // NOPMD
-    final int spans = lastReceivedSpans.getAndSet(0);
-    final int invalidSpans = lastInvalidSpans.getAndSet(0);
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Processed {} spans, {} invalid ", spans, invalidSpans);
+    final int spans = this.lastReceivedSpans.getAndSet(0);
+    final int invalidSpans = this.lastInvalidSpans.getAndSet(0);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Received {} spans: {} valid, {} invalid ", spans, spans - invalidSpans,
+          invalidSpans);
     }
   }
 
@@ -126,11 +124,7 @@ public class ConversionStream {
           LOGGER.debug("Received data via Kafka.");
         }
 
-        if (LOGGER.isTraceEnabled()) {
-          LOGGER.trace("Received {} spans.", spanList.size());
-        }
-
-        lastReceivedSpans.addAndGet(spanList.size());
+        this.lastReceivedSpans.addAndGet(spanList.size());
 
         return spanList;
       } catch (final InvalidProtocolBufferException e) {
@@ -144,7 +138,7 @@ public class ConversionStream {
 
     // Invalid Spans, just log
     spanKStream.filter((k, v) -> !this.validator.isValid(v))
-        .foreach((k, v) -> lastInvalidSpans.incrementAndGet());
+        .foreach((k, v) -> this.lastInvalidSpans.incrementAndGet());
 
     // Convert to Span Structure
     final KStream<String, SpanStructure> spanStructureStream =
