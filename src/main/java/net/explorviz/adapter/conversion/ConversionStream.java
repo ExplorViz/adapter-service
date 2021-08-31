@@ -48,6 +48,9 @@ public class ConversionStream {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConversionStream.class);
 
+  @Inject // NOPMD
+  /* default */ MeterRegistry meterRegistry; // NOPMD NOCS
+
   private final SchemaRegistryClient registry;
 
   private final KafkaConfig config;
@@ -68,8 +71,7 @@ public class ConversionStream {
 
   private KafkaStreams streams;
 
-  @Inject
-  MeterRegistry meterRegistry;
+
 
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
@@ -95,7 +97,7 @@ public class ConversionStream {
 
     this.streams.start();
 
-    KafkaStreamsMetrics ksm = new KafkaStreamsMetrics(this.streams);
+    final KafkaStreamsMetrics ksm = new KafkaStreamsMetrics(this.streams);
     ksm.bindTo(meterRegistry);
   }
 
