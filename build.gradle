@@ -32,8 +32,7 @@ dependencies {
   implementation 'io.quarkus:quarkus-scheduler'
 
   implementation 'io.quarkus:quarkus-kafka-streams'    
-
-
+  implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
   implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging-kafka'
   implementation group: 'io.quarkus', name: 'quarkus-redis-client'
 
