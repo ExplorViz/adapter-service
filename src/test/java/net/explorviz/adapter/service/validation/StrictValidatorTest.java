@@ -31,15 +31,15 @@ class StrictValidatorTest {
     final String fqn = "foo.bar.test()";
     Mockito.when(mockTokenService.getSecret(Matchers.eq(token))).thenReturn(Optional.of(token));
 
-    validSpan = Mockito.mock(AttributesReader.class);
-    Mockito.when(validSpan.getSecret()).thenReturn(secret);
-    Mockito.when(validSpan.getLandscapeToken()).thenReturn(token);
-    Mockito.when(validSpan.getHostName()).thenReturn(hostname);
-    Mockito.when(validSpan.getHostIpAddress()).thenReturn(hostIp);
-    Mockito.when(validSpan.getApplicationName()).thenReturn(appName);
-    Mockito.when(validSpan.getApplicationInstanceId()).thenReturn(appInstanceId);
-    Mockito.when(validSpan.getApplicationLanguage()).thenReturn(appLang);
-    Mockito.when(validSpan.getMethodFqn()).thenReturn(fqn);
+    this.validSpan = Mockito.mock(AttributesReader.class);
+    Mockito.when(this.validSpan.getSecret()).thenReturn(secret);
+    Mockito.when(this.validSpan.getLandscapeToken()).thenReturn(token);
+    Mockito.when(this.validSpan.getHostName()).thenReturn(hostname);
+    Mockito.when(this.validSpan.getHostIpAddress()).thenReturn(hostIp);
+    Mockito.when(this.validSpan.getApplicationName()).thenReturn(appName);
+    Mockito.when(this.validSpan.getApplicationInstanceId()).thenReturn(appInstanceId);
+    Mockito.when(this.validSpan.getApplicationLanguage()).thenReturn(appLang);
+    Mockito.when(this.validSpan.getMethodFqn()).thenReturn(fqn);
 
   }
 
@@ -50,9 +50,9 @@ class StrictValidatorTest {
 
   @Test
   void invalidToken() {
-    for (String invalid : new String[] {"", "   ", null}) {
-      Mockito.when(validSpan.getLandscapeToken()).thenReturn(invalid);
-      Assertions.assertFalse(this.validator.isValid(validSpan));
+    for (final String invalid : new String[] {"", "   ", null}) {
+      Mockito.when(this.validSpan.getLandscapeToken()).thenReturn(invalid);
+      Assertions.assertFalse(this.validator.isValid(this.validSpan));
     }
   }
 
@@ -61,11 +61,11 @@ class StrictValidatorTest {
   @Test
   void invalidHost() {
 
-    for (String invalidHost : new String[] {"", "\n", "\t", "   ", null}) {
-      for (String invalidIp : new String[] {"", "\t", "\n", "   ", null}) {
-        Mockito.when(validSpan.getHostIpAddress()).thenReturn(invalidHost);
-        Mockito.when(validSpan.getHostIpAddress()).thenReturn(invalidIp);
-        Assertions.assertFalse(this.validator.isValid(validSpan));
+    for (final String invalidHost : new String[] {"", "\n", "\t", "   ", null}) {
+      for (final String invalidIp : new String[] {"", "\t", "\n", "   ", null}) {
+        Mockito.when(this.validSpan.getHostIpAddress()).thenReturn(invalidHost);
+        Mockito.when(this.validSpan.getHostIpAddress()).thenReturn(invalidIp);
+        Assertions.assertFalse(this.validator.isValid(this.validSpan));
       }
     }
   }
@@ -73,11 +73,11 @@ class StrictValidatorTest {
 
   @Test
   void invalidApp() {
-    for (String invalidLang : new String[] {"", "\n", "\t", "   ", null}) {
-      for (String invalidName : new String[] {"", "\t", "\n", "   ", null}) {
-        Mockito.when(validSpan.getApplicationLanguage()).thenReturn(invalidLang);
-        Mockito.when(validSpan.getApplicationName()).thenReturn(invalidName);
-        Assertions.assertFalse(this.validator.isValid(validSpan));
+    for (final String invalidLang : new String[] {"", "\n", "\t", "   ", null}) {
+      for (final String invalidName : new String[] {"", "\t", "\n", "   ", null}) {
+        Mockito.when(this.validSpan.getApplicationLanguage()).thenReturn(invalidLang);
+        Mockito.when(this.validSpan.getApplicationName()).thenReturn(invalidName);
+        Assertions.assertFalse(this.validator.isValid(this.validSpan));
       }
     }
   }
@@ -89,8 +89,8 @@ class StrictValidatorTest {
     final String endingDot = "foo.bar.";
 
     for (final String tt : new String[] {noMethod, noClass, endingDot}) {
-      Mockito.when(validSpan.getMethodFqn()).thenReturn(tt);
-      Assertions.assertFalse(this.validator.isValid(validSpan));
+      Mockito.when(this.validSpan.getMethodFqn()).thenReturn(tt);
+      Assertions.assertFalse(this.validator.isValid(this.validSpan));
     }
   }
 }
