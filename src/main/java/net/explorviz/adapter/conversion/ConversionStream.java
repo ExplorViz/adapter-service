@@ -4,6 +4,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.runtime.Quarkus;
@@ -46,6 +48,9 @@ public class ConversionStream {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConversionStream.class);
 
+  @Inject // NOPMD
+  /* default */ MeterRegistry meterRegistry; // NOPMD NOCS
+
   private final SchemaRegistryClient registry;
 
   private final KafkaConfig config;
@@ -66,6 +71,8 @@ public class ConversionStream {
 
   private KafkaStreams streams;
 
+
+
   @Inject
   public ConversionStream(final SchemaRegistryClient registry, final KafkaConfig config,
       final StructureTransformer structureTransformer,
@@ -79,6 +86,8 @@ public class ConversionStream {
 
     this.setupStreamsConfig();
     this.buildTopology();
+
+
   }
 
   /* default */ void onStart(@Observes final StartupEvent event) { // NOPMD
@@ -87,6 +96,9 @@ public class ConversionStream {
     this.streams.setStateListener(new ErrorStateListener());
 
     this.streams.start();
+
+    final KafkaStreamsMetrics ksm = new KafkaStreamsMetrics(this.streams);
+    ksm.bindTo(meterRegistry);
   }
 
   /* default */ void onStop(@Observes final ShutdownEvent event) { // NOPMD
