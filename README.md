@@ -6,21 +6,20 @@
 
 The entry point to ExplorViz that validates and preprocesses all incoming raw spans.
 
-
 ## Features
 
 ![adapter-service](.docs/adapter-service.png)
 
 At its core, the Adapter-Service is a Kafka Streams application that steadily processes every span emitted by a monitored application.
-All monitoring data is at first gathered at the OpenCensus Collector, which in turn forwards all spans to this service via GRPC.
+All monitoring data of a instrumented application is send by the InspectIT Ocelot Agent via gRPC to the OpenCensus Collector, which in turn forwards all spans to this service via Kafka.
 In essence, the Adapter-Service performs three steps on each span.
 
 1. **Token validation**: 
    Prior to monitoring any application, the client has to request a unique identifier for the landscape, the so-called *landscape token*, at the User-Service.
-   All spans of a landscape have to contain the landscape token given to the user for that particular landscape.
+   All spans of each application have to contain the landscape token that was given to the user for that particular landscape.
    To this end, the user needs to specify the token within the instrumentation configuration of the applications. 
    
-   Whenever a landscape token is createn/deleted/update, the event gets broadcasted via Kafka.
+   Whenever a landscape token is created/deleted/updated, the event gets broadcasted via Kafka.
    The Adapter-Service uses these events to keep track of all existing tokens in a Redis database. 
    If a span's token is missing, unknown, or invalid, the span gets discarded.
 2. **Input Validation**: 
