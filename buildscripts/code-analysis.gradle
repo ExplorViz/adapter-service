@@ -30,7 +30,7 @@ pmd {
 }
 
 checkstyle {
-  configDir = file("code-analysis")
+  configDirectory = file("code-analysis")
   configFile = file("code-analysis/checkstyle.xml")
   maxWarnings = 0
   ignoreFailures = false
