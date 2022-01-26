@@ -2,14 +2,12 @@ package net.explorviz.adapter.conversion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.Span;
 import io.quarkus.scheduler.Scheduled;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
@@ -17,9 +15,7 @@ import javax.inject.Inject;
 import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
 import net.explorviz.adapter.conversion.transformer.StructureTransformer;
 import net.explorviz.adapter.service.validation.SpanValidator;
-import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
-import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -48,9 +44,6 @@ public class TopologyProducer {
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
   /* default */ String dynamicOutTopic; // NOCS
 
-  @ConfigProperty(name = "explorviz.schema-registry.url")
-  /* default */ String schemaRegistryUrl; // NOCS
-
   @Inject
   /* default */ StructureTransformer structureTransformer; // NOCS
 
@@ -60,8 +53,14 @@ public class TopologyProducer {
   @Inject
   /* default */ SpanValidator validator; // NOCS
 
+  // @Inject
+  // /* default */ SpecificAvroSerde<SpanDynamic> dynamicAvroSerde; // NOCS
+
   @Inject
-  /* default */ SchemaRegistryClient registry; // NOCS
+  /* default */ SpecificAvroSerde<SpanStructure> structureAvroSerde; // NOCS
+
+  @Inject
+  /* default */ SchemaRegistryClient schemaRegistryClient; // NOCS
 
   // Logged and reset every n seconds
   private final AtomicInteger lastReceivedSpans = new AtomicInteger(0);
@@ -88,8 +87,9 @@ public class TopologyProducer {
     });
 
     // Validate Spans
-    final KStream<byte[], Span> validSpanStream =
-        spanKStream.filter((k, v) -> this.validator.isValid(v));
+    final KStream<byte[], Span> validSpanStream = spanKStream.filter((k, v) -> {
+      return this.validator.isValid(v);
+    });
 
     // Invalid Spans, just log
     spanKStream.filter((k, v) -> !this.validator.isValid(v))
@@ -100,27 +100,18 @@ public class TopologyProducer {
         validSpanStream.transform(() -> this.structureTransformer);
 
     // Convert to Span Dynamic
-    final KStream<String, SpanDynamic> spanDynamicStream =
-        validSpanStream.transform(() -> this.dynamicTransformer);
-
+    // final KStream<String, SpanDynamic> spanDynamicStream =
+    // validSpanStream.transform(() -> this.dynamicTransformer);
 
     // Forward Span Structure
     spanStructureStream.to(this.structureOutTopic,
-        Produced.with(Serdes.String(), this.getValueSerde()));
+        Produced.with(Serdes.String(), this.structureAvroSerde));
 
     // Forward Span Dynamic
-    spanDynamicStream.to(this.dynamicOutTopic,
-        Produced.with(Serdes.String(), this.getValueSerde()));
+    // spanDynamicStream.to(this.dynamicOutTopic,
+    // Produced.with(Serdes.String(), this.dynamicAvroSerde));
 
     return builder.build();
-  }
-
-  private <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerde() {
-    final SpecificAvroSerde<T> valueSerde = new SpecificAvroSerde<>(this.registry);
-    valueSerde.configure(
-        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081"),
-        false);
-    return valueSerde;
   }
 
   @Scheduled(every = "{explorviz.log.span.interval}") // NOPMD

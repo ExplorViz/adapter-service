@@ -24,7 +24,6 @@ public class StrictValidator implements SpanValidator {
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
 
-  @SuppressWarnings("PMD.DefaultPackage")
   @ConfigProperty(name = "explorviz.validate.token-existence")
   /* default */ boolean validateTokens; // NOCS
 
@@ -40,10 +39,8 @@ public class StrictValidator implements SpanValidator {
 
     final AttributesReader attr = new AttributesReader(span);
 
-    return this.validateTimestamp(span.getStartTime())
-        && this.validateTimestamp(span.getEndTime())
+    return this.validateTimestamp(span.getStartTime()) && this.validateTimestamp(span.getEndTime())
         && this.isValid(attr);
-
   }
 
   public boolean isValid(final AttributesReader spanAttributes) {
@@ -84,8 +81,7 @@ public class StrictValidator implements SpanValidator {
   private boolean validateTimestamp(final Timestamp timestamp) {
     try {
 
-      final Instant ignored = Instant.ofEpochSecond(timestamp.getSeconds(),
-          timestamp.getNanos());
+      final Instant ignored = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
 
       if (ignored.getEpochSecond() <= 0) {
         throw new NumberFormatException("Time must be positive");

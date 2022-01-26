@@ -1,27 +1,30 @@
 package net.explorviz.adapter.injection;
 
-import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.quarkus.arc.DefaultBean;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
+import org.apache.avro.specific.SpecificRecord;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
- * Returns a {@link SchemaRegistryClient} that is used by this application with a maximum number of
- * 10 schemas.
+ * Returns an injectable {@link SpecificAvroSerde}.
  */
 @Dependent
-public class SchemaRegistryClientProducer {
+public class SerdeProducer {
 
-  private static final int MAX_NUM_OF_SCHEMAS = 10;
+  @Inject
+  /* default */ SchemaRegistryClient registry; // NOCS
 
   @ConfigProperty(name = "explorviz.schema-registry.url")
   /* default */ String schemaRegistryUrl; // NOCS
 
   @Produces
   @DefaultBean
-  public SchemaRegistryClient schemaRegistryClient() {
-    return new CachedSchemaRegistryClient(this.schemaRegistryUrl, MAX_NUM_OF_SCHEMAS);
+  public <T extends SpecificRecord> SpecificAvroSerde<T> produceSpecificAvroSerde() {
+    return new SpecificAvroSerde<>(this.registry);
   }
 }
+

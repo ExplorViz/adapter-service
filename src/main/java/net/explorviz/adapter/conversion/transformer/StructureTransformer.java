@@ -16,8 +16,6 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 public class StructureTransformer
     implements Transformer<byte[], Span, KeyValue<String, SpanStructure>> {
 
-
-
   private final SpanStructureConverter converter;
 
   @Inject

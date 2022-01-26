@@ -1,13 +1,11 @@
 package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
-import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.AttributeValue;
@@ -19,39 +17,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
-import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
-import net.explorviz.adapter.conversion.transformer.StructureTransformer;
 import net.explorviz.adapter.service.converter.AttributesReader;
-import net.explorviz.adapter.service.converter.SpanDynamicConverter;
-import net.explorviz.adapter.service.converter.SpanStructureConverter;
-import net.explorviz.adapter.service.validation.SpanValidator;
-import net.explorviz.adapter.service.validation.StrictValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @QuarkusTest
-class ConversionStreamTest {
+class TopologyTest {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTest.class);
 
   private TopologyTestDriver driver;
 
   private TestInputTopic<byte[], byte[]> inputTopic;
   private TestOutputTopic<String, SpanStructure> structureOutputTopic;
   private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
-
-  private SpecificAvroSerde<SpanStructure> spanStructureSerDe;
-  private SpecificAvroSerde<SpanDynamic> spanDynamicSerDe;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
   /* default */ String inTopic;
@@ -63,45 +54,36 @@ class ConversionStreamTest {
   /* default */ String dynamicOutTopic;
 
   @Inject
-  TopologyProducer topologyProducer;
+  Topology topology;
+
+  @Inject
+  SpecificAvroSerde<SpanDynamic> spanDynamicSerDe; // NOCS
+
+  @Inject
+  SpecificAvroSerde<SpanStructure> spanStructureSerDe; // NOCS
+
+  @Inject
+  SchemaRegistryClient schemaRegistryClient;
+
 
   @BeforeEach
   void setUp() {
 
-    final SchemaRegistryClient schemaRegistryClient = new MockSchemaRegistryClient();
+    final Properties config = new Properties();
+    // config.put(StreamsConfig.APPLICATION_ID_CONFIG, "testApplicationId");
+    // config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
+    // config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+    // "http://registry:1234");
 
-    // Skip validation
-    final SpanValidator v = Mockito.mock(StrictValidator.class);
-    Mockito.when(v.isValid(Matchers.any())).thenReturn(true);
+    this.driver = new TopologyTestDriver(this.topology, config);
 
-    final SpanStructureConverter c = new SpanStructureConverter();
-    final StructureTransformer structureTransformer = new StructureTransformer(c);
-    final DynamicTransformer dynamicTransformer =
-        new DynamicTransformer(new SpanDynamicConverter());
-
-    final Properties props = new Properties();
-    props.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-
-    this.driver = new TopologyTestDriver(this.topologyProducer.buildTopology(), props);
-
-    this.spanStructureSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
-    this.spanDynamicSerDe = new SpecificAvroSerde<>(schemaRegistryClient);
-
-
-    this.spanStructureSerDe.configure(
-        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
-
-    this.spanDynamicSerDe.configure(
-        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://dummy"), false);
-
-
-    this.inputTopic = this.driver.createInputTopic(this.inTopic,
-        Serdes.ByteArray().serializer(), Serdes.ByteArray().serializer());
+    this.inputTopic = this.driver.createInputTopic(this.inTopic, Serdes.ByteArray().serializer(),
+        Serdes.ByteArray().serializer());
     this.structureOutputTopic = this.driver.createOutputTopic(this.structureOutTopic,
         Serdes.String().deserializer(), this.spanStructureSerDe.deserializer());
     this.dynamicOutputTopic = this.driver.createOutputTopic(this.dynamicOutTopic,
         Serdes.String().deserializer(), this.spanDynamicSerDe.deserializer());
+
   }
 
   @AfterEach
@@ -116,6 +98,8 @@ class ConversionStreamTest {
     final Map<String, AttributeValue> attrMap = new HashMap<>();
     attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
+    attrMap.put(AttributesReader.TOKEN_SECRET, AttributeValue.newBuilder()
+        .setStringValue(TruncatableString.newBuilder().setValue("secret")).build());
     attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
     attrMap.put(AttributesReader.HOST_NAME, AttributeValue.newBuilder()
@@ -138,8 +122,7 @@ class ConversionStreamTest {
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
         .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
         .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap))
-        .build();
+        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap)).build();
 
     // CHECKSTYLE:ON
   }
@@ -189,10 +172,12 @@ class ConversionStreamTest {
     final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
 
-    assertTrue(this.structureOutputTopic.isEmpty(), "output topic was empty");
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
 
-    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
+    assertFalse(this.structureOutputTopic.isEmpty(),
+        "output topic is empty, but should contain a data record");
+
+    final SpanStructure result = this.structureOutputTopic.readValue();
 
     // Check IDs
     final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
