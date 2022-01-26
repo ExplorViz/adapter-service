@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.converter.AttributesReader;
+import net.explorviz.adapter.service.converter.HashHelper;
+import net.explorviz.adapter.service.converter.IdHelper;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
@@ -202,6 +204,33 @@ class TopologyTest {
     final Span testSpan = this.sampleSpan();
     final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+
+    final SpanDynamic result = this.dynamicOutputTopic.readValue();
+
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final String expectedToken =
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+
+    final String expectedSpanId = IdHelper.converterSpanId(testSpan.getSpanId().toByteArray());
+
+    final String expectedParentSpanId =
+        IdHelper.converterSpanId(testSpan.getParentSpanId().toByteArray());
+
+    final String expectedHashValue = HashHelper.fromSpanAttributes(new AttributesReader(testSpan));
+
+    final net.explorviz.avro.Timestamp expectedStartTime = new net.explorviz.avro.Timestamp(
+        testSpan.getStartTime().getSeconds(), testSpan.getStartTime().getNanos());
+
+    final net.explorviz.avro.Timestamp exectedEndTime = new net.explorviz.avro.Timestamp(
+        testSpan.getEndTime().getSeconds(), testSpan.getEndTime().getNanos());
+
+
+    assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
+    assertEquals(expectedSpanId, result.getSpanId(), "Invalid span id");
+    assertEquals(expectedParentSpanId, result.getParentSpanId(), "Invalid parent span id");
+    assertEquals(expectedHashValue, result.getHashCode(), "Invalid hash code");
+    assertEquals(expectedStartTime, result.getStartTime(), "Invalid start time");
+    assertEquals(exectedEndTime, result.getEndTime(), "Invalid end time");
   }
 
 

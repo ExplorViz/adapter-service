@@ -49,7 +49,7 @@ public class TopologyProducer {
   @Inject
   /* default */ SpanValidator validator; // NOCS
 
-  // @Inject
+  @Inject
   /* default */ SpecificAvroSerde<SpanDynamic> dynamicAvroSerde; // NOCS
 
   @Inject
@@ -104,18 +104,18 @@ public class TopologyProducer {
     });
 
     // Convert to Span Dynamic
-    // final KStream<String, SpanDynamic> spanDynamicStream = validSpanStream.map((key, value) -> {
-    // final SpanDynamic dynamic = this.dynamicConverter.fromOpenCensusSpan(value);
-    // return new KeyValue<>(dynamic.getTraceId(), dynamic);
-    // });
+    final KStream<String, SpanDynamic> spanDynamicStream = validSpanStream.map((key, value) -> {
+      final SpanDynamic dynamic = this.dynamicConverter.fromOpenCensusSpan(value);
+      return new KeyValue<>(dynamic.getTraceId(), dynamic);
+    });
 
     // Forward Span Structure
     spanStructureStream.to(this.structureOutTopic,
         Produced.with(Serdes.String(), this.structureAvroSerde));
 
     // Forward Span Dynamic
-    // spanDynamicStream.to(this.dynamicOutTopic,
-    // Produced.with(Serdes.String(), this.dynamicAvroSerde));
+    spanDynamicStream.to(this.dynamicOutTopic,
+        Produced.with(Serdes.String(), this.dynamicAvroSerde));
 
     return builder.build();
   }
