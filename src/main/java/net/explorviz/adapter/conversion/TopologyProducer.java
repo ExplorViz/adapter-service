@@ -12,11 +12,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import net.explorviz.adapter.conversion.transformer.DynamicTransformer;
-import net.explorviz.adapter.conversion.transformer.StructureTransformer;
+import net.explorviz.adapter.service.converter.SpanDynamicConverter;
+import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.adapter.service.validation.SpanValidator;
+import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -45,22 +47,22 @@ public class TopologyProducer {
   /* default */ String dynamicOutTopic; // NOCS
 
   @Inject
-  /* default */ StructureTransformer structureTransformer; // NOCS
-
-  @Inject
-  /* default */ DynamicTransformer dynamicTransformer; // NOCS
-
-  @Inject
   /* default */ SpanValidator validator; // NOCS
 
   // @Inject
-  // /* default */ SpecificAvroSerde<SpanDynamic> dynamicAvroSerde; // NOCS
+  /* default */ SpecificAvroSerde<SpanDynamic> dynamicAvroSerde; // NOCS
 
   @Inject
   /* default */ SpecificAvroSerde<SpanStructure> structureAvroSerde; // NOCS
 
   @Inject
   /* default */ SchemaRegistryClient schemaRegistryClient; // NOCS
+
+  @Inject
+  /* default */ SpanStructureConverter structureConverter; // NOCS
+
+  @Inject
+  /* default */ SpanDynamicConverter dynamicConverter; // NOCS
 
   // Logged and reset every n seconds
   private final AtomicInteger lastReceivedSpans = new AtomicInteger(0);
@@ -96,12 +98,16 @@ public class TopologyProducer {
         .foreach((k, v) -> this.lastInvalidSpans.incrementAndGet());
 
     // Convert to Span Structure
-    final KStream<String, SpanStructure> spanStructureStream =
-        validSpanStream.transform(() -> this.structureTransformer);
+    final KStream<String, SpanStructure> spanStructureStream = validSpanStream.map((key, value) -> {
+      final SpanStructure span = this.structureConverter.fromOpenCensusSpan(value);
+      return new KeyValue<>(span.getLandscapeToken(), span);
+    });
 
     // Convert to Span Dynamic
-    // final KStream<String, SpanDynamic> spanDynamicStream =
-    // validSpanStream.transform(() -> this.dynamicTransformer);
+    // final KStream<String, SpanDynamic> spanDynamicStream = validSpanStream.map((key, value) -> {
+    // final SpanDynamic dynamic = this.dynamicConverter.fromOpenCensusSpan(value);
+    // return new KeyValue<>(dynamic.getTraceId(), dynamic);
+    // });
 
     // Forward Span Structure
     spanStructureStream.to(this.structureOutTopic,
@@ -114,8 +120,8 @@ public class TopologyProducer {
     return builder.build();
   }
 
-  @Scheduled(every = "{explorviz.log.span.interval}") // NOPMD
-  void logStatus() { // NOPMD
+  @Scheduled(every = "{explorviz.log.span.interval}")
+  /* default */ void logStatus() {
     final int spans = this.lastReceivedSpans.getAndSet(0);
     final int invalidSpans = this.lastInvalidSpans.getAndSet(0);
     if (LOGGER.isDebugEnabled()) {

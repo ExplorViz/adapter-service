@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.AttributeValue;
@@ -13,6 +13,7 @@ import io.opencensus.proto.trace.v1.Span;
 import io.opencensus.proto.trace.v1.TruncatableString;
 import io.quarkus.test.junit.QuarkusTest;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -21,6 +22,7 @@ import net.explorviz.adapter.service.converter.AttributesReader;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
@@ -62,18 +64,13 @@ class TopologyTest {
   @Inject
   SpecificAvroSerde<SpanStructure> spanStructureSerDe; // NOCS
 
-  @Inject
-  SchemaRegistryClient schemaRegistryClient;
-
-
   @BeforeEach
   void setUp() {
 
     final Properties config = new Properties();
-    // config.put(StreamsConfig.APPLICATION_ID_CONFIG, "testApplicationId");
-    // config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-    // config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-    // "http://registry:1234");
+    config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+    config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class.getName());
+    config.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://registry:1234");
 
     this.driver = new TopologyTestDriver(this.topology, config);
 
@@ -127,43 +124,43 @@ class TopologyTest {
     // CHECKSTYLE:ON
   }
 
-  // @Test
-  // void testAttributeTranslation() {
-  // final Span testSpan = this.sampleSpan();
-  // final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-  //
-  // this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
-  //
-  // final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
-  //
-  // final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
-  // final String expectedToken =
-  // attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
-  // final String expectedHostName =
-  // attrs.get(AttributesReader.HOST_NAME).getStringValue().getValue();
-  // final String expectedHostIp = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
-  // final String expectedAppName =
-  // attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
-  // final String expectedAppLang =
-  // attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
-  // final String expectedInstanceId =
-  // attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue();
-  // final String expectedOperationName =
-  // attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
-  //
-  // assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
-  //
-  // assertEquals(expectedHostIp, result.getHostIpAddress(), "Invalid host ip address");
-  // assertEquals(expectedHostName, result.getHostname(), "Invalid host name");
-  //
-  // assertEquals(expectedAppName, result.getAppName(), "Invalid application name");
-  // assertEquals(expectedInstanceId, result.getAppInstanceId(), "Invalid application pid");
-  // assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
-  //
-  // assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),
-  // "Invalid operation name");
-  //
-  // }
+  @Test
+  void testAttributeTranslation() {
+    final Span testSpan = this.sampleSpan();
+    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
+
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final String expectedToken =
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+    final String expectedHostName =
+        attrs.get(AttributesReader.HOST_NAME).getStringValue().getValue();
+    final String expectedHostIp = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
+    final String expectedAppName =
+        attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
+    final String expectedAppLang =
+        attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
+    final String expectedInstanceId =
+        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue();
+    final String expectedOperationName =
+        attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
+
+    assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
+
+    assertEquals(expectedHostIp, result.getHostIpAddress(), "Invalid host ip address");
+    assertEquals(expectedHostName, result.getHostname(), "Invalid host name");
+
+    assertEquals(expectedAppName, result.getAppName(), "Invalid application name");
+    assertEquals(expectedInstanceId, result.getAppInstanceId(), "Invalid application pid");
+    assertEquals(expectedAppLang, result.getAppLanguage(), "Invalid application language");
+
+    assertEquals(expectedOperationName, result.getFullyQualifiedOperationName(),
+        "Invalid operation name");
+
+  }
 
 
   @Test
@@ -184,30 +181,28 @@ class TopologyTest {
     assertEquals(sid, result.getSpanId());
   }
 
-  // @Test
-  // void testTimestampTranslation() {
-  // final Span testSpan = this.sampleSpan();
-  // final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-  // this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
-  //
-  // final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
-  //
-  // final Instant expectedTimestamp = Instant
-  // .ofEpochSecond(this.sampleSpan().getStartTime().getSeconds(),
-  // this.sampleSpan().getStartTime().getNanos());
-  //
-  // // Start and End time
-  // assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
-  // result.getTimestamp().getNanoAdjust()));
-  // }
-  //
-  // @Test
-  // void testDynamicTranslation() {
-  // final Span testSpan = this.sampleSpan();
-  // final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-  // this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
-  //
-  // }
+  @Test
+  void testTimestampTranslation() {
+    final Span testSpan = this.sampleSpan();
+    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+
+    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
+
+    final Instant expectedTimestamp = Instant.ofEpochSecond(
+        this.sampleSpan().getStartTime().getSeconds(), this.sampleSpan().getStartTime().getNanos());
+
+    // Start and End time
+    assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
+        result.getTimestamp().getNanoAdjust()));
+  }
+
+  @Test
+  void testDynamicTranslation() {
+    final Span testSpan = this.sampleSpan();
+    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+  }
 
 
 }

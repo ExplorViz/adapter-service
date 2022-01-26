@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.Timestamp;
 import org.apache.avro.specific.SpecificRecord;
@@ -39,7 +40,9 @@ public class MockSerdeProducer {
       throws IOException, RestClientException {
 
     this.registry.register(this.outTopicStructure + "-value", Timestamp.SCHEMA$);
-    this.registry.register(this.outTopicDynamic + "-value", SpanStructure.SCHEMA$);
+    this.registry.register(this.outTopicStructure + "-value", SpanStructure.SCHEMA$);
+    this.registry.register(this.outTopicDynamic + "-value", Timestamp.SCHEMA$);
+    this.registry.register(this.outTopicDynamic + "-value", SpanDynamic.SCHEMA$);
 
     final SpecificAvroSerde<T> valueSerde = new SpecificAvroSerde<>(this.registry);
     valueSerde.configure(
