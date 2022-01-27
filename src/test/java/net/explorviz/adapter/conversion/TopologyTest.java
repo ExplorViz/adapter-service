@@ -2,6 +2,7 @@ package net.explorviz.adapter.conversion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -252,7 +253,7 @@ class TopologyTest {
   }
 
   @Test
-  void testTokenEventInteractiveStateStoreQuery() {
+  void testTokenEventCreateInteractiveStateStoreQuery() {
 
     final Span testSpan = this.sampleSpan();
     final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
@@ -274,6 +275,41 @@ class TopologyTest {
     final TokenEvent resultFromStateStore = this.tokenEventStore.get(expectedTokenValue);
 
     assertEquals(resultFromStateStore, expectedTokenEvent, "Invalid token event in state store");
+  }
+
+  @Test
+  void testTokenEventDeleteInteractiveStateStoreQuery() {
+
+    final Span testSpan = this.sampleSpan();
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final String expectedTokenValue =
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+    final String expectedSecret =
+        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+
+    final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
+        .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
+
+    final TokenEvent expectedTokenEvent = TokenEvent.newBuilder().setType(EventType.CREATED)
+        .setToken(expectedToken).setClonedToken("").build();
+
+    this.inputTopicTokenEvents.pipeInput(expectedTokenValue, expectedTokenEvent);
+
+    // Use state store of TopologyTestDriver instead of real in-memory one, since it is not
+    // available for tests
+    final TokenEvent resultFromStateStore = this.tokenEventStore.get(expectedTokenValue);
+
+    assertEquals(resultFromStateStore, expectedTokenEvent, "Invalid token event in state store");
+
+    // Now delete event
+
+    this.inputTopicTokenEvents.pipeInput(expectedTokenValue, null);
+
+    // Use state store of TopologyTestDriver instead of real in-memory one, since it is not
+    // available for tests
+    final TokenEvent resultFromStateStore2 = this.tokenEventStore.get(expectedTokenValue);
+
+    assertTrue(resultFromStateStore2 == null, "Invalid token event in state store, should be null");
   }
 
 
