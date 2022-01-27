@@ -48,18 +48,8 @@ checkstyle:
     - exec-docker
   script: ./gradlew checkstyleMain
 
-unit-test:
+test:
   stage: test
-  tags:
-    - exec-docker
-  script: 
-    - ./gradlew test
-  artifacts:
-    paths:
-      - build
-
-jacoco-coverage:
-  stage: coverage
   tags:
     - exec-docker
   script: 
