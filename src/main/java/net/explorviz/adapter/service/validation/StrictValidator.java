@@ -130,7 +130,16 @@ public class StrictValidator implements SpanValidator {
       }
       return false;
     }
-    return true;
+
+    if (operationFqnSplit[0].isBlank()) {
+      return false;
+    }
+
+    if (operationFqnSplit[1].isBlank()) {
+      return false;
+    }
+
+    return !operationFqnSplit[2].isBlank();
   }
 
   private boolean isBlank(final String s) {
