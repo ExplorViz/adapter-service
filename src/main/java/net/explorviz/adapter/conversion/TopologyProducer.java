@@ -17,13 +17,17 @@ import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
+import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.state.KeyValueStore;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +60,9 @@ public class TopologyProducer {
   /* default */ SpecificAvroSerde<SpanStructure> structureAvroSerde; // NOCS
 
   @Inject
+  /* default */ SpecificAvroSerde<TokenEvent> tokenEventAvroSerde; // NOCS
+
+  @Inject
   /* default */ SchemaRegistryClient schemaRegistryClient; // NOCS
 
   @Inject
@@ -72,6 +79,8 @@ public class TopologyProducer {
   public Topology buildTopology() {
 
     final StreamsBuilder builder = new StreamsBuilder();
+
+    // BEGIN Conversion Stream
 
     final KStream<byte[], byte[]> dumpSpanStream =
         builder.stream(this.inTopic, Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
@@ -116,6 +125,20 @@ public class TopologyProducer {
     // Forward Span Dynamic
     spanDynamicStream.to(this.dynamicOutTopic,
         Produced.with(Serdes.String(), this.dynamicAvroSerde));
+
+    // END Conversion Stream
+
+    // BEGIN Token Stream
+
+    builder.globalTable("token-events",
+        Materialized
+            .<String, TokenEvent, KeyValueStore<Bytes, byte[]>>as(
+                "token-events-global-store" /* table/store name */)
+            .withKeySerde(Serdes.String()) /* key serde */
+            .withValueSerde(this.tokenEventAvroSerde) /* value serde */
+    );
+
+    // END Token Stream
 
     return builder.build();
   }

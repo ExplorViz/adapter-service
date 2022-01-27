@@ -4,7 +4,6 @@ import com.google.protobuf.Timestamp;
 import io.opencensus.proto.trace.v1.Span;
 import java.time.DateTimeException;
 import java.time.Instant;
-import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
@@ -65,17 +64,7 @@ public class StrictValidator implements SpanValidator {
       return true;
     }
 
-    final Optional<String> secretOptional = this.tokenService.getSecret(token);
-    if (secretOptional.isEmpty()) {
-      return false;
-    } else {
-      final String secret = secretOptional.get();
-      if (!secret.equals(givenSecret)) {
-        return false;
-      }
-    }
-
-    return true;
+    return this.tokenService.validLandscapeTokenValueAndSecret(token, givenSecret);
   }
 
   private boolean validateTimestamp(final Timestamp timestamp) {

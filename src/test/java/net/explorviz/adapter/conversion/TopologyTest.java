@@ -18,17 +18,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import net.explorviz.adapter.service.converter.HashHelper;
 import net.explorviz.adapter.service.converter.IdHelper;
+import net.explorviz.avro.EventType;
+import net.explorviz.avro.LandscapeToken;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
+import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.state.KeyValueStore;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,8 +50,12 @@ class TopologyTest {
   private TopologyTestDriver driver;
 
   private TestInputTopic<byte[], byte[]> inputTopic;
+  private TestInputTopic<String, TokenEvent> inputTopicTokenEvents;
+
   private TestOutputTopic<String, SpanStructure> structureOutputTopic;
   private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
+
+  private KeyValueStore<String, TokenEvent> tokenEventStore;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
   /* default */ String inTopic;
@@ -66,6 +75,12 @@ class TopologyTest {
   @Inject
   SpecificAvroSerde<SpanStructure> spanStructureSerDe; // NOCS
 
+  @Inject
+  SpecificAvroSerde<TokenEvent> tokenEventSerDe; // NOCS
+
+  @Inject
+  TokenService tokenService; // NOCS
+
   @BeforeEach
   void setUp() {
 
@@ -78,10 +93,14 @@ class TopologyTest {
 
     this.inputTopic = this.driver.createInputTopic(this.inTopic, Serdes.ByteArray().serializer(),
         Serdes.ByteArray().serializer());
+    this.inputTopicTokenEvents = this.driver.createInputTopic("token-events",
+        Serdes.String().serializer(), this.tokenEventSerDe.serializer());
     this.structureOutputTopic = this.driver.createOutputTopic(this.structureOutTopic,
         Serdes.String().deserializer(), this.spanStructureSerDe.deserializer());
     this.dynamicOutputTopic = this.driver.createOutputTopic(this.dynamicOutTopic,
         Serdes.String().deserializer(), this.spanDynamicSerDe.deserializer());
+
+    this.tokenEventStore = this.driver.getKeyValueStore("token-events-global-store");
 
   }
 
@@ -164,7 +183,6 @@ class TopologyTest {
 
   }
 
-
   @Test
   void testIdTranslation() {
 
@@ -231,6 +249,31 @@ class TopologyTest {
     assertEquals(expectedHashValue, result.getHashCode(), "Invalid hash code");
     assertEquals(expectedStartTime, result.getStartTime(), "Invalid start time");
     assertEquals(exectedEndTime, result.getEndTime(), "Invalid end time");
+  }
+
+  @Test
+  void testTokenEventInteractiveStateStoreQuery() {
+
+    final Span testSpan = this.sampleSpan();
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final String expectedTokenValue =
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+    final String expectedSecret =
+        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+
+    final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
+        .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
+
+    final TokenEvent expectedTokenEvent = TokenEvent.newBuilder().setType(EventType.CREATED)
+        .setToken(expectedToken).setClonedToken("").build();
+
+    this.inputTopicTokenEvents.pipeInput(expectedTokenValue, expectedTokenEvent);
+
+    // Use state store of TopologyTestDriver instead of real in-memory one, since it is not
+    // available for tests
+    final TokenEvent resultFromStateStore = this.tokenEventStore.get(expectedTokenValue);
+
+    assertEquals(resultFromStateStore, expectedTokenEvent, "Invalid token event in state store");
   }
 
 

@@ -1,12 +1,10 @@
 package net.explorviz.adapter.service.validation;
 
-import java.util.Optional;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 class StrictValidatorTest {
@@ -17,7 +15,7 @@ class StrictValidatorTest {
   @BeforeEach
   void setUp() {
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
-    Mockito.when(mockTokenService.exists(Matchers.anyString())).thenReturn(true);
+    // Mockito.when(mockTokenService.exists(Matchers.anyString())).thenReturn(true);
     this.validator = new StrictValidator(mockTokenService);
 
 
@@ -29,7 +27,7 @@ class StrictValidatorTest {
     final String appInstanceId = "1234L";
     final String appLang = "java";
     final String fqn = "foo.bar.test()";
-    Mockito.when(mockTokenService.getSecret(Matchers.eq(token))).thenReturn(Optional.of(token));
+    // Mockito.when(mockTokenService.getSecret(Matchers.eq(token))).thenReturn(Optional.of(token));
 
     this.validSpan = Mockito.mock(AttributesReader.class);
     Mockito.when(this.validSpan.getSecret()).thenReturn(secret);
