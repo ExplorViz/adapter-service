@@ -1,12 +1,7 @@
 package net.explorviz.adapter.service;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import net.explorviz.avro.TokenEvent;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.errors.InvalidStateStoreException;
-import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +14,12 @@ public class TokenService {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(TokenService.class);
 
-  @Inject
-  /* default */ KafkaStreams streams; // NOCS
+  private final ReadOnlyKeyValueStore<String, TokenEvent> keyValueStore;
+
+
+  public TokenService(final ReadOnlyKeyValueStore<String, TokenEvent> keyValueStore) {
+    this.keyValueStore = keyValueStore;
+  }
 
   /**
    * Checks whether a given token exists.
@@ -31,7 +30,7 @@ public class TokenService {
    */
   public boolean validLandscapeTokenValue(final String tokenValue) {
 
-    final TokenEvent potentialEvent = this.getTokenEventStore().get(tokenValue);
+    final TokenEvent potentialEvent = this.keyValueStore.get(tokenValue);
 
     if (potentialEvent != null) {
       return potentialEvent.getToken().getValue().equals(tokenValue);
@@ -49,7 +48,7 @@ public class TokenService {
    */
   public boolean validLandscapeTokenValueAndSecret(final String tokenValue,
       final String tokenSecret) {
-    final TokenEvent potentialEvent = this.getTokenEventStore().get(tokenValue);
+    final TokenEvent potentialEvent = this.keyValueStore.get(tokenValue);
 
     if (potentialEvent != null) {
       return potentialEvent.getToken().getValue().equals(tokenValue)
@@ -57,17 +56,6 @@ public class TokenService {
     }
 
     return false;
-  }
-
-  private ReadOnlyKeyValueStore<String, TokenEvent> getTokenEventStore() {
-    while (true) {
-      try {
-        return this.streams.store(StoreQueryParameters.fromNameAndType("token-events-global-store",
-            QueryableStoreTypes.keyValueStore()));
-      } catch (final InvalidStateStoreException e) { // NOPMD
-        // ignore, store not ready yet
-      }
-    }
   }
 
 }

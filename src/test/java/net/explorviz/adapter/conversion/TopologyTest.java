@@ -34,7 +34,7 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +56,7 @@ class TopologyTest {
   private TestOutputTopic<String, SpanStructure> structureOutputTopic;
   private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
 
-  private KeyValueStore<String, TokenEvent> tokenEventStore;
+  private ReadOnlyKeyValueStore<String, TokenEvent> tokenEventStore;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
   /* default */ String inTopic;
@@ -78,9 +78,6 @@ class TopologyTest {
 
   @Inject
   SpecificAvroSerde<TokenEvent> tokenEventSerDe; // NOCS
-
-  @Inject
-  TokenService tokenService; // NOCS
 
   @BeforeEach
   void setUp() {
@@ -295,11 +292,11 @@ class TopologyTest {
 
     this.inputTopicTokenEvents.pipeInput(expectedTokenValue, expectedTokenEvent);
 
-    // Use state store of TopologyTestDriver instead of real in-memory one, since it is not
-    // available for tests
-    final TokenEvent resultFromStateStore = this.tokenEventStore.get(expectedTokenValue);
+    // use mocked state store
+    final TokenService tokenServie = new TokenService(this.tokenEventStore);
 
-    assertEquals(resultFromStateStore, expectedTokenEvent, "Invalid token event in state store");
+    final boolean resultFromStateStore = tokenServie.validLandscapeTokenValue(expectedTokenValue);
+    assertTrue(resultFromStateStore, "Invalid token event in state store");
 
     // Now delete event
 
@@ -307,9 +304,46 @@ class TopologyTest {
 
     // Use state store of TopologyTestDriver instead of real in-memory one, since it is not
     // available for tests
-    final TokenEvent resultFromStateStore2 = this.tokenEventStore.get(expectedTokenValue);
+    final boolean resultFromStateStore2 = tokenServie.validLandscapeTokenValue(expectedTokenValue);
 
-    assertTrue(resultFromStateStore2 == null, "Invalid token event in state store, should be null");
+    assertFalse(resultFromStateStore2, "Invalid token event in state store, should be null");
+  }
+
+  @Test
+  void testTokenEventInteractiveStateStoreQuery() {
+
+    final Span testSpan = this.sampleSpan();
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final String expectedTokenValue =
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+    final String expectedSecret =
+        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+
+    final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
+        .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
+
+    final TokenEvent expectedTokenEvent = TokenEvent.newBuilder().setType(EventType.CREATED)
+        .setToken(expectedToken).setClonedToken("").build();
+
+    this.inputTopicTokenEvents.pipeInput(expectedTokenValue, expectedTokenEvent);
+
+    // use mocked state store
+    final TokenService tokenServie = new TokenService(this.tokenEventStore);
+
+    final boolean resultFromStateStore =
+        tokenServie.validLandscapeTokenValueAndSecret(expectedTokenValue, expectedSecret);
+    assertTrue(resultFromStateStore, "Invalid token event in state store");
+
+    // Now delete event
+
+    this.inputTopicTokenEvents.pipeInput(expectedTokenValue, null);
+
+    // Use state store of TopologyTestDriver instead of real in-memory one, since it is not
+    // available for tests
+    final boolean resultFromStateStore2 =
+        tokenServie.validLandscapeTokenValueAndSecret(expectedTokenValue, expectedSecret);
+
+    assertFalse(resultFromStateStore2, "Invalid token event in state store, should be null");
   }
 
 
