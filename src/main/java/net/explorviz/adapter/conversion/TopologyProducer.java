@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import net.explorviz.adapter.service.converter.SpanDynamicConverter;
 import net.explorviz.adapter.service.converter.SpanStructureConverter;
 import net.explorviz.adapter.service.validation.SpanValidator;
+import net.explorviz.avro.EventType;
 import net.explorviz.avro.SpanDynamic;
 import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.TokenEvent;
@@ -49,6 +50,12 @@ public class TopologyProducer {
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
   /* default */ String dynamicOutTopic; // NOCS
+
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
+  /* default */ String tokensInTopic; // NOCS
+
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.tokens-table")
+  /* default */ String tokensOutTopic; // NOCS
 
   @Inject
   /* default */ SpanValidator validator; // NOCS
@@ -130,13 +137,18 @@ public class TopologyProducer {
 
     // BEGIN Token Stream
 
-    builder.globalTable("token-events",
+    builder.stream(this.tokensInTopic, Consumed.with(Serdes.String(), this.tokenEventAvroSerde))
+        .filter((key, value) -> {
+          if (LOGGER.isTraceEnabled()) {
+            LOGGER.debug("Received token event for token value {} with event {}", key, value);
+          }
+          return value == null || value.getType().equals(EventType.CREATED);
+        }).to(this.tokensOutTopic, Produced.with(Serdes.String(), this.tokenEventAvroSerde));
+
+    builder.globalTable(this.tokensOutTopic,
         Materialized
-            .<String, TokenEvent, KeyValueStore<Bytes, byte[]>>as(
-                "token-events-global-store" /* table/store name */)
-            .withKeySerde(Serdes.String()) /* key serde */
-            .withValueSerde(this.tokenEventAvroSerde) /* value serde */
-    );
+            .<String, TokenEvent, KeyValueStore<Bytes, byte[]>>as("token-events-global-store")
+            .withKeySerde(Serdes.String()).withValueSerde(this.tokenEventAvroSerde));
 
     // END Token Stream
 

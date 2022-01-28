@@ -39,14 +39,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 @QuarkusTest
 class TopologyTest {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(TopologyTest.class);
 
   private TopologyTestDriver driver;
 
@@ -66,6 +62,9 @@ class TopologyTest {
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
   /* default */ String dynamicOutTopic;
+
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
+  /* default */ String tokensInTopic; // NOCS
 
   @Inject
   Topology topology;
@@ -91,7 +90,7 @@ class TopologyTest {
 
     this.inputTopic = this.driver.createInputTopic(this.inTopic, Serdes.ByteArray().serializer(),
         Serdes.ByteArray().serializer());
-    this.inputTopicTokenEvents = this.driver.createInputTopic("token-events",
+    this.inputTopicTokenEvents = this.driver.createInputTopic(this.tokensInTopic,
         Serdes.String().serializer(), this.tokenEventSerDe.serializer());
     this.structureOutputTopic = this.driver.createOutputTopic(this.structureOutTopic,
         Serdes.String().deserializer(), this.spanStructureSerDe.deserializer());
@@ -344,6 +343,39 @@ class TopologyTest {
         tokenServie.validLandscapeTokenValueAndSecret(expectedTokenValue, expectedSecret);
 
     assertFalse(resultFromStateStore2, "Invalid token event in state store, should be null");
+  }
+
+  @Test
+  void testFilteringTokenEventInteractiveStateStoreQuery() {
+
+    final Span testSpan = this.sampleSpan();
+    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final String expectedTokenValue =
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+    final String expectedSecret =
+        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+
+    final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
+        .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
+
+    for (final EventType eventType : EventType.values()) {
+      if (!eventType.equals(EventType.CREATED)) {
+        final TokenEvent expectedTokenEvent = TokenEvent.newBuilder().setType(eventType)
+            .setToken(expectedToken).setClonedToken("").build();
+
+        this.inputTopicTokenEvents.pipeInput(expectedTokenValue, expectedTokenEvent);
+      }
+    }
+
+    assertTrue(this.tokenEventStore.approximateNumEntries() == 0,
+        "State store not empty, but should be empty");
+
+    // use mocked state store
+    final TokenService tokenServie = new TokenService(this.tokenEventStore);
+
+    final boolean resultFromStateStore =
+        tokenServie.validLandscapeTokenValueAndSecret(expectedTokenValue, expectedSecret);
+    assertFalse(resultFromStateStore, "Invalid token event in state store");
   }
 
 
