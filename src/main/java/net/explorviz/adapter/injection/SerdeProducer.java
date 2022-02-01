@@ -1,8 +1,10 @@
 package net.explorviz.adapter.injection;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.quarkus.arc.DefaultBean;
+import java.util.Map;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
@@ -18,13 +20,18 @@ public class SerdeProducer {
   @Inject
   /* default */ SchemaRegistryClient registry; // NOCS
 
-  @ConfigProperty(name = "explorviz.schema-registry.url")
+  @ConfigProperty(name = "quarkus.kafka-streams.schema-registry-url")
   /* default */ String schemaRegistryUrl; // NOCS
 
   @Produces
   @DefaultBean
   public <T extends SpecificRecord> SpecificAvroSerde<T> produceSpecificAvroSerde() {
-    return new SpecificAvroSerde<>(this.registry);
+    final SpecificAvroSerde<T> valueSerde = new SpecificAvroSerde<>(this.registry);
+    valueSerde.configure(
+        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, this.schemaRegistryUrl),
+        false);
+    return valueSerde;
+
   }
 }
 

@@ -1,7 +1,6 @@
 package net.explorviz.adapter.conversion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opencensus.proto.dump.DumpSpans;
 import io.opencensus.proto.trace.v1.Span;
@@ -68,9 +67,6 @@ public class TopologyProducer {
 
   @Inject
   /* default */ SpecificAvroSerde<TokenEvent> tokenEventAvroSerde; // NOCS
-
-  @Inject
-  /* default */ SchemaRegistryClient schemaRegistryClient; // NOCS
 
   @Inject
   /* default */ SpanStructureConverter structureConverter; // NOCS

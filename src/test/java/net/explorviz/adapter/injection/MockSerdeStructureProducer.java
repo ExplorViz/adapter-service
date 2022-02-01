@@ -26,9 +26,6 @@ public class MockSerdeStructureProducer {
   @Inject
   /* default */ SchemaRegistryClient registry; // NOCS
 
-  @ConfigProperty(name = "explorviz.schema-registry.url")
-  /* default */ String schemaRegistryUrl; // NOCS
-
   @Produces
   @IfBuildProfile("test")
   public SpecificAvroSerde<SpanStructure> produceMockSpecificAvroSerde()
