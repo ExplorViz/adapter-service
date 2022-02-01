@@ -3,7 +3,6 @@ plugins {
   id 'idea'
   id 'io.quarkus'
   id 'com.adarshr.test-logger' version '2.1.0'
-  id 'com.github.davidmc24.gradle.plugin.avro' version '1.2.0'
 }
 
 apply from: 'buildscripts/code-analysis.gradle'
@@ -33,21 +32,15 @@ dependencies {
 
   implementation 'io.quarkus:quarkus-kafka-streams'    
   implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
-  implementation group: 'io.quarkus', name: 'quarkus-smallrye-reactive-messaging-kafka'
-  implementation group: 'io.quarkus', name: 'quarkus-redis-client'
-
 
   implementation 'io.opencensus:opencensus-proto:0.2.0'
 
-  implementation group: 'io.confluent', name: 'kafka-avro-serializer', version: '5.5.0'
-  implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '5.5.0'
+  implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '7.0.1'
   implementation 'io.quarkus:quarkus-avro'
 
   testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
-  testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.4.1'
+  testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '3.1.0'
   testImplementation 'io.quarkus:quarkus-junit5'
-  testImplementation group: 'it.ozimov', name: 'embedded-redis', version: '0.7.3'
-
 }
 
 group 'net.explorviz'
@@ -67,7 +60,7 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
-sourceSets.main.java.srcDirs = ['build/generated-main-avro-java', 'src/main/java']
+sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/avdl', 'src/main/java']
 
 test {
   systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"

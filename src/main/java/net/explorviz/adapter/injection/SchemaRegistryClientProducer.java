@@ -16,13 +16,8 @@ public class SchemaRegistryClientProducer {
 
   private static final int MAX_NUM_OF_SCHEMAS = 10;
 
-  // CHECKSTYLE:OFF
-
-  @SuppressWarnings("PMD.DefaultPackage")
-  @ConfigProperty(name = "explorviz.schema-registry.url")
-  /* default */ String schemaRegistryUrl;
-
-  // CHECKSTYLE:OFF
+  @ConfigProperty(name = "quarkus.kafka-streams.schema-registry-url")
+  /* default */ String schemaRegistryUrl; // NOCS
 
   @Produces
   @DefaultBean

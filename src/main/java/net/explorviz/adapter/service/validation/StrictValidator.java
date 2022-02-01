@@ -4,7 +4,6 @@ import com.google.protobuf.Timestamp;
 import io.opencensus.proto.trace.v1.Span;
 import java.time.DateTimeException;
 import java.time.Instant;
-import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
@@ -24,7 +23,6 @@ public class StrictValidator implements SpanValidator {
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
 
-  @SuppressWarnings("PMD.DefaultPackage")
   @ConfigProperty(name = "explorviz.validate.token-existence")
   /* default */ boolean validateTokens; // NOCS
 
@@ -40,10 +38,8 @@ public class StrictValidator implements SpanValidator {
 
     final AttributesReader attr = new AttributesReader(span);
 
-    return this.validateTimestamp(span.getStartTime())
-        && this.validateTimestamp(span.getEndTime())
+    return this.validateTimestamp(span.getStartTime()) && this.validateTimestamp(span.getEndTime())
         && this.isValid(attr);
-
   }
 
   public boolean isValid(final AttributesReader spanAttributes) {
@@ -68,24 +64,13 @@ public class StrictValidator implements SpanValidator {
       return true;
     }
 
-    final Optional<String> secretOptional = this.tokenService.getSecret(token);
-    if (secretOptional.isEmpty()) {
-      return false;
-    } else {
-      final String secret = secretOptional.get();
-      if (!secret.equals(givenSecret)) {
-        return false;
-      }
-    }
-
-    return true;
+    return this.tokenService.validLandscapeTokenValueAndSecret(token, givenSecret);
   }
 
   private boolean validateTimestamp(final Timestamp timestamp) {
     try {
 
-      final Instant ignored = Instant.ofEpochSecond(timestamp.getSeconds(),
-          timestamp.getNanos());
+      final Instant ignored = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
 
       if (ignored.getEpochSecond() <= 0) {
         throw new NumberFormatException("Time must be positive");
@@ -145,7 +130,16 @@ public class StrictValidator implements SpanValidator {
       }
       return false;
     }
-    return true;
+
+    if (operationFqnSplit[0].isBlank()) {
+      return false;
+    }
+
+    if (operationFqnSplit[1].isBlank()) {
+      return false;
+    }
+
+    return !operationFqnSplit[2].isBlank();
   }
 
   private boolean isBlank(final String s) {

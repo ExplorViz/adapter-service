@@ -24,9 +24,8 @@ public final class HashHelper {
     // Helper
   }
 
-  private static String createHash(final String landscapeToken, final String hostIp, // NOPMD
-      final String appInstanceId,
-      final String methodFqn) {
+  private static String createHash(final String landscapeToken, final String hostIp,
+      final String appInstanceId, final String methodFqn) {
 
     final StringJoiner joiner = new StringJoiner(";");
 
@@ -58,11 +57,8 @@ public final class HashHelper {
   }
 
   public static String fromSpanAttributes(final AttributesReader attribute) {
-    return createHash(
-        attribute.getLandscapeToken(),
-        attribute.getHostIpAddress(),
-        attribute.getApplicationInstanceId(),
-        attribute.getMethodFqn());
+    return createHash(attribute.getLandscapeToken(), attribute.getHostIpAddress(),
+        attribute.getApplicationInstanceId(), attribute.getMethodFqn());
   }
 
 
