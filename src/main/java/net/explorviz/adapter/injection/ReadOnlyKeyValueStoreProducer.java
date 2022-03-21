@@ -27,7 +27,7 @@ public class ReadOnlyKeyValueStoreProducer {
       try {
         return this.streams.store(StoreQueryParameters.fromNameAndType("token-events-global-store",
             QueryableStoreTypes.keyValueStore()));
-      } catch (final InvalidStateStoreException e) { // NOPMD
+      } catch (final InvalidStateStoreException e) { 
         // ignore, store not ready yet
       }
     }
