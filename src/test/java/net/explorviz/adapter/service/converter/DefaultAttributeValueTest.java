@@ -17,7 +17,7 @@ public class DefaultAttributeValueTest {
 
   @Test
   void testDefaultHostIp() {
-    assertTrue(DefaultAttributeValues.DEFAULT_HOST_IP.equals("0.0.0.0")); // NOPMD
+    assertTrue(DefaultAttributeValues.DEFAULT_HOST_IP.equals("0.0.0.0")); 
   }
 
   @Test
