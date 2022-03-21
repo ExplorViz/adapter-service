@@ -66,7 +66,7 @@ public final class HashHelper {
     final StringBuffer hexString = new StringBuffer();
     for (final byte element : hash) {
       final String hex = Integer.toHexString(EIGHT_BIT_CAP & element);
-      if (hex.length() == 1) { 
+      if (hex.length() == 1) { // NOPMD
         hexString.append('0');
       }
       hexString.append(hex);
