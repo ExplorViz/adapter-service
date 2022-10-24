@@ -24,7 +24,7 @@ repositories {
  */
 
 dependencies {
-    implementation 'io.quarkus:quarkus-container-image-jib'
+  implementation 'io.quarkus:quarkus-container-image-jib'
   implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
   implementation 'io.quarkus:quarkus-jackson'
@@ -35,11 +35,12 @@ dependencies {
 
   implementation 'io.opencensus:opencensus-proto:0.2.0'
 
-  implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '7.0.1'
+  implementation 'io.quarkus:quarkus-confluent-registry-avro'
+  implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '7.2.1'
   implementation 'io.quarkus:quarkus-avro'
 
   testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
-  testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '3.1.0'
+  testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '3.3.1'
   testImplementation 'io.quarkus:quarkus-junit5'
 }
 
