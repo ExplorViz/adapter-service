@@ -79,7 +79,9 @@ coverage:
     - test
   artifacts:
     reports:
-      cobertura: build/cobertura.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: build/cobertura.xml
 
 push-dockerhub-native:
   image: ghcr.io/graalvm/graalvm-ce:java11-21.3.0
