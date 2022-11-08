@@ -8,10 +8,8 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.opencensus.proto.dump.DumpSpans;
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.Span;
-import io.opencensus.proto.trace.v1.TruncatableString;
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.test.junit.QuarkusTest;
 import java.nio.charset.Charset;
 import java.time.Instant;
@@ -110,8 +108,8 @@ class TopologyTest {
 
   private Span sampleSpan() {
 
-    final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
+    final Map<String, AnyValue> attrMap = new HashMap<>();
+    attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AnyValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
     attrMap.put(AttributesReader.TOKEN_SECRET, AttributeValue.newBuilder()
         .setStringValue(TruncatableString.newBuilder().setValue("secret")).build());

@@ -2,7 +2,7 @@ package net.explorviz.adapter.conversion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
+import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.scheduler.Scheduled;
 import java.util.ArrayList;
@@ -81,18 +81,21 @@ public class TopologyProducer {
   @Produces
   public Topology buildTopology() {
 
-    KafkaProtobufSerde<Span> protobufSerde = new KafkaProtobufSerde<>();
-
     final StreamsBuilder builder = new StreamsBuilder();
 
     // BEGIN Conversion Stream
 
-    final KStream<byte[], Span> spanKStream =
-        builder.stream(this.inTopic, Consumed.with(Serdes.ByteArray(), protobufSerde));
+    final KStream<byte[], byte[]> spanStream =
+        builder.stream(this.inTopic, Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
-   /* final KStream<byte[], Span> spanKStream = spanStream.flatMapValues(d -> {
+    final KStream<byte[], Span> spanKStream = spanStream.flatMapValues(d -> {
       try {
-        final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
+
+        final List<Span> spanList = new ArrayList<>();
+
+        ExportTraceServiceRequest container = ExportTraceServiceRequest.parseFrom(d);
+        container.getResourceSpansList().forEach(resourceSpans -> resourceSpans.getScopeSpansList()
+            .forEach(scopeSpans -> spanList.addAll(scopeSpans.getSpansList())));
 
         this.lastReceivedSpans.addAndGet(spanList.size());
 
@@ -100,11 +103,10 @@ public class TopologyProducer {
       } catch (final InvalidProtocolBufferException e) {
         return new ArrayList<>();
       }
-    });*/
+    });
 
     // Validate Spans
     final KStream<byte[], Span> validSpanStream = spanKStream.filter((k, v) -> {
-      LOGGER.debug("test");
       return this.validator.isValid(v);
     });
 

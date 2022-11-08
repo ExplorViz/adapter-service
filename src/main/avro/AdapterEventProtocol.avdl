@@ -24,8 +24,7 @@ protocol AdapterEventProtocol {
 	} 
 	
 	record Timestamp {
-		long seconds;
-		int nanoAdjust;
+		long secondsWithNanoAdjust;
 	}
 
 	record SpanDynamic {

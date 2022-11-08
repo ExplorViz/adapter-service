@@ -16,13 +16,12 @@ public class SpanStructureConverter implements SpanConverter<SpanStructure> {
     final String spanId = IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
 
     final Timestamp startTime =
-        new Timestamp(ocSpan.getStartTime().getSeconds(), ocSpan.getStartTime().getNanos());
+        new Timestamp(ocSpan.getStartTimeUnixNano());
 
     final SpanStructure.Builder builder = SpanStructure.newBuilder();
     builder
         .setSpanId(spanId)
         .setTimestamp(startTime);
-
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
     attributesReader.appendToStructure(builder);

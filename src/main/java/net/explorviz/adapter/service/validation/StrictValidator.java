@@ -70,7 +70,7 @@ public class StrictValidator implements SpanValidator {
   private boolean validateTimestamp(final long timestamp) {
     try {
 
-      final Instant ignored = Instant.ofEpochSecond(timestamp);
+      final Instant ignored = Instant.ofEpochMilli(timestamp);
 
       if (ignored.getEpochSecond() <= 0) {
         throw new NumberFormatException("Time must be positive");

@@ -15,10 +15,10 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
   @Override
   public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
     final Timestamp startTime =
-        new Timestamp(ocSpan.getStartTime().getSeconds(), ocSpan.getStartTime().getNanos());
+        new Timestamp(ocSpan.getStartTimeUnixNano());
 
     final Timestamp endTime =
-        new Timestamp(ocSpan.getEndTime().getSeconds(), ocSpan.getEndTime().getNanos());
+        new Timestamp(ocSpan.getEndTimeUnixNano());
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
 

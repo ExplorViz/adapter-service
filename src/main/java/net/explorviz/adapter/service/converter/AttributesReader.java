@@ -67,7 +67,6 @@ public class AttributesReader {
    */
 
 
-
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
 
   /**
@@ -78,10 +77,8 @@ public class AttributesReader {
   public AttributesReader(final Span span) {
     // Load attributes into map
     span.getAttributesList().forEach(keyValue -> {
-      //keyValue.
-      //this.attributes.put(keyValue.getKey(), keyValue.getValue().)
+      attributes.put(keyValue.getKey(), keyValue.getValue());
     });
-    span.getAttributes().getAttributeMapMap().forEach(this.attributes::put);
   }
 
 
@@ -92,12 +89,12 @@ public class AttributesReader {
    * @return the string value of the attribute or empty if no such key exists
    */
   private Optional<String> getAsString(final String key) {
-    final AttributeValue av = this.attributes.get(key);
+    final AnyValue av = this.attributes.get(key);
     if (av == null) {
       return Optional.empty();
     }
 
-    return Optional.of(av.getStringValue().getValue());
+    return Optional.of(av.getStringValue());
   }
 
   public String getLandscapeToken() {
