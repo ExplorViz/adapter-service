@@ -1,6 +1,7 @@
 package net.explorviz.adapter.service.converter;
 
-import io.opencensus.proto.trace.v1.Span;
+
+import io.opentelemetry.proto.trace.v1.Span;
 
 /**
  * Converts OpenCensus spans into another type.

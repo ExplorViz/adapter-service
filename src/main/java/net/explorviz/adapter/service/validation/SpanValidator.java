@@ -1,6 +1,6 @@
 package net.explorviz.adapter.service.validation;
 
-import io.opencensus.proto.trace.v1.Span;
+import io.opentelemetry.proto.trace.v1.Span;
 import net.explorviz.avro.SpanStructure;
 
 /**
