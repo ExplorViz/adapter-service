@@ -234,8 +234,8 @@ class TopologyTest {
     final Instant expectedTimestamp = Instant.ofEpochMilli(
         this.sampleSpan().getStartTimeUnixNano());
 
-    assertEquals(expectedTimestamp, Instant.ofEpochMilli(result.getTimestamp()
-        .getSecondsWithNanoAdjust()));
+    assertEquals(expectedTimestamp,
+        Instant.ofEpochMilli(result.getTimestamp().getEpochMillisecondsWithNanoAdjust()));
   }
 
   @Test
