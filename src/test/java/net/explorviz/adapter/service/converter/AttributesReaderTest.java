@@ -1,10 +1,14 @@
 package net.explorviz.adapter.service.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.Span;
-import io.opencensus.proto.trace.v1.Span.Attributes;
-import io.opencensus.proto.trace.v1.TruncatableString;
+
+import com.google.protobuf.ByteString;
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.common.v1.KeyValue;
+import io.opentelemetry.proto.trace.v1.Span;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 public class AttributesReaderTest {
@@ -31,46 +35,9 @@ public class AttributesReaderTest {
 
   @Test
   void testValidSpanReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -84,43 +51,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultTokenReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -134,42 +68,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultSecretReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET);
@@ -183,42 +85,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultHostnameReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_HOST_NAME, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -232,42 +102,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultHostIpReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_HOST_IP, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -281,42 +119,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultAppNameReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_APPLICATION_NAME, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -330,41 +136,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultAppInstanceIdReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_APPLICATION_INSTANCE_ID, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -378,42 +153,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultAppLangReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_METHOD_FQN, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(FQN).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -427,42 +170,10 @@ public class AttributesReaderTest {
 
   @Test
   void testDefaultFqnReadOut() {
-    final Span validSpan;
-
-    final Attributes attr = Attributes.newBuilder()
-        .putAttributeMap(KEY_LANDSCAPE_TOKEN,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder().setValue(TOKEN).build()).build())
-        .putAttributeMap(KEY_LANDSCAPE_SECRET, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(SECRET).build())
-            .build())
-        .putAttributeMap(KEY_HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOSTNAME).build())
-            .build())
-        .putAttributeMap(KEY_HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(HOST_IP).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_NAME).build())
-            .build())
-        .putAttributeMap(KEY_APPLICATION_INSTANCE_ID,
-            AttributeValue.newBuilder()
-                .setStringValue(TruncatableString.newBuilder()
-                    .setValue(APP_INSTANCE_ID).build())
-                .build())
-        .putAttributeMap(KEY_APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(
-                TruncatableString.newBuilder().setValue(APP_LANG).build())
-            .build())
-        .build();
-
-    validSpan = Span.newBuilder().setAttributes(attr).build();
-
-    final AttributesReader reader = new AttributesReader(validSpan);
+    List<KeyValue> attr = generateValidAttributesMap();
+    attr = removeElementAndReturnAttributesMap(KEY_METHOD_FQN, attr);
+    Span span = generateSpanFromAttributesMap(attr);
+    final AttributesReader reader = new AttributesReader(span);
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
@@ -472,6 +183,63 @@ public class AttributesReaderTest {
     assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
     assertEquals(reader.getApplicationLanguage(), APP_LANG);
     assertEquals(reader.getMethodFqn(), DefaultAttributeValues.DEFAULT_FQN);
+  }
+
+  private List<KeyValue> generateValidAttributesMap() {
+    List<KeyValue> attributes = new ArrayList<>();
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_LANDSCAPE_TOKEN)
+        .setValue(AnyValue.newBuilder().setStringValue(TOKEN).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_LANDSCAPE_SECRET)
+        .setValue(AnyValue.newBuilder().setStringValue(SECRET).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_HOST_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue(HOSTNAME).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_HOST_IP)
+        .setValue(AnyValue.newBuilder().setStringValue(HOST_IP).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_APPLICATION_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue(APP_NAME).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_APPLICATION_INSTANCE_ID)
+        .setValue(AnyValue.newBuilder().setStringValue(APP_INSTANCE_ID).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_APPLICATION_LANGUAGE)
+        .setValue(AnyValue.newBuilder().setStringValue(APP_LANG).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_METHOD_FQN)
+        .setValue(AnyValue.newBuilder().setStringValue(FQN).build()).build());
+
+    return attributes;
+  }
+
+  private Span generateSpanFromAttributesMap(List<KeyValue> attributes) {
+    return Span.newBuilder()
+        .setTraceId(
+            ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
+        .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
+        .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
+        .setStartTimeUnixNano(1667986986000L)
+        .setEndTimeUnixNano(1667987046000L)
+        .addAllAttributes(attributes).build();
+  }
+
+  private List<KeyValue> removeElementAndReturnAttributesMap(String keyToBeRemoved,
+      List<KeyValue> attributes) {
+
+    List<KeyValue> resultList = new ArrayList<>();
+
+    for (KeyValue keyVal : attributes) {
+      if (keyVal.getKey().equals(keyToBeRemoved)) {
+        // do nothing
+      } else {
+        resultList.add(keyVal);
+      }
+    }
+
+    return resultList;
   }
 
 }

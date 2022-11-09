@@ -1,6 +1,5 @@
 package net.explorviz.adapter.service.validation;
 
-import com.google.protobuf.Timestamp;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -38,7 +37,8 @@ public class StrictValidator implements SpanValidator {
 
     final AttributesReader attr = new AttributesReader(span);
 
-    return this.validateTimestamp(span.getStartTimeUnixNano()) && this.validateTimestamp(span.getEndTimeUnixNano())
+    return this.validateTimestamp(span.getStartTimeUnixNano()) && this.validateTimestamp(
+        span.getEndTimeUnixNano())
         && this.isValid(attr);
   }
 
@@ -46,7 +46,7 @@ public class StrictValidator implements SpanValidator {
     return this.validateToken(spanAttributes.getLandscapeToken(), spanAttributes.getSecret())
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
         && this.validateApp(spanAttributes.getApplicationName(),
-            spanAttributes.getApplicationLanguage())
+        spanAttributes.getApplicationLanguage())
         && this.validateOperation(spanAttributes.getMethodFqn());
   }
 

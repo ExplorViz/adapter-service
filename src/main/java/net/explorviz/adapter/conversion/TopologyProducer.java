@@ -93,9 +93,9 @@ public class TopologyProducer {
 
         final List<Span> spanList = new ArrayList<>();
 
-        ExportTraceServiceRequest container = ExportTraceServiceRequest.parseFrom(d);
-        container.getResourceSpansList().forEach(resourceSpans -> resourceSpans.getScopeSpansList()
-            .forEach(scopeSpans -> spanList.addAll(scopeSpans.getSpansList())));
+        ExportTraceServiceRequest.parseFrom(d).getResourceSpansList()
+            .forEach(resourceSpans -> resourceSpans.getScopeSpansList()
+                .forEach(scopeSpans -> spanList.addAll(scopeSpans.getSpansList())));
 
         this.lastReceivedSpans.addAndGet(spanList.size());
 
@@ -157,7 +157,7 @@ public class TopologyProducer {
   }
 
   @Scheduled(every = "{explorviz.log.span.interval}")
-  /* default */ void logStatus() {
+    /* default */ void logStatus() {
     final int spans = this.lastReceivedSpans.getAndSet(0);
     final int invalidSpans = this.lastInvalidSpans.getAndSet(0);
     if (LOGGER.isDebugEnabled()) {

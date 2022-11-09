@@ -1,6 +1,5 @@
 package net.explorviz.adapter.service.converter;
 
-
 import io.opentelemetry.proto.trace.v1.Span;
 
 /**

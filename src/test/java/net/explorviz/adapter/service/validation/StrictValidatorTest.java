@@ -2,14 +2,14 @@ package net.explorviz.adapter.service.validation;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.Span;
-import io.opencensus.proto.trace.v1.TruncatableString;
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.common.v1.KeyValue;
+import io.opentelemetry.proto.trace.v1.Span;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +18,25 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 class StrictValidatorTest {
+
+  private static final String KEY_LANDSCAPE_TOKEN = AttributesReader.LANDSCAPE_TOKEN;
+  private static final String KEY_LANDSCAPE_SECRET = AttributesReader.TOKEN_SECRET;
+  private static final String KEY_HOST_NAME = AttributesReader.HOST_NAME;
+  private static final String KEY_HOST_IP = AttributesReader.HOST_IP;
+  private static final String KEY_APPLICATION_NAME = AttributesReader.APPLICATION_NAME;
+  private static final String KEY_APPLICATION_INSTANCE_ID =
+      AttributesReader.APPLICATION_INSTANCE_ID;
+  private static final String KEY_APPLICATION_LANGUAGE = AttributesReader.APPLICATION_LANGUAGE;
+  private static final String KEY_METHOD_FQN = AttributesReader.METHOD_FQN;
+
+  private static final String TOKEN = "tok";
+  private static final String SECRET = "secret";
+  private static final String HOSTNAME = "Host";
+  private static final String HOST_IP = "1.2.3.4";
+  private static final String APP_NAME = "Test App";
+  private static final String APP_INSTANCE_ID = "1234L";
+  private static final String APP_LANG = "java";
+  private static final String FQN = "foo.bar.test()";
 
   private StrictValidator validator;
   private AttributesReader validSpan;
@@ -50,59 +69,101 @@ class StrictValidatorTest {
 
   }
 
-  private Map<String, AttributeValue> generateValidAttributesMap() {
-    final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(AttributesReader.TOKEN_SECRET, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("secret")).build());
-    attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(AttributesReader.HOST_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(AttributesReader.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(AttributesReader.APPLICATION_INSTANCE_ID, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
+  private List<KeyValue> generateValidAttributesMap() {
+    List<KeyValue> attributes = new ArrayList<>();
 
-    return attrMap;
+    attributes.add(KeyValue.newBuilder().setKey(KEY_LANDSCAPE_TOKEN)
+        .setValue(AnyValue.newBuilder().setStringValue(TOKEN).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_LANDSCAPE_SECRET)
+        .setValue(AnyValue.newBuilder().setStringValue(SECRET).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_HOST_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue(HOSTNAME).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_HOST_IP)
+        .setValue(AnyValue.newBuilder().setStringValue(HOST_IP).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_APPLICATION_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue(APP_NAME).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_APPLICATION_INSTANCE_ID)
+        .setValue(AnyValue.newBuilder().setStringValue(APP_INSTANCE_ID).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_APPLICATION_LANGUAGE)
+        .setValue(AnyValue.newBuilder().setStringValue(APP_LANG).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_METHOD_FQN)
+        .setValue(AnyValue.newBuilder().setStringValue(FQN).build()).build());
+
+    return attributes;
   }
 
-  private Span generateSpanFromAttributesMap(final Map<String, AttributeValue> attrMap) {
+  private Span generateSpanFromAttributesMap(List<KeyValue> attributes) {
     return Span.newBuilder()
         .setTraceId(
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
-        .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap)).build();
+        .setStartTimeUnixNano(1667986986000L)
+        .setEndTimeUnixNano(1667987046000L)
+        .addAllAttributes(attributes).build();
+  }
+
+  private List<KeyValue> removeElementAndReturnAttributesMap(String keyToBeRemoved,
+      List<KeyValue> attributes) {
+
+    List<KeyValue> resultList = new ArrayList<>();
+
+    for (KeyValue keyVal : attributes) {
+      if (keyVal.getKey().equals(keyToBeRemoved)) {
+        // do nothing
+      } else {
+        resultList.add(keyVal);
+      }
+    }
+
+    return resultList;
+  }
+
+  private List<KeyValue> replaceElementAndReturnAttributesMap(String key, String newVal,
+      List<KeyValue> attributes) {
+
+    List<KeyValue> resultList = new ArrayList<>();
+
+    for (KeyValue keyVal : attributes) {
+      if (keyVal.getKey().equals(key)) {
+        resultList.add(
+            KeyValue.newBuilder().setKey(key).setValue(AnyValue.newBuilder().setStringValue(newVal))
+                .build());
+      } else {
+        resultList.add(keyVal);
+      }
+    }
+
+    return resultList;
   }
 
   @Test
   void valid() {
-    final Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    final List<KeyValue> attrMap = this.generateValidAttributesMap();
     final Span valid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(valid));
   }
 
   @Test
   void invalidLandscapeTokenValue() {
-    Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     // no token value
-    attrMap.remove(AttributesReader.LANDSCAPE_TOKEN);
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, attrMap);
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidTokenValue : new String[] {"", "\n", "\t", " "}) {
+    for (final String invalidTokenValue : new String[]{"", "\n", "\t", " "}) {
       attrMap = this.generateValidAttributesMap();
-      attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
-          .setStringValue(TruncatableString.newBuilder().setValue(invalidTokenValue)).build());
+      attrMap = this.replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, invalidTokenValue,
+          attrMap);
       invalid = this.generateSpanFromAttributesMap(attrMap);
       assertFalse(this.validator.isValid(invalid));
     }
@@ -110,17 +171,17 @@ class StrictValidatorTest {
 
   @Test
   void invalidLandscapeTokenSecret() {
-    Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
-    // no token value
-    attrMap.remove(AttributesReader.TOKEN_SECRET);
+    // no secret value
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, attrMap);
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidTokenSecret : new String[] {"", "\n", "\t", " "}) {
+    for (final String invalidTokenSecret : new String[]{"", "\n", "\t", " "}) {
       attrMap = this.generateValidAttributesMap();
-      attrMap.put(AttributesReader.TOKEN_SECRET, AttributeValue.newBuilder()
-          .setStringValue(TruncatableString.newBuilder().setValue(invalidTokenSecret)).build());
+      attrMap = this.replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, invalidTokenSecret,
+          attrMap);
       invalid = this.generateSpanFromAttributesMap(attrMap);
       assertFalse(this.validator.isValid(invalid));
     }
@@ -128,33 +189,34 @@ class StrictValidatorTest {
 
   @Test
   void testHost() {
-    Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     // no host name -> default name
-    attrMap.remove(AttributesReader.HOST_NAME);
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_HOST_NAME, attrMap);
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(invalid));
 
     // no host ip -> default ip
     attrMap = this.generateValidAttributesMap();
-    attrMap.remove(AttributesReader.HOST_IP);
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_HOST_IP, attrMap);
     invalid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(invalid));
 
-    // dot host ip
+    // no dot host ip
     attrMap = this.generateValidAttributesMap();
-    attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue(" ")).build());
+    attrMap = this.replaceElementAndReturnAttributesMap(KEY_HOST_IP, " ",
+        attrMap);
     invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidHostName : new String[] {"", "\n", "\t", " "}) {
-      for (final String invalidHostIp : new String[] {"", "\t", "\n", " "}) {
+    // Test different combinations
+    for (final String invalidHostName : new String[]{"", "\n", "\t", " "}) {
+      for (final String invalidHostIp : new String[]{"", "\t", "\n", " "}) {
         attrMap = this.generateValidAttributesMap();
-        attrMap.put(AttributesReader.HOST_NAME, AttributeValue.newBuilder()
-            .setStringValue(TruncatableString.newBuilder().setValue(invalidHostName)).build());
-        attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
-            .setStringValue(TruncatableString.newBuilder().setValue(invalidHostIp)).build());
+        attrMap = this.replaceElementAndReturnAttributesMap(KEY_HOST_NAME, invalidHostName,
+            attrMap);
+        attrMap = this.replaceElementAndReturnAttributesMap(KEY_HOST_IP, invalidHostIp,
+            attrMap);
         invalid = this.generateSpanFromAttributesMap(attrMap);
         assertFalse(this.validator.isValid(invalid));
       }
@@ -163,40 +225,38 @@ class StrictValidatorTest {
 
   @Test
   void testApp() {
-    Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     // no app name -> default id
-    attrMap.remove(AttributesReader.APPLICATION_NAME);
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_APPLICATION_NAME, attrMap);
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(invalid));
 
     // no app language -> default language
     attrMap = this.generateValidAttributesMap();
-    attrMap.remove(AttributesReader.APPLICATION_LANGUAGE);
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE, attrMap);
     invalid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(invalid));
 
     // dot app name
     attrMap = this.generateValidAttributesMap();
-    attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue(" ")).build());
+    attrMap = this.replaceElementAndReturnAttributesMap(KEY_APPLICATION_NAME, " ", attrMap);
     invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
     // dot app language
     attrMap = this.generateValidAttributesMap();
-    attrMap.put(AttributesReader.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue(" ")).build());
+    attrMap = this.replaceElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE, " ", attrMap);
     invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidId : new String[] {"", "\n", "\t", " "}) {
-      for (final String invalidLanguage : new String[] {"", "\t", "\n", " "}) {
+    for (final String invalidId : new String[]{"", "\n", "\t", " "}) {
+      for (final String invalidLanguage : new String[]{"", "\t", "\n", " "}) {
         attrMap = this.generateValidAttributesMap();
-        attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
-            .setStringValue(TruncatableString.newBuilder().setValue(invalidId)).build());
-        attrMap.put(AttributesReader.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-            .setStringValue(TruncatableString.newBuilder().setValue(invalidLanguage)).build());
+        attrMap = this.replaceElementAndReturnAttributesMap(KEY_APPLICATION_NAME, invalidId,
+            attrMap);
+        attrMap = this.replaceElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE,
+            invalidLanguage, attrMap);
         invalid = this.generateSpanFromAttributesMap(attrMap);
         assertFalse(this.validator.isValid(invalid));
       }
@@ -205,18 +265,18 @@ class StrictValidatorTest {
 
   @Test
   void testOperation() {
-    Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     // no method fqn -> default fqn
-    attrMap.remove(AttributesReader.METHOD_FQN);
+    attrMap = this.removeElementAndReturnAttributesMap(KEY_METHOD_FQN, attrMap);
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(invalid));
 
-    for (final String invalidId : new String[] {"", "\n", "\t", " ", "noMethod",
+    for (final String invalidMethodFqn : new String[]{"", "\n", "\t", " ", "noMethod",
         "classNoPackage.method", "...", "a..", "a.b.", "a.b. ", "a..c", ".b.c", "..c", ".b."}) {
       attrMap = this.generateValidAttributesMap();
-      attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
-          .setStringValue(TruncatableString.newBuilder().setValue(invalidId)).build());
+      attrMap = this.replaceElementAndReturnAttributesMap(KEY_METHOD_FQN,
+          invalidMethodFqn, attrMap);
       invalid = this.generateSpanFromAttributesMap(attrMap);
       assertFalse(this.validator.isValid(invalid));
     }
@@ -224,16 +284,16 @@ class StrictValidatorTest {
 
   @Test
   void testTimestamps() {
-    final Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     Span invalid = Span.newBuilder()
         .setTraceId(
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTime(Timestamp.newBuilder().setSeconds(0).setNanos(0).build())
-        .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap)).build();
+        .setStartTimeUnixNano(0L)
+        .setEndTimeUnixNano(456L)
+        .addAllAttributes(attrMap).build();
 
     assertFalse(this.validator.isValid(invalid));
 
@@ -242,9 +302,9 @@ class StrictValidatorTest {
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
-        .setEndTime(Timestamp.newBuilder().setSeconds(0).setNanos(0).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap)).build();
+        .setStartTimeUnixNano(456L)
+        .setEndTimeUnixNano(0L)
+        .addAllAttributes(attrMap).build();
 
     assertFalse(this.validator.isValid(invalid));
 
@@ -253,9 +313,9 @@ class StrictValidatorTest {
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTime(Timestamp.newBuilder().setSeconds(0).setNanos(0).build())
-        .setEndTime(Timestamp.newBuilder().setSeconds(0).setNanos(0).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap)).build();
+        .setStartTimeUnixNano(0L)
+        .setEndTimeUnixNano(0L)
+        .addAllAttributes(attrMap).build();
 
     assertFalse(this.validator.isValid(invalid));
 
@@ -263,7 +323,7 @@ class StrictValidatorTest {
 
   @Test
   void testValidTokenServiceDelegation() {
-    final Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     final Span valid = this.generateSpanFromAttributesMap(attrMap);
 
@@ -274,7 +334,7 @@ class StrictValidatorTest {
 
   @Test
   void testInvalidTokenServiceDelegation() {
-    final Map<String, AttributeValue> attrMap = this.generateValidAttributesMap();
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
 
     final Span valid = this.generateSpanFromAttributesMap(attrMap);
 
