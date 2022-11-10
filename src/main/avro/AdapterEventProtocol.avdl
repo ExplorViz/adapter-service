@@ -21,10 +21,6 @@ protocol AdapterEventProtocol {
 		EventType type;
 		LandscapeToken token;
 		string clonedToken;
-	} 
-	
-	record Timestamp {
-		long epochMillisecondsWithNanoAdjust;
 	}
 
 	record SpanDynamic {
@@ -32,15 +28,15 @@ protocol AdapterEventProtocol {
 		string spanId;
 		string parentSpanId;
 		string traceId;
-		Timestamp startTime;
-		Timestamp endTime;
+		long startTimeEpochMilli;
+		long endTimeEpochMilli;
 		string hashCode;
 	}
 	
 	record SpanStructure {
 		string spanId;
 		string landscapeToken;
-		Timestamp timestamp;
+		long timestampInEpochMilli;
 		string hashCode;
 		string fullyQualifiedOperationName;
 		string hostname;

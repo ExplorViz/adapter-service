@@ -235,7 +235,7 @@ class TopologyTest {
         this.sampleSpan().getStartTimeUnixNano());
 
     assertEquals(expectedTimestamp,
-        Instant.ofEpochMilli(result.getTimestamp().getEpochMillisecondsWithNanoAdjust()));
+        Instant.ofEpochMilli(result.getTimestampInEpochMilli()));
   }
 
   @Test
@@ -263,18 +263,16 @@ class TopologyTest {
 
     final String expectedHashValue = HashHelper.fromSpanAttributes(new AttributesReader(testSpan));
 
-    final net.explorviz.avro.Timestamp expectedStartTime = new net.explorviz.avro.Timestamp(
-        testSpan.getStartTimeUnixNano());
+    final long expectedStartTime = testSpan.getStartTimeUnixNano();
 
-    final net.explorviz.avro.Timestamp expectedEndTime = new net.explorviz.avro.Timestamp(
-        testSpan.getEndTimeUnixNano());
+    final long expectedEndTime = testSpan.getEndTimeUnixNano();
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
     assertEquals(expectedSpanId, result.getSpanId(), "Invalid span id");
     assertEquals(expectedParentSpanId, result.getParentSpanId(), "Invalid parent span id");
     assertEquals(expectedHashValue, result.getHashCode(), "Invalid hash code");
-    assertEquals(expectedStartTime, result.getStartTime(), "Invalid start time");
-    assertEquals(expectedEndTime, result.getEndTime(), "Invalid end time");
+    assertEquals(expectedStartTime, result.getStartTimeEpochMilli(), "Invalid start time");
+    assertEquals(expectedEndTime, result.getEndTimeEpochMilli(), "Invalid end time");
   }
 
   @Test

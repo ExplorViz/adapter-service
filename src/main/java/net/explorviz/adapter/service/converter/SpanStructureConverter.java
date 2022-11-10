@@ -3,7 +3,6 @@ package net.explorviz.adapter.service.converter;
 import io.opentelemetry.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.SpanStructure;
-import net.explorviz.avro.Timestamp;
 
 /**
  * Converts {@link Span}s to {@link SpanStructure}s.
@@ -15,13 +14,10 @@ public class SpanStructureConverter implements SpanConverter<SpanStructure> {
   public SpanStructure fromOpenCensusSpan(final Span ocSpan) {
     final String spanId = IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
 
-    final Timestamp startTime =
-        new Timestamp(ocSpan.getStartTimeUnixNano());
-
     final SpanStructure.Builder builder = SpanStructure.newBuilder();
     builder
         .setSpanId(spanId)
-        .setTimestamp(startTime);
+        .setTimestampInEpochMilli(ocSpan.getStartTimeUnixNano());
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
     attributesReader.appendToStructure(builder);
