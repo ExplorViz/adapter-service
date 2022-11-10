@@ -2,7 +2,6 @@ package net.explorviz.adapter.service.converter;
 
 import io.opentelemetry.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
-
 import net.explorviz.avro.SpanDynamic;
 
 /**
@@ -10,6 +9,8 @@ import net.explorviz.avro.SpanDynamic;
  */
 @ApplicationScoped
 public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
+
+  private static final long TO_MILLISEC_DIVISOR = 1_000_000L;
 
   @Override
   public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
@@ -27,8 +28,8 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
         .setSpanId(IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()))
         .setTraceId(IdHelper.converterTraceId(ocSpan.getTraceId().toByteArray()))
         .setHashCode("") // temporary hash code since the field is required for avro builder
-        .setStartTimeEpochMilli(ocSpan.getStartTimeUnixNano())
-        .setEndTimeEpochMilli(ocSpan.getEndTimeUnixNano())
+        .setStartTimeEpochMilli(ocSpan.getStartTimeUnixNano() / TO_MILLISEC_DIVISOR)
+        .setEndTimeEpochMilli(ocSpan.getEndTimeUnixNano() / TO_MILLISEC_DIVISOR)
         .build();
 
     final String hashValue = HashHelper.fromSpanAttributes(new AttributesReader(ocSpan));

@@ -2,7 +2,6 @@ package net.explorviz.adapter.service.validation;
 
 import io.opentelemetry.proto.trace.v1.Span;
 import java.time.DateTimeException;
-import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
@@ -69,10 +68,7 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateTimestamp(final long timestamp) {
     try {
-
-      final Instant ignored = Instant.ofEpochMilli(timestamp);
-
-      if (ignored.getEpochSecond() <= 0) {
+      if (timestamp <= 0L) { // NOPMD
         throw new NumberFormatException("Time must be positive");
       }
     } catch (DateTimeException | NumberFormatException e) {

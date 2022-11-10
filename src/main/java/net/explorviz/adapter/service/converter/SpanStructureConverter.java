@@ -10,6 +10,8 @@ import net.explorviz.avro.SpanStructure;
 @ApplicationScoped
 public class SpanStructureConverter implements SpanConverter<SpanStructure> {
 
+  private static final long TO_MILLISEC_DIVISOR = 1_000_000L;
+
   @Override
   public SpanStructure fromOpenCensusSpan(final Span ocSpan) {
     final String spanId = IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
@@ -17,7 +19,7 @@ public class SpanStructureConverter implements SpanConverter<SpanStructure> {
     final SpanStructure.Builder builder = SpanStructure.newBuilder();
     builder
         .setSpanId(spanId)
-        .setTimestampInEpochMilli(ocSpan.getStartTimeUnixNano());
+        .setTimestampInEpochMilli(ocSpan.getStartTimeUnixNano() / TO_MILLISEC_DIVISOR);
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
     attributesReader.appendToStructure(builder);

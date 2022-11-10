@@ -16,7 +16,6 @@ import io.opentelemetry.proto.trace.v1.ScopeSpans;
 import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.test.junit.QuarkusTest;
 import java.nio.charset.Charset;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -147,8 +146,8 @@ class TopologyTest {
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTimeUnixNano(1667986986000L)
-        .setEndTimeUnixNano(1667987046000L)
+        .setStartTimeUnixNano(1668069002431000000L)
+        .setEndTimeUnixNano(1668072086000000000L)
         .addAllAttributes(attributes).build();
 
     // CHECKSTYLE:ON
@@ -231,11 +230,10 @@ class TopologyTest {
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    final Instant expectedTimestamp = Instant.ofEpochMilli(
-        this.sampleSpan().getStartTimeUnixNano());
+    final long expectedTimestamp = this.sampleSpan().getStartTimeUnixNano();
 
     assertEquals(expectedTimestamp,
-        Instant.ofEpochMilli(result.getTimestampInEpochMilli()));
+        result.getTimestampInEpochMilli());
   }
 
   @Test
@@ -263,16 +261,17 @@ class TopologyTest {
 
     final String expectedHashValue = HashHelper.fromSpanAttributes(new AttributesReader(testSpan));
 
-    final long expectedStartTime = testSpan.getStartTimeUnixNano();
+    final long expectedStartTimeInMillisec = testSpan.getStartTimeUnixNano() / 1000000L;
 
-    final long expectedEndTime = testSpan.getEndTimeUnixNano();
+    final long expectedEndTimeInMillisec = testSpan.getEndTimeUnixNano() / 1000000L;
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
     assertEquals(expectedSpanId, result.getSpanId(), "Invalid span id");
     assertEquals(expectedParentSpanId, result.getParentSpanId(), "Invalid parent span id");
     assertEquals(expectedHashValue, result.getHashCode(), "Invalid hash code");
-    assertEquals(expectedStartTime, result.getStartTimeEpochMilli(), "Invalid start time");
-    assertEquals(expectedEndTime, result.getEndTimeEpochMilli(), "Invalid end time");
+    assertEquals(expectedStartTimeInMillisec, result.getStartTimeEpochMilli(),
+        "Invalid start time");
+    assertEquals(expectedEndTimeInMillisec, result.getEndTimeEpochMilli(), "Invalid end time");
   }
 
   @Test

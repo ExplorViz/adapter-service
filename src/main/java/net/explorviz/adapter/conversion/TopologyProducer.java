@@ -106,9 +106,8 @@ public class TopologyProducer {
     });
 
     // Validate Spans
-    final KStream<byte[], Span> validSpanStream = spanKStream.filter((k, v) -> {
-      return this.validator.isValid(v);
-    });
+    final KStream<byte[], Span> validSpanStream = spanKStream.filter(
+        (k, v) -> this.validator.isValid(v));
 
     // Invalid Spans, just log
     spanKStream.filter((k, v) -> !this.validator.isValid(v))
