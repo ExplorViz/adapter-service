@@ -230,7 +230,7 @@ class TopologyTest {
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    final long expectedTimestamp = this.sampleSpan().getStartTimeUnixNano();
+    final long expectedTimestamp = this.sampleSpan().getStartTimeUnixNano() / 1000000L;
 
     assertEquals(expectedTimestamp,
         result.getTimestampInEpochMilli());
