@@ -35,9 +35,10 @@ In essence, the Adapter-Service performs three steps on each span.
    They are subsequently procesed by the ExplorViz/landscape-service and ExplorViz/traces-service, respectively.
 
 
-## Instruction
+## Prerequisites
 
-Make sure to run the [ExplorViz software stack](https://git.se.informatik.uni-kiel.de/ExplorViz/code/deployment) before starting the service.
+- Java 11 or higher is required to build and run the Adapter-Service.
+- Make sure to run the [ExplorViz software stack](https://git.se.informatik.uni-kiel.de/ExplorViz/code/deployment) before starting the service.
 
 ## Running the application in dev mode
 
@@ -50,11 +51,11 @@ You can run your application in dev mode that enables live coding using:
 
 The application can be packaged using `./gradlew quarkusBuild`.
 It produces the `adapter-service-1.0-SNAPSHOT-runner.jar` file in the `build` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/lib` directory.
+Be aware that it’s not an _uber-jar_ as the dependencies are copied into the `build/lib` directory.
 
 The application is now runnable using `java -jar build/adapter-service-1.0-SNAPSHOT-runner.jar`.
 
-If you want to build an _über-jar_, just add the `--uber-jar` option to the command line:
+If you want to build an _uber-jar_, just add the `--uber-jar` option to the command line:
 ```
 ./gradlew quarkusBuild --uber-jar
 ```
