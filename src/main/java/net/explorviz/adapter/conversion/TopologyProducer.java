@@ -2,8 +2,8 @@ package net.explorviz.adapter.conversion;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.opencensus.proto.dump.DumpSpans;
-import io.opencensus.proto.trace.v1.Span;
+import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
+import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.scheduler.Scheduled;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,12 +85,17 @@ public class TopologyProducer {
 
     // BEGIN Conversion Stream
 
-    final KStream<byte[], byte[]> dumpSpanStream =
+    final KStream<byte[], byte[]> spanStream =
         builder.stream(this.inTopic, Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
-    final KStream<byte[], Span> spanKStream = dumpSpanStream.flatMapValues(d -> {
+    final KStream<byte[], Span> spanKStream = spanStream.flatMapValues(d -> {
       try {
-        final List<Span> spanList = DumpSpans.parseFrom(d).getSpansList();
+
+        final List<Span> spanList = new ArrayList<>();
+
+        ExportTraceServiceRequest.parseFrom(d).getResourceSpansList()
+            .forEach(resourceSpans -> resourceSpans.getScopeSpansList()
+                .forEach(scopeSpans -> spanList.addAll(scopeSpans.getSpansList())));
 
         this.lastReceivedSpans.addAndGet(spanList.size());
 
@@ -101,9 +106,8 @@ public class TopologyProducer {
     });
 
     // Validate Spans
-    final KStream<byte[], Span> validSpanStream = spanKStream.filter((k, v) -> {
-      return this.validator.isValid(v);
-    });
+    final KStream<byte[], Span> validSpanStream = spanKStream.filter(
+        (k, v) -> this.validator.isValid(v));
 
     // Invalid Spans, just log
     spanKStream.filter((k, v) -> !this.validator.isValid(v))
@@ -152,7 +156,7 @@ public class TopologyProducer {
   }
 
   @Scheduled(every = "{explorviz.log.span.interval}")
-  /* default */ void logStatus() {
+    /* default */ void logStatus() {
     final int spans = this.lastReceivedSpans.getAndSet(0);
     final int invalidSpans = this.lastInvalidSpans.getAndSet(0);
     if (LOGGER.isDebugEnabled()) {

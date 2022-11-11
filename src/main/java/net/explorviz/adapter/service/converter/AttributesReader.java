@@ -8,8 +8,9 @@ import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEF
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN;
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.Span;
+
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.trace.v1.Span;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -66,8 +67,7 @@ public class AttributesReader {
    */
 
 
-
-  private final Map<String, AttributeValue> attributes = new HashMap<>(7);
+  private final Map<String, AnyValue> attributes = new HashMap<>(7);
 
   /**
    * Reads attributes from a span.
@@ -76,7 +76,9 @@ public class AttributesReader {
    */
   public AttributesReader(final Span span) {
     // Load attributes into map
-    span.getAttributes().getAttributeMapMap().forEach(this.attributes::put);
+    span.getAttributesList().forEach(keyValue -> {
+      attributes.put(keyValue.getKey(), keyValue.getValue());
+    });
   }
 
 
@@ -87,12 +89,12 @@ public class AttributesReader {
    * @return the string value of the attribute or empty if no such key exists
    */
   private Optional<String> getAsString(final String key) {
-    final AttributeValue av = this.attributes.get(key);
+    final AnyValue av = this.attributes.get(key);
     if (av == null) {
       return Optional.empty();
     }
 
-    return Optional.of(av.getStringValue().getValue());
+    return Optional.of(av.getStringValue());
   }
 
   public String getLandscapeToken() {

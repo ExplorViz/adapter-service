@@ -1,9 +1,8 @@
 package net.explorviz.adapter.service.converter;
 
-import io.opencensus.proto.trace.v1.Span;
+import io.opentelemetry.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.SpanStructure;
-import net.explorviz.avro.Timestamp;
 
 /**
  * Converts {@link Span}s to {@link SpanStructure}s.
@@ -11,18 +10,16 @@ import net.explorviz.avro.Timestamp;
 @ApplicationScoped
 public class SpanStructureConverter implements SpanConverter<SpanStructure> {
 
+  private static final long TO_MILLISEC_DIVISOR = 1_000_000L;
+
   @Override
   public SpanStructure fromOpenCensusSpan(final Span ocSpan) {
     final String spanId = IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
 
-    final Timestamp startTime =
-        new Timestamp(ocSpan.getStartTime().getSeconds(), ocSpan.getStartTime().getNanos());
-
     final SpanStructure.Builder builder = SpanStructure.newBuilder();
     builder
         .setSpanId(spanId)
-        .setTimestamp(startTime);
-
+        .setTimestampInEpochMilli(ocSpan.getStartTimeUnixNano() / TO_MILLISEC_DIVISOR);
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
     attributesReader.appendToStructure(builder);
