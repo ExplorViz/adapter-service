@@ -3,19 +3,22 @@ package net.explorviz.adapter.conversion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.opencensus.proto.dump.DumpSpans;
-import io.opencensus.proto.trace.v1.AttributeValue;
-import io.opencensus.proto.trace.v1.Span;
-import io.opencensus.proto.trace.v1.TruncatableString;
+import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.common.v1.KeyValue;
+import io.opentelemetry.proto.trace.v1.ResourceSpans;
+import io.opentelemetry.proto.trace.v1.ScopeSpans;
+import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.test.junit.QuarkusTest;
 import java.nio.charset.Charset;
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
@@ -110,23 +113,31 @@ class TopologyTest {
 
   private Span sampleSpan() {
 
-    final Map<String, AttributeValue> attrMap = new HashMap<>();
-    attrMap.put(AttributesReader.LANDSCAPE_TOKEN, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("token")).build());
-    attrMap.put(AttributesReader.TOKEN_SECRET, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("secret")).build());
-    attrMap.put(AttributesReader.HOST_IP, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1.2.3.4")).build());
-    attrMap.put(AttributesReader.HOST_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("hostname")).build());
-    attrMap.put(AttributesReader.APPLICATION_LANGUAGE, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("language")).build());
-    attrMap.put(AttributesReader.APPLICATION_NAME, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("appname")).build());
-    attrMap.put(AttributesReader.APPLICATION_INSTANCE_ID, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("1234")).build());
-    attrMap.put(AttributesReader.METHOD_FQN, AttributeValue.newBuilder()
-        .setStringValue(TruncatableString.newBuilder().setValue("net.example.Bar.foo()")).build());
+    List<KeyValue> attributes = new ArrayList<>();
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.LANDSCAPE_TOKEN)
+        .setValue(AnyValue.newBuilder().setStringValue("token").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.TOKEN_SECRET)
+        .setValue(AnyValue.newBuilder().setStringValue("secret").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.HOST_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue("hostname").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.HOST_IP)
+        .setValue(AnyValue.newBuilder().setStringValue("1.2.3.4").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.APPLICATION_NAME)
+        .setValue(AnyValue.newBuilder().setStringValue("appname").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.APPLICATION_INSTANCE_ID)
+        .setValue(AnyValue.newBuilder().setStringValue("1234").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.APPLICATION_LANGUAGE)
+        .setValue(AnyValue.newBuilder().setStringValue("language").build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.METHOD_FQN)
+        .setValue(AnyValue.newBuilder().setStringValue("net.example.Bar.foo()").build()).build());
 
     // CHECKSTYLE:OFF
 
@@ -135,36 +146,49 @@ class TopologyTest {
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
-        .setStartTime(Timestamp.newBuilder().setSeconds(123).setNanos(456).build())
-        .setEndTime(Timestamp.newBuilder().setSeconds(456).setNanos(789).build())
-        .setAttributes(Span.Attributes.newBuilder().putAllAttributeMap(attrMap)).build();
+        .setStartTimeUnixNano(1668069002431000000L)
+        .setEndTimeUnixNano(1668072086000000000L)
+        .addAllAttributes(attributes).build();
 
     // CHECKSTYLE:ON
+  }
+
+  private ExportTraceServiceRequest generateContainerForSpan(Span span) {
+
+    ScopeSpans container2 = ScopeSpans.newBuilder().addSpans(span).build();
+    ResourceSpans container1 = ResourceSpans.newBuilder().addScopeSpans(container2).build();
+    return ExportTraceServiceRequest.newBuilder()
+        .addResourceSpans(container1).build();
   }
 
   @Test
   void testAttributeTranslation() {
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+    final ExportTraceServiceRequest containeredSpan = generateContainerForSpan(testSpan);
 
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final Map<String, String> attrs = new HashMap<>();
+
+    testSpan.getAttributesList().forEach(keyValue -> {
+      attrs.put(keyValue.getKey(), keyValue.getValue().getStringValue());
+    });
+
     final String expectedToken =
-        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN);
     final String expectedHostName =
-        attrs.get(AttributesReader.HOST_NAME).getStringValue().getValue();
-    final String expectedHostIp = attrs.get(AttributesReader.HOST_IP).getStringValue().getValue();
+        attrs.get(AttributesReader.HOST_NAME);
+    final String expectedHostIp = attrs.get(AttributesReader.HOST_IP);
     final String expectedAppName =
-        attrs.get(AttributesReader.APPLICATION_NAME).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_NAME);
     final String expectedAppLang =
-        attrs.get(AttributesReader.APPLICATION_LANGUAGE).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_LANGUAGE);
     final String expectedInstanceId =
-        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID).getStringValue().getValue();
+        attrs.get(AttributesReader.APPLICATION_INSTANCE_ID);
     final String expectedOperationName =
-        attrs.get(AttributesReader.METHOD_FQN).getStringValue().getValue();
+        attrs.get(AttributesReader.METHOD_FQN);
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
 
@@ -182,11 +206,10 @@ class TopologyTest {
 
   @Test
   void testIdTranslation() {
-
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
+    final ExportTraceServiceRequest containeredSpan = generateContainerForSpan(testSpan);
 
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
     assertFalse(this.structureOutputTopic.isEmpty(),
         "output topic is empty, but should contain a data record");
@@ -201,30 +224,35 @@ class TopologyTest {
   @Test
   void testTimestampTranslation() {
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    final ExportTraceServiceRequest containeredSpan = generateContainerForSpan(testSpan);
+
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
     final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
 
-    final Instant expectedTimestamp = Instant.ofEpochSecond(
-        this.sampleSpan().getStartTime().getSeconds(), this.sampleSpan().getStartTime().getNanos());
+    final long expectedTimestamp = this.sampleSpan().getStartTimeUnixNano() / 1000000L;
 
-    // Start and End time
-    assertEquals(expectedTimestamp, Instant.ofEpochSecond(result.getTimestamp().getSeconds(),
-        result.getTimestamp().getNanoAdjust()));
+    assertEquals(expectedTimestamp,
+        result.getTimestampInEpochMilli());
   }
 
   @Test
   void testDynamicTranslation() {
     final Span testSpan = this.sampleSpan();
-    final DumpSpans singleSpanDump = DumpSpans.newBuilder().addSpans(testSpan).build();
-    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), singleSpanDump.toByteArray());
+    final ExportTraceServiceRequest containeredSpan = generateContainerForSpan(testSpan);
+
+    this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
     final SpanDynamic result = this.dynamicOutputTopic.readValue();
 
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+    final Map<String, String> attrs = new HashMap<>();
+
+    testSpan.getAttributesList().forEach(keyValue -> {
+      attrs.put(keyValue.getKey(), keyValue.getValue().getStringValue());
+    });
+
     final String expectedToken =
-        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN);
 
     final String expectedSpanId = IdHelper.converterSpanId(testSpan.getSpanId().toByteArray());
 
@@ -233,30 +261,34 @@ class TopologyTest {
 
     final String expectedHashValue = HashHelper.fromSpanAttributes(new AttributesReader(testSpan));
 
-    final net.explorviz.avro.Timestamp expectedStartTime = new net.explorviz.avro.Timestamp(
-        testSpan.getStartTime().getSeconds(), testSpan.getStartTime().getNanos());
+    final long expectedStartTimeInMillisec = testSpan.getStartTimeUnixNano() / 1000000L;
 
-    final net.explorviz.avro.Timestamp exectedEndTime = new net.explorviz.avro.Timestamp(
-        testSpan.getEndTime().getSeconds(), testSpan.getEndTime().getNanos());
-
+    final long expectedEndTimeInMillisec = testSpan.getEndTimeUnixNano() / 1000000L;
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
     assertEquals(expectedSpanId, result.getSpanId(), "Invalid span id");
     assertEquals(expectedParentSpanId, result.getParentSpanId(), "Invalid parent span id");
     assertEquals(expectedHashValue, result.getHashCode(), "Invalid hash code");
-    assertEquals(expectedStartTime, result.getStartTime(), "Invalid start time");
-    assertEquals(exectedEndTime, result.getEndTime(), "Invalid end time");
+    assertEquals(expectedStartTimeInMillisec, result.getStartTimeEpochMilli(),
+        "Invalid start time");
+    assertEquals(expectedEndTimeInMillisec, result.getEndTimeEpochMilli(), "Invalid end time");
   }
 
   @Test
   void testTokenEventCreateInteractiveStateStoreQuery() {
 
     final Span testSpan = this.sampleSpan();
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+
+    final Map<String, String> attrs = new HashMap<>();
+
+    testSpan.getAttributesList().forEach(keyValue -> {
+      attrs.put(keyValue.getKey(), keyValue.getValue().getStringValue());
+    });
+
     final String expectedTokenValue =
-        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN);
     final String expectedSecret =
-        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+        attrs.get(AttributesReader.TOKEN_SECRET);
 
     final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
         .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
@@ -277,11 +309,17 @@ class TopologyTest {
   void testTokenEventDeleteInteractiveStateStoreQuery() {
 
     final Span testSpan = this.sampleSpan();
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+
+    final Map<String, String> attrs = new HashMap<>();
+
+    testSpan.getAttributesList().forEach(keyValue -> {
+      attrs.put(keyValue.getKey(), keyValue.getValue().getStringValue());
+    });
+
     final String expectedTokenValue =
-        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN);
     final String expectedSecret =
-        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+        attrs.get(AttributesReader.TOKEN_SECRET);
 
     final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
         .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
@@ -312,11 +350,17 @@ class TopologyTest {
   void testTokenEventInteractiveStateStoreQuery() {
 
     final Span testSpan = this.sampleSpan();
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+
+    final Map<String, String> attrs = new HashMap<>();
+
+    testSpan.getAttributesList().forEach(keyValue -> {
+      attrs.put(keyValue.getKey(), keyValue.getValue().getStringValue());
+    });
+
     final String expectedTokenValue =
-        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN);
     final String expectedSecret =
-        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+        attrs.get(AttributesReader.TOKEN_SECRET);
 
     final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
         .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();
@@ -349,11 +393,17 @@ class TopologyTest {
   void testFilteringTokenEventInteractiveStateStoreQuery() {
 
     final Span testSpan = this.sampleSpan();
-    final Map<String, AttributeValue> attrs = testSpan.getAttributes().getAttributeMapMap();
+
+    final Map<String, String> attrs = new HashMap<>();
+
+    testSpan.getAttributesList().forEach(keyValue -> {
+      attrs.put(keyValue.getKey(), keyValue.getValue().getStringValue());
+    });
+
     final String expectedTokenValue =
-        attrs.get(AttributesReader.LANDSCAPE_TOKEN).getStringValue().getValue();
+        attrs.get(AttributesReader.LANDSCAPE_TOKEN);
     final String expectedSecret =
-        attrs.get(AttributesReader.TOKEN_SECRET).getStringValue().getValue();
+        attrs.get(AttributesReader.TOKEN_SECRET);
 
     final LandscapeToken expectedToken = LandscapeToken.newBuilder().setSecret(expectedSecret)
         .setValue(expectedTokenValue).setOwnerId("testOwner").setCreated(123L).setAlias("").build();

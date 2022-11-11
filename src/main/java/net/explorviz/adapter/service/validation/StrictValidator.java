@@ -1,9 +1,7 @@
 package net.explorviz.adapter.service.validation;
 
-import com.google.protobuf.Timestamp;
-import io.opencensus.proto.trace.v1.Span;
+import io.opentelemetry.proto.trace.v1.Span;
 import java.time.DateTimeException;
-import java.time.Instant;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
@@ -38,7 +36,8 @@ public class StrictValidator implements SpanValidator {
 
     final AttributesReader attr = new AttributesReader(span);
 
-    return this.validateTimestamp(span.getStartTime()) && this.validateTimestamp(span.getEndTime())
+    return this.validateTimestamp(span.getStartTimeUnixNano()) && this.validateTimestamp(
+        span.getEndTimeUnixNano())
         && this.isValid(attr);
   }
 
@@ -46,7 +45,7 @@ public class StrictValidator implements SpanValidator {
     return this.validateToken(spanAttributes.getLandscapeToken(), spanAttributes.getSecret())
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
         && this.validateApp(spanAttributes.getApplicationName(),
-            spanAttributes.getApplicationLanguage())
+        spanAttributes.getApplicationLanguage())
         && this.validateOperation(spanAttributes.getMethodFqn());
   }
 
@@ -67,12 +66,9 @@ public class StrictValidator implements SpanValidator {
     return this.tokenService.validLandscapeTokenValueAndSecret(token, givenSecret);
   }
 
-  private boolean validateTimestamp(final Timestamp timestamp) {
+  private boolean validateTimestamp(final long timestamp) {
     try {
-
-      final Instant ignored = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
-
-      if (ignored.getEpochSecond() <= 0) {
+      if (timestamp <= 0L) { // NOPMD
         throw new NumberFormatException("Time must be positive");
       }
     } catch (DateTimeException | NumberFormatException e) {

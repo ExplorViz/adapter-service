@@ -1,6 +1,7 @@
 package net.explorviz.adapter.service;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ public class TokenService {
 
   private final ReadOnlyKeyValueStore<String, TokenEvent> keyValueStore;
 
-
+  @Inject
   public TokenService(final ReadOnlyKeyValueStore<String, TokenEvent> keyValueStore) {
     this.keyValueStore = keyValueStore;
   }
@@ -25,8 +26,7 @@ public class TokenService {
    * Checks whether a given token exists.
    *
    * @param tokenValue the token to check
-   * @return {@code true} if the given token value is in the list of valid tokens, {@code false}
-   *         otherwise.
+   * @return {@code true} if the given token value is in the list of valid tokens
    */
   public boolean validLandscapeTokenValue(final String tokenValue) {
 
@@ -43,16 +43,15 @@ public class TokenService {
    * Checks whether a given landscape token and secret exist and belong to each other.
    *
    * @param tokenValue the token to check * @param tokenSecret the secret to check
-   * @return {@code true} if the given token value is in the list of valid tokens and the given
-   *         secret belongs to this token value, {@code false} otherwise.
+   * @return {@code true} if the given token value is valid and the secret belongs to this token.
    */
   public boolean validLandscapeTokenValueAndSecret(final String tokenValue,
       final String tokenSecret) {
     final TokenEvent potentialEvent = this.keyValueStore.get(tokenValue);
 
     if (potentialEvent != null) {
-      return potentialEvent.getToken().getValue().equals(tokenValue)
-          && potentialEvent.getToken().getSecret().equals(tokenSecret);
+      return potentialEvent.getToken().getValue().equals(tokenValue) && potentialEvent.getToken()
+          .getSecret().equals(tokenSecret);
     }
 
     return false;
