@@ -140,7 +140,7 @@ public class TopologyProducer {
     builder.stream(this.tokensInTopic, Consumed.with(Serdes.String(), this.tokenEventAvroSerde))
         .filter((key, value) -> {
           if (LOGGER.isTraceEnabled()) {
-            LOGGER.debug("Received token event for token value {} with event {}", key, value);
+            LOGGER.trace("Received token event for token value {} with event {}", key, value);
           }
           return value == null || value.getType().equals(EventType.CREATED);
         }).to(this.tokensOutTopic, Produced.with(Serdes.String(), this.tokenEventAvroSerde));

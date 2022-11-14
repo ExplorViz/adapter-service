@@ -52,10 +52,16 @@ public class StrictValidator implements SpanValidator {
   private boolean validateToken(final String token, final String givenSecret) {
 
     if (token == null || token.isBlank()) {
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: No or blank token.");
+      }
       return false;
     }
 
     if (givenSecret == null || givenSecret.isBlank()) {
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: No or blank secret.");
+      }
       return false;
     }
 
@@ -63,7 +69,13 @@ public class StrictValidator implements SpanValidator {
       return true;
     }
 
-    return this.tokenService.validLandscapeTokenValueAndSecret(token, givenSecret);
+    final boolean validationResult = this.tokenService.validLandscapeTokenValueAndSecret(token,
+        givenSecret);
+
+    if (!validationResult && LOGGER.isTraceEnabled()) {
+      LOGGER.trace("Invalid span: Token and/or secret are unknown.");
+    }
+    return validationResult;
   }
 
   private boolean validateTimestamp(final long timestamp) {
@@ -72,8 +84,8 @@ public class StrictValidator implements SpanValidator {
         throw new NumberFormatException("Time must be positive");
       }
     } catch (DateTimeException | NumberFormatException e) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("Invalid timestamp");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: Contains invalid timestamp");
       }
       return false;
     }
@@ -82,14 +94,14 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateHost(final String hostName, final String hostIp) {
     if (this.isBlank(hostName)) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("No hostname given");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: No hostname.");
       }
       return false;
     }
     if (this.isBlank(hostIp)) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("No IP address given");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: No IP address.");
       }
       return false;
     }
@@ -98,15 +110,15 @@ public class StrictValidator implements SpanValidator {
 
   private boolean validateApp(final String appName, final String appLang) {
     if (this.isBlank(appName)) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("No application name given");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: No application name.");
       }
       return false;
     }
 
     if (this.isBlank(appLang)) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("No application language given");
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: No application language given.");
       }
       return false;
     }
@@ -121,8 +133,8 @@ public class StrictValidator implements SpanValidator {
      */
     final String[] operationFqnSplit = fqn.split("\\.");
     if (operationFqnSplit.length < MIN_DEPTH_FQN_NAME) {
-      if (LOGGER.isErrorEnabled()) {
-        LOGGER.error("Invalid operation name: {}", fqn);
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Invalid span: Invalid operation name: {}", fqn);
       }
       return false;
     }
