@@ -12,6 +12,6 @@ public interface SpanConverter<T> {
   /**
    * Converts an OpenCensus {@link Span} into {@link T}.
    */
-  T fromOpenCensusSpan(Span ocSpan);
+  T fromOpenTelemetrySpan(Span ocSpan);
 
 }

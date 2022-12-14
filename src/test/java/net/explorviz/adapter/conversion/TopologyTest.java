@@ -24,12 +24,9 @@ import java.util.Properties;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
-import net.explorviz.adapter.service.converter.HashHelper;
 import net.explorviz.adapter.service.converter.IdHelper;
 import net.explorviz.avro.EventType;
 import net.explorviz.avro.LandscapeToken;
-import net.explorviz.avro.SpanDynamic;
-import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
@@ -52,19 +49,15 @@ class TopologyTest {
   private TestInputTopic<byte[], byte[]> inputTopic;
   private TestInputTopic<String, TokenEvent> inputTopicTokenEvents;
 
-  private TestOutputTopic<String, SpanStructure> structureOutputTopic;
-  private TestOutputTopic<String, SpanDynamic> dynamicOutputTopic;
+  private TestOutputTopic<String, net.explorviz.avro.Span> structureOutputTopic;
 
   private ReadOnlyKeyValueStore<String, TokenEvent> tokenEventStore;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
   /* default */ String inTopic;
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.spans")
   /* default */ String structureOutTopic;
-
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
-  /* default */ String dynamicOutTopic;
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
   /* default */ String tokensInTopic; // NOCS
@@ -73,10 +66,7 @@ class TopologyTest {
   Topology topology;
 
   @Inject
-  SpecificAvroSerde<SpanDynamic> spanDynamicSerDe; // NOCS
-
-  @Inject
-  SpecificAvroSerde<SpanStructure> spanStructureSerDe; // NOCS
+  SpecificAvroSerde<net.explorviz.avro.Span> spanStructureSerDe; // NOCS
 
   @Inject
   SpecificAvroSerde<TokenEvent> tokenEventSerDe; // NOCS
@@ -97,8 +87,6 @@ class TopologyTest {
         Serdes.String().serializer(), this.tokenEventSerDe.serializer());
     this.structureOutputTopic = this.driver.createOutputTopic(this.structureOutTopic,
         Serdes.String().deserializer(), this.spanStructureSerDe.deserializer());
-    this.dynamicOutputTopic = this.driver.createOutputTopic(this.dynamicOutTopic,
-        Serdes.String().deserializer(), this.spanDynamicSerDe.deserializer());
 
     this.tokenEventStore = this.driver.getKeyValueStore("token-events-global-store");
 
@@ -107,7 +95,6 @@ class TopologyTest {
   @AfterEach
   void tearDown() {
     this.spanStructureSerDe.close();
-    this.spanDynamicSerDe.close();
     this.driver.close();
   }
 
@@ -168,7 +155,7 @@ class TopologyTest {
 
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
-    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
+    final net.explorviz.avro.Span result = this.structureOutputTopic.readKeyValue().value;
 
     final Map<String, String> attrs = new HashMap<>();
 
@@ -214,7 +201,7 @@ class TopologyTest {
     assertFalse(this.structureOutputTopic.isEmpty(),
         "output topic is empty, but should contain a data record");
 
-    final SpanStructure result = this.structureOutputTopic.readValue();
+    final net.explorviz.avro.Span result = this.structureOutputTopic.readValue();
 
     // Check IDs
     final String sid = BaseEncoding.base16().encode(testSpan.getSpanId().toByteArray(), 0, 8);
@@ -228,12 +215,12 @@ class TopologyTest {
 
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
-    final SpanStructure result = this.structureOutputTopic.readKeyValue().value;
+    final net.explorviz.avro.Span result = this.structureOutputTopic.readKeyValue().value;
 
     final long expectedTimestamp = this.sampleSpan().getStartTimeUnixNano() / 1000000L;
 
     assertEquals(expectedTimestamp,
-        result.getTimestampInEpochMilli());
+        result.getStartTimeEpochMilli());
   }
 
   @Test
@@ -243,7 +230,7 @@ class TopologyTest {
 
     this.inputTopic.pipeInput(testSpan.getSpanId().toByteArray(), containeredSpan.toByteArray());
 
-    final SpanDynamic result = this.dynamicOutputTopic.readValue();
+    final net.explorviz.avro.Span result = this.structureOutputTopic.readValue();
 
     final Map<String, String> attrs = new HashMap<>();
 
@@ -259,8 +246,6 @@ class TopologyTest {
     final String expectedParentSpanId =
         IdHelper.converterSpanId(testSpan.getParentSpanId().toByteArray());
 
-    final String expectedHashValue = HashHelper.fromSpanAttributes(new AttributesReader(testSpan));
-
     final long expectedStartTimeInMillisec = testSpan.getStartTimeUnixNano() / 1000000L;
 
     final long expectedEndTimeInMillisec = testSpan.getEndTimeUnixNano() / 1000000L;
@@ -268,7 +253,6 @@ class TopologyTest {
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
     assertEquals(expectedSpanId, result.getSpanId(), "Invalid span id");
     assertEquals(expectedParentSpanId, result.getParentSpanId(), "Invalid parent span id");
-    assertEquals(expectedHashValue, result.getHashCode(), "Invalid hash code");
     assertEquals(expectedStartTimeInMillisec, result.getStartTimeEpochMilli(),
         "Invalid start time");
     assertEquals(expectedEndTimeInMillisec, result.getEndTimeEpochMilli(), "Invalid end time");

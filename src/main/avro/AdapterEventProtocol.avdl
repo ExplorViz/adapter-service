@@ -23,27 +23,19 @@ protocol AdapterEventProtocol {
 		string clonedToken;
 	}
 
-	record SpanDynamic {
-		string landscapeToken;
-		string spanId;
-		string parentSpanId;
-		string traceId;
-		long startTimeEpochMilli;
-		long endTimeEpochMilli;
-		string hashCode;
-	}
-	
-	record SpanStructure {
-		string spanId;
-		string landscapeToken;
-		long timestampInEpochMilli;
-		string hashCode;
-		string fullyQualifiedOperationName;
-		string hostname;
-		string hostIpAddress;
-		string appName;
-		string appInstanceId;
-		string appLanguage;
+	record Span {
+	  string landscapeToken;
+    string spanId;
+    string parentSpanId;
+    string traceId;
+    long startTimeEpochMilli;
+    long endTimeEpochMilli;
+    string fullyQualifiedOperationName;
+    string hostname;
+    string hostIpAddress;
+    string appName;
+    string appInstanceId;
+    string appLanguage;
 	}
 
 }

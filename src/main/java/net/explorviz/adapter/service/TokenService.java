@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class TokenService {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(TokenService.class);
+  //public static final Logger LOGGER = LoggerFactory.getLogger(TokenService.class);
 
   private final ReadOnlyKeyValueStore<String, TokenEvent> keyValueStore;
 

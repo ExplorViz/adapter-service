@@ -11,12 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import net.explorviz.adapter.service.converter.SpanDynamicConverter;
-import net.explorviz.adapter.service.converter.SpanStructureConverter;
+import net.explorviz.adapter.service.converter.SpanConverterImpl;
 import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.avro.EventType;
-import net.explorviz.avro.SpanDynamic;
-import net.explorviz.avro.SpanStructure;
 import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
@@ -44,11 +41,8 @@ public class TopologyProducer {
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
   /* default */ String inTopic; // NOCS
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
-  /* default */ String structureOutTopic; // NOCS
-
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
-  /* default */ String dynamicOutTopic; // NOCS
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.spans")
+  /* default */ String spansOutTopic; // NOCS
 
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
   /* default */ String tokensInTopic; // NOCS
@@ -60,19 +54,13 @@ public class TopologyProducer {
   /* default */ SpanValidator validator; // NOCS
 
   @Inject
-  /* default */ SpecificAvroSerde<SpanDynamic> dynamicAvroSerde; // NOCS
-
-  @Inject
-  /* default */ SpecificAvroSerde<SpanStructure> structureAvroSerde; // NOCS
+  /* default */ SpecificAvroSerde<net.explorviz.avro.Span> spanAvroSerde; // NOCS
 
   @Inject
   /* default */ SpecificAvroSerde<TokenEvent> tokenEventAvroSerde; // NOCS
 
   @Inject
-  /* default */ SpanStructureConverter structureConverter; // NOCS
-
-  @Inject
-  /* default */ SpanDynamicConverter dynamicConverter; // NOCS
+  /* default */ SpanConverterImpl spanConverter; // NOCS
 
   // Logged and reset every n seconds
   private final AtomicInteger lastReceivedSpans = new AtomicInteger(0);
@@ -114,24 +102,15 @@ public class TopologyProducer {
         .foreach((k, v) -> this.lastInvalidSpans.incrementAndGet());
 
     // Convert to Span Structure
-    final KStream<String, SpanStructure> spanStructureStream = validSpanStream.map((key, value) -> {
-      final SpanStructure span = this.structureConverter.fromOpenCensusSpan(value);
-      return new KeyValue<>(span.getLandscapeToken(), span);
-    });
+    final KStream<String, net.explorviz.avro.Span> explorvizSpanStream = validSpanStream.map(
+        (key, value) -> {
+          final net.explorviz.avro.Span span = this.spanConverter.fromOpenTelemetrySpan(value);
+          return new KeyValue<>(span.getLandscapeToken(), span);
+        });
 
-    // Convert to Span Dynamic
-    final KStream<String, SpanDynamic> spanDynamicStream = validSpanStream.map((key, value) -> {
-      final SpanDynamic dynamic = this.dynamicConverter.fromOpenCensusSpan(value);
-      return new KeyValue<>(dynamic.getTraceId(), dynamic);
-    });
-
-    // Forward Span Structure
-    spanStructureStream.to(this.structureOutTopic,
-        Produced.with(Serdes.String(), this.structureAvroSerde));
-
-    // Forward Span Dynamic
-    spanDynamicStream.to(this.dynamicOutTopic,
-        Produced.with(Serdes.String(), this.dynamicAvroSerde));
+    // Forward Spans (general purpose event)
+    explorvizSpanStream.to(this.spansOutTopic,
+        Produced.with(Serdes.String(), this.spanAvroSerde));
 
     // END Conversion Stream
 

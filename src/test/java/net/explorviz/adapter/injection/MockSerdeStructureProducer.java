@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import net.explorviz.avro.SpanStructure;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
@@ -19,20 +18,20 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Dependent
 public class MockSerdeStructureProducer {
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.structure")
-  /* default */ String outTopicStructure; // NOCS
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.spans")
+  /* default */ String outTopicSpans; // NOCS
 
   @Inject
   /* default */ SchemaRegistryClient registry; // NOCS
 
   @Produces
   @IfBuildProfile("test")
-  public SpecificAvroSerde<SpanStructure> produceMockSpecificAvroSerde()
+  public SpecificAvroSerde<net.explorviz.avro.Span> produceMockSpecificAvroSerde()
       throws IOException, RestClientException {
 
-    this.registry.register(this.outTopicStructure + "-value", SpanStructure.SCHEMA$);
+    this.registry.register(this.outTopicSpans + "-value", net.explorviz.avro.Span.SCHEMA$);
 
-    final SpecificAvroSerde<SpanStructure> valueSerde = new SpecificAvroSerde<>(this.registry);
+    final SpecificAvroSerde<net.explorviz.avro.Span> valueSerde = new SpecificAvroSerde<>(this.registry);
     valueSerde.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://registry:1234"),
         false);
