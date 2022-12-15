@@ -19,8 +19,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Dependent
 public class MockSerdeTokenEventProducer {
 
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.dynamic")
-  /* default */ String outTopicDynamic; // NOCS
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
+  /* default */ String inTopicToken; // NOCS
 
   @Inject
   /* default */ SchemaRegistryClient registry; // NOCS
@@ -30,7 +30,7 @@ public class MockSerdeTokenEventProducer {
   public SpecificAvroSerde<TokenEvent> produceMockSpecificAvroSerde()
       throws IOException, RestClientException {
 
-    this.registry.register("token-events" + "-value", TokenEvent.SCHEMA$);
+    this.registry.register(this.inTopicToken + "-value", TokenEvent.SCHEMA$);
 
     final SpecificAvroSerde<TokenEvent> valueSerde = new SpecificAvroSerde<>(this.registry);
     valueSerde.configure(

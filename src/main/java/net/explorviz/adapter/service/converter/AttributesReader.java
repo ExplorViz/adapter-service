@@ -14,7 +14,6 @@ import io.opentelemetry.proto.trace.v1.Span;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import net.explorviz.avro.SpanStructure;
 
 /**
  * Reads the attributes of a {@link Span}.
@@ -130,11 +129,11 @@ public class AttributesReader {
   }
 
   /**
-   * Appends all attributes to the given SpanStructure builder.
+   * Appends all attributes to the given {{@link net.explorviz.avro.Span}} builder.
    *
    * @param builder the builder to append the attributes to
    */
-  public void appendToStructure(final SpanStructure.Builder builder) {
+  public void appendToSpan(final net.explorviz.avro.Span.Builder builder) {
     builder
         .setLandscapeToken(this.getLandscapeToken())
         .setHostname(this.getHostName())

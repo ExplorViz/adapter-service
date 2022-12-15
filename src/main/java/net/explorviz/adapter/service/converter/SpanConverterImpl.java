@@ -1,19 +1,18 @@
 package net.explorviz.adapter.service.converter;
 
-import io.opentelemetry.proto.trace.v1.Span;
 import javax.enterprise.context.ApplicationScoped;
-import net.explorviz.avro.SpanDynamic;
+import net.explorviz.avro.Span;
 
 /**
- * Converts a {@link Span} to a {@link SpanDynamic}.
+ * Converts a {@link io.opentelemetry.proto.trace.v1.Span} to a {@link Span}.
  */
 @ApplicationScoped
-public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
+public class SpanConverterImpl implements SpanConverter<Span> {
 
   private static final long TO_MILLISEC_DIVISOR = 1_000_000L;
 
   @Override
-  public SpanDynamic fromOpenCensusSpan(final Span ocSpan) {
+  public Span fromOpenTelemetrySpan(final io.opentelemetry.proto.trace.v1.Span ocSpan) {
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
 
@@ -22,20 +21,16 @@ public class SpanDynamicConverter implements SpanConverter<SpanDynamic> {
       parentSpan = IdHelper.converterSpanId(ocSpan.getParentSpanId().toByteArray());
     }
 
-    final SpanDynamic spanDynamic = SpanDynamic.newBuilder()
+    final Span.Builder span = Span.newBuilder()
         .setLandscapeToken(attributesReader.getLandscapeToken())
         .setParentSpanId(parentSpan)
         .setSpanId(IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()))
         .setTraceId(IdHelper.converterTraceId(ocSpan.getTraceId().toByteArray()))
-        .setHashCode("") // temporary hash code since the field is required for avro builder
         .setStartTimeEpochMilli(ocSpan.getStartTimeUnixNano() / TO_MILLISEC_DIVISOR)
-        .setEndTimeEpochMilli(ocSpan.getEndTimeUnixNano() / TO_MILLISEC_DIVISOR)
-        .build();
+        .setEndTimeEpochMilli(ocSpan.getEndTimeUnixNano() / TO_MILLISEC_DIVISOR);
 
-    final String hashValue = HashHelper.fromSpanAttributes(new AttributesReader(ocSpan));
+    attributesReader.appendToSpan(span);
 
-    spanDynamic.setHashCode(hashValue);
-
-    return spanDynamic;
+    return span.build();
   }
 }

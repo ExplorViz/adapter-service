@@ -6,13 +6,12 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
-import net.explorviz.avro.SpanStructure;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Validator that enforces that all values of the {@link SpanStructure} are set and valid.
+ * Validator that enforces that all values of the {@link Span} are set and valid.
  */
 @ApplicationScoped
 public class StrictValidator implements SpanValidator {
