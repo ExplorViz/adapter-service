@@ -14,6 +14,21 @@ repositories {
   }
 }
 
+jacocoTestReport {
+  dependsOn test
+
+  afterEvaluate {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: [
+          '**/opencensus/**',
+          '**/SerdeProducer.*',
+          "**/SchemaRegistryClientProducer.*",
+          "**/ReadOnlyKeyValueStoreProducer.*"
+      ])
+    }))
+  }
+}
+
 sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/avdl', 'src/main/java']
 
 /**
