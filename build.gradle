@@ -1,11 +1,10 @@
 plugins {
   id 'java'
-  id 'idea'
   id 'io.quarkus'
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '3.2.0'
 }
 
-apply from: 'buildscripts/code-analysis.gradle'
+apply from: 'code-analysis/code-analysis.gradle'
 
 repositories {
   mavenLocal()
@@ -32,7 +31,7 @@ dependencies {
   implementation 'io.quarkus:quarkus-jackson'
   implementation 'io.quarkus:quarkus-scheduler'
 
-  implementation 'io.quarkus:quarkus-kafka-streams'    
+  implementation 'io.quarkus:quarkus-kafka-streams'
   implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
 
   implementation 'io.quarkus:quarkus-grpc'
@@ -73,11 +72,4 @@ tasks.withType(JavaCompile) {
 
 test {
   systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
-}
-
-idea {
-  module {
-    downloadJavadoc = true
-    downloadSources = false
-  }
 }
