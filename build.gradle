@@ -1,11 +1,10 @@
 plugins {
   id 'java'
-  id 'idea'
   id 'io.quarkus'
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '3.2.0'
 }
 
-apply from: 'buildscripts/code-analysis.gradle'
+apply from: 'code-analysis/code-analysis.gradle'
 
 repositories {
   mavenLocal()
@@ -14,6 +13,23 @@ repositories {
     url "https://packages.confluent.io/maven/"
   }
 }
+
+jacocoTestReport {
+  dependsOn test
+
+  afterEvaluate {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: [
+          '**/opencensus/**',
+          '**/SerdeProducer.*',
+          "**/SchemaRegistryClientProducer.*",
+          "**/ReadOnlyKeyValueStoreProducer.*"
+      ])
+    }))
+  }
+}
+
+sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/avdl', 'src/main/java']
 
 /**
  * Version conflict for Kafka clients library:
@@ -30,7 +46,7 @@ dependencies {
   implementation 'io.quarkus:quarkus-jackson'
   implementation 'io.quarkus:quarkus-scheduler'
 
-  implementation 'io.quarkus:quarkus-kafka-streams'    
+  implementation 'io.quarkus:quarkus-kafka-streams'
   implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
 
   implementation 'io.quarkus:quarkus-grpc'
@@ -63,16 +79,12 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
-sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/avdl', 'src/main/java']
+tasks.withType(JavaCompile) {
+  // Turn on all javac warnings instead of classfile and processing, which produces many false-positives about
+  // annotations and cast which is triggered by the auto-generated Dao implementations
+  options.compilerArgs << "-Xlint:all" << "-Xlint:-classfile" << "-Xlint:-processing" << "-Xlint:-cast"
+}
 
 test {
   systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
-}
-
-
-idea {
-  module {
-    downloadJavadoc = true
-    downloadSources = false
-  }
 }

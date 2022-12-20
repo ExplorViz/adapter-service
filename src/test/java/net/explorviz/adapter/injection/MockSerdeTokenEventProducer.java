@@ -1,5 +1,6 @@
 package net.explorviz.adapter.injection;
 
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -30,7 +31,7 @@ public class MockSerdeTokenEventProducer {
   public SpecificAvroSerde<TokenEvent> produceMockSpecificAvroSerde()
       throws IOException, RestClientException {
 
-    this.registry.register(this.inTopicToken + "-value", TokenEvent.SCHEMA$);
+    this.registry.register(this.inTopicToken + "-value", new AvroSchema(TokenEvent.SCHEMA$));
 
     final SpecificAvroSerde<TokenEvent> valueSerde = new SpecificAvroSerde<>(this.registry);
     valueSerde.configure(

@@ -3,13 +3,9 @@ pluginManagement {
     mavenLocal()
     mavenCentral()
     gradlePluginPortal()
-    maven {
-      name "JCenter Gradle Plugins"
-      url "https://dl.bintray.com/gradle/gradle-plugins"
-    }
   }
   plugins {
-    id 'io.quarkus' version "${quarkusPluginVersion}"
+    id "${quarkusPluginId}" version "${quarkusPluginVersion}"
   }
 }
 rootProject.name = 'adapter-service'
