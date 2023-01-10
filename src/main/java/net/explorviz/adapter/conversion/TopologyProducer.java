@@ -6,6 +6,7 @@ import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.scheduler.Scheduled;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.context.ApplicationScoped;
@@ -89,17 +90,19 @@ public class TopologyProducer {
 
         return spanList;
       } catch (final InvalidProtocolBufferException e) {
-        return new ArrayList<>();
+        return Collections.emptyList();
       }
     });
 
     // Validate Spans
-    final KStream<byte[], Span> validSpanStream = spanKStream.filter(
-        (k, v) -> this.validator.isValid(v));
+    final KStream<byte[], Span> validSpanStream = spanKStream.flatMapValues((key, value) -> {
+      if (!this.validator.isValid(value)) {
+        this.lastInvalidSpans.incrementAndGet();
+        return Collections.emptyList();
+      }
 
-    // Invalid Spans, just log
-    spanKStream.filter((k, v) -> !this.validator.isValid(v))
-        .foreach((k, v) -> this.lastInvalidSpans.incrementAndGet());
+      return Collections.singletonList(value);
+    });
 
     // Convert to Span Structure
     final KStream<String, net.explorviz.avro.Span> explorvizSpanStream = validSpanStream.map(
