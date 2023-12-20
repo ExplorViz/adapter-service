@@ -7,8 +7,8 @@ jacocoTestReport {
   executionData { tasks.withType(Test).findAll { it.jacoco.destinationFile.exists() }*.jacoco.destinationFile }
 
   reports {
-    xml.enabled true
-    html.enabled true
+    xml.required = true
+    html.required = true
   }
 }
 
@@ -18,7 +18,7 @@ pmd {
   ruleSets = []
   ruleSetFiles = files("code-analysis/pmd.xml")
   ignoreFailures = false
-  toolVersion = "6.41.0"
+  toolVersion = "6.53.0"
 }
 
 checkstyle {
@@ -26,21 +26,5 @@ checkstyle {
   configFile = file("code-analysis/checkstyle.xml")
   maxWarnings = 0
   ignoreFailures = false
-  toolVersion = "8.12"
-}
-
-task checkstyle {
-  group 'Quality Assurance'
-  description 'Run Checkstyle'
-  
-  dependsOn 'checkstyleMain'
-  dependsOn 'checkstyleTest'
-}
-
-task pmd {
-  group 'Quality Assurance'
-  description 'Run PMD'
-
-  dependsOn 'pmdMain'
-  dependsOn 'pmdTest'
+  toolVersion = "10.12.5"
 }

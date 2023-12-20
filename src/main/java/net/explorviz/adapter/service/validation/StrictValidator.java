@@ -1,9 +1,9 @@
 package net.explorviz.adapter.service.validation;
 
 import io.opentelemetry.proto.trace.v1.Span;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.DateTimeException;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -19,11 +19,9 @@ public class StrictValidator implements SpanValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
-
+  private final TokenService tokenService;
   @ConfigProperty(name = "explorviz.validate.token-existence")
   /* default */ boolean validateTokens; // NOCS
-
-  private final TokenService tokenService;
 
   @Inject
   public StrictValidator(final TokenService tokenService) {

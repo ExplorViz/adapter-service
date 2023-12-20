@@ -15,13 +15,13 @@ import io.opentelemetry.proto.trace.v1.ResourceSpans;
 import io.opentelemetry.proto.trace.v1.ScopeSpans;
 import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import javax.inject.Inject;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import net.explorviz.adapter.service.converter.IdHelper;
@@ -44,32 +44,23 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class TopologyTest {
 
-  private TopologyTestDriver driver;
-
-  private TestInputTopic<byte[], byte[]> inputTopic;
-  private TestInputTopic<String, TokenEvent> inputTopicTokenEvents;
-
-  private TestOutputTopic<String, net.explorviz.avro.Span> spanOutputTopic;
-
-  private ReadOnlyKeyValueStore<String, TokenEvent> tokenEventStore;
-
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
   /* default */ String inTopic;
-
   @ConfigProperty(name = "explorviz.kafka-streams.topics.out.spans")
   /* default */ String spanOutTopicKey;
-
   @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
   /* default */ String tokensInTopic; // NOCS
-
   @Inject
   Topology topology;
-
   @Inject
   SpecificAvroSerde<net.explorviz.avro.Span> spanSerDe; // NOCS
-
   @Inject
   SpecificAvroSerde<TokenEvent> tokenEventSerDe; // NOCS
+  private TopologyTestDriver driver;
+  private TestInputTopic<byte[], byte[]> inputTopic;
+  private TestInputTopic<String, TokenEvent> inputTopicTokenEvents;
+  private TestOutputTopic<String, net.explorviz.avro.Span> spanOutputTopic;
+  private ReadOnlyKeyValueStore<String, TokenEvent> tokenEventStore;
 
   @BeforeEach
   void setUp() {
@@ -401,7 +392,7 @@ class TopologyTest {
       }
     }
 
-    assertTrue(this.tokenEventStore.approximateNumEntries() == 0,
+    assertEquals(0, this.tokenEventStore.approximateNumEntries(),
         "State store not empty, but should be empty");
 
     // use mocked state store

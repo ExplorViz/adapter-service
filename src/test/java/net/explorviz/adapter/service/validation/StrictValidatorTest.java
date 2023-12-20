@@ -160,7 +160,7 @@ class StrictValidatorTest {
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidTokenValue : new String[]{"", "\n", "\t", " "}) {
+    for (final String invalidTokenValue : new String[] {"", "\n", "\t", " "}) {
       attrMap = this.generateValidAttributesMap();
       attrMap = this.replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, invalidTokenValue,
           attrMap);
@@ -178,7 +178,7 @@ class StrictValidatorTest {
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidTokenSecret : new String[]{"", "\n", "\t", " "}) {
+    for (final String invalidTokenSecret : new String[] {"", "\n", "\t", " "}) {
       attrMap = this.generateValidAttributesMap();
       attrMap = this.replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, invalidTokenSecret,
           attrMap);
@@ -210,8 +210,8 @@ class StrictValidatorTest {
     assertFalse(this.validator.isValid(invalid));
 
     // Test different combinations
-    for (final String invalidHostName : new String[]{"", "\n", "\t", " "}) {
-      for (final String invalidHostIp : new String[]{"", "\t", "\n", " "}) {
+    for (final String invalidHostName : new String[] {"", "\n", "\t", " "}) {
+      for (final String invalidHostIp : new String[] {"", "\t", "\n", " "}) {
         attrMap = this.generateValidAttributesMap();
         attrMap = this.replaceElementAndReturnAttributesMap(KEY_HOST_NAME, invalidHostName,
             attrMap);
@@ -250,8 +250,8 @@ class StrictValidatorTest {
     invalid = this.generateSpanFromAttributesMap(attrMap);
     assertFalse(this.validator.isValid(invalid));
 
-    for (final String invalidId : new String[]{"", "\n", "\t", " "}) {
-      for (final String invalidLanguage : new String[]{"", "\t", "\n", " "}) {
+    for (final String invalidId : new String[] {"", "\n", "\t", " "}) {
+      for (final String invalidLanguage : new String[] {"", "\t", "\n", " "}) {
         attrMap = this.generateValidAttributesMap();
         attrMap = this.replaceElementAndReturnAttributesMap(KEY_APPLICATION_NAME, invalidId,
             attrMap);
@@ -272,7 +272,7 @@ class StrictValidatorTest {
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
     assertTrue(this.validator.isValid(invalid));
 
-    for (final String invalidMethodFqn : new String[]{"", "\n", "\t", " ", "noMethod",
+    for (final String invalidMethodFqn : new String[] {"", "\n", "\t", " ", "noMethod",
         "classNoPackage.method", "...", "a..", "a.b.", "a.b. ", "a..c", ".b.c", "..c", ".b."}) {
       attrMap = this.generateValidAttributesMap();
       attrMap = this.replaceElementAndReturnAttributesMap(KEY_METHOD_FQN,

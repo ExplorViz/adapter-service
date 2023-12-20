@@ -6,11 +6,11 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.quarkus.arc.profile.IfBuildProfile;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.Map;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
@@ -30,9 +30,11 @@ public class MockSerdeStructureProducer {
   public SpecificAvroSerde<net.explorviz.avro.Span> produceMockSpecificAvroSerde()
       throws IOException, RestClientException {
 
-    this.registry.register(this.outTopicSpans + "-value", new AvroSchema(net.explorviz.avro.Span.SCHEMA$));
+    this.registry.register(this.outTopicSpans + "-value",
+        new AvroSchema(net.explorviz.avro.Span.SCHEMA$));
 
-    final SpecificAvroSerde<net.explorviz.avro.Span> valueSerde = new SpecificAvroSerde<>(this.registry);
+    final SpecificAvroSerde<net.explorviz.avro.Span> valueSerde =
+        new SpecificAvroSerde<>(this.registry);
     valueSerde.configure(
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://registry:1234"),
         false);

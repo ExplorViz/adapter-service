@@ -2,8 +2,8 @@ package net.explorviz.adapter.injection;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.quarkus.arc.DefaultBean;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StoreQueryParameters;

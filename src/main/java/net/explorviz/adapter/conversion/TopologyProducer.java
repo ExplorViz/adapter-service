@@ -5,13 +5,13 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 import net.explorviz.adapter.service.converter.SpanConverterImpl;
 import net.explorviz.adapter.service.validation.SpanValidator;
 import net.explorviz.avro.EventType;
@@ -38,34 +38,25 @@ import org.slf4j.LoggerFactory;
 public class TopologyProducer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TopologyProducer.class);
-
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
-  /* default */ String inTopic; // NOCS
-
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.spans")
-  /* default */ String spansOutTopic; // NOCS
-
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
-  /* default */ String tokensInTopic; // NOCS
-
-  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.tokens-table")
-  /* default */ String tokensOutTopic; // NOCS
-
-  @Inject
-  /* default */ SpanValidator validator; // NOCS
-
-  @Inject
-  /* default */ SpecificAvroSerde<net.explorviz.avro.Span> spanAvroSerde; // NOCS
-
-  @Inject
-  /* default */ SpecificAvroSerde<TokenEvent> tokenEventAvroSerde; // NOCS
-
-  @Inject
-  /* default */ SpanConverterImpl spanConverter; // NOCS
-
   // Logged and reset every n seconds
   private final AtomicInteger lastReceivedSpans = new AtomicInteger(0);
   private final AtomicInteger lastInvalidSpans = new AtomicInteger(0);
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in")
+  /* default */ String inTopic; // NOCS
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.spans")
+  /* default */ String spansOutTopic; // NOCS
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.in.tokens")
+  /* default */ String tokensInTopic; // NOCS
+  @ConfigProperty(name = "explorviz.kafka-streams.topics.out.tokens-table")
+  /* default */ String tokensOutTopic; // NOCS
+  @Inject
+  /* default */ SpanValidator validator; // NOCS
+  @Inject
+  /* default */ SpecificAvroSerde<net.explorviz.avro.Span> spanAvroSerde; // NOCS
+  @Inject
+  /* default */ SpecificAvroSerde<TokenEvent> tokenEventAvroSerde; // NOCS
+  @Inject
+  /* default */ SpanConverterImpl spanConverter; // NOCS
 
   @Produces
   public Topology buildTopology() {
@@ -74,10 +65,10 @@ public class TopologyProducer {
 
     // BEGIN Conversion Stream
 
-    final KStream<byte[], byte[]> spanStream =
+    final KStream<byte[], byte[]> spanByteStream =
         builder.stream(this.inTopic, Consumed.with(Serdes.ByteArray(), Serdes.ByteArray()));
 
-    final KStream<byte[], Span> spanKStream = spanStream.flatMapValues(d -> {
+    final KStream<byte[], Span> spanStream = spanByteStream.flatMapValues(d -> {
       try {
 
         final List<Span> spanList = new ArrayList<>();
@@ -95,7 +86,7 @@ public class TopologyProducer {
     });
 
     // Validate Spans
-    final KStream<byte[], Span> validSpanStream = spanKStream.flatMapValues((key, value) -> {
+    final KStream<byte[], Span> validSpanStream = spanStream.flatMapValues((key, value) -> {
       if (!this.validator.isValid(value)) {
         this.lastInvalidSpans.incrementAndGet();
         return Collections.emptyList();
