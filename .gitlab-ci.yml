@@ -1,19 +1,23 @@
-image: openjdk:11-jdk
+default:
+  tags:
+    - exec-docker
+  image: ghcr.io/graalvm/graalvm-community:21
+  cache: # Cache modules in between jobs
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - .gradle
+  before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
 
-# Disable the Gradle daemon for Continuous Integration servers as correctness
-# is usually a priority over speed in CI environments. Using a fresh
-# runtime for each build is more reliable since the runtime is completely
-# isolated from any previous builds.
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
-before_script:
-  - export GRADLE_USER_HOME=`pwd`/.gradle
-
-cache:
-  policy: pull
-  paths:
-    - .gradle
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
 
 stages:
   - build
@@ -21,7 +25,7 @@ stages:
   - test
   - coverage
   - visualize
-  - deploy
+  - publish
 
 build:
   stage: build
@@ -84,8 +88,7 @@ coverage:
         path: build/cobertura.xml
 
 push-dockerhub-native:
-  image: ghcr.io/graalvm/graalvm-ce:java11-21.3.0
-  stage: deploy
+  stage: publish
   only:
     - schedules
   before_script:
@@ -95,13 +98,25 @@ push-dockerhub-native:
   script: 
     - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
 
-push-dockerhub:
-  stage: deploy
-  only:
-    - master
-  except:
-    - schedules
+.push-dockerhub-base-job:
+  stage: publish
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   tags:
     - exec-docker
-  script: 
+  script:
     - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+  after_script:
+    - echo "Image was uploaded to Dockerhub; explorviz/adapter-service-jvm:latest and explorviz/adapter-service-jvm:$CI_COMMIT_SHORT_SHA"
+
+push-dockerhub-main:
+  extends: .push-dockerhub-base-job
+
+push-dockerhub-mr:
+  extends: .push-dockerhub-base-job
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+  after_script:
+    - echo "Image was uploaded to Dockerhub; explorviz/adapter-service-jvm:$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA"
