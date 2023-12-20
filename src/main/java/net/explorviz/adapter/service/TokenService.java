@@ -1,7 +1,8 @@
 package net.explorviz.adapter.service;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import net.explorviz.avro.TokenEvent;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 

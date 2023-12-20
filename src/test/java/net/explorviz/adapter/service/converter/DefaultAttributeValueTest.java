@@ -1,50 +1,51 @@
 package net.explorviz.adapter.service.converter;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 public class DefaultAttributeValueTest {
 
   @Test
   void testDefaultTokenValue() {
-    assertTrue(DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN.equals(""));
+    assertEquals(DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN, "");
   }
 
   @Test
   void testDefaultTokenSecret() {
-    assertTrue(DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET.equals(""));
+    assertEquals(DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET, "");
   }
 
   @Test
   void testDefaultHostIp() {
-    assertTrue(DefaultAttributeValues.DEFAULT_HOST_IP.equals("0.0.0.0")); 
+    assertEquals(DefaultAttributeValues.DEFAULT_HOST_IP, "0.0.0.0");
   }
 
   @Test
   void testDefaultHostName() {
-    assertTrue(DefaultAttributeValues.DEFAULT_HOST_NAME.equals("UNKNOWN-HOST"));
+    assertEquals(DefaultAttributeValues.DEFAULT_HOST_NAME, "UNKNOWN-HOST");
   }
 
   @Test
   void testDefaultAppName() {
-    assertTrue(DefaultAttributeValues.DEFAULT_APP_NAME.equals("UNKNOWN-APPLICATION"));
+    assertEquals(DefaultAttributeValues.DEFAULT_APP_NAME, "UNKNOWN-APPLICATION");
   }
 
   @Test
   void testDefaultInstanceId() {
-    assertTrue(DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID.equals("default"));
+    assertEquals(DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID, "default");
   }
 
 
   @Test
   void testDefaultAppLang() {
-    assertTrue(DefaultAttributeValues.DEFAULT_APP_LANG.equals("UNKNOWN"));
+    assertEquals(DefaultAttributeValues.DEFAULT_APP_LANG, "UNKNOWN");
   }
 
   @Test
   void testDefaultFqn() {
     // This must adhere to the format <pkg.Class.method>, i.e., include at least two '.'
-    assertTrue(DefaultAttributeValues.DEFAULT_FQN.equals("unknownpkg.UnknownClass.unknownMethod"));
+    assertEquals(DefaultAttributeValues.DEFAULT_FQN, "unknownpkg.UnknownClass.unknownMethod");
   }
 
 }
