@@ -29,8 +29,6 @@ stages:
 
 build:
   stage: build
-  tags:
-    - exec-docker
   script: ./gradlew --build-cache assemble
   cache:
     policy: push
@@ -42,20 +40,14 @@ build:
 
 pmd:
   stage: code-analysis
-  tags:
-    - exec-docker
   script: ./gradlew pmdMain
 
 checkstyle:
   stage: code-analysis
-  tags:
-    - exec-docker
   script: ./gradlew checkstyleMain
 
 test:
   stage: test
-  tags:
-    - exec-docker
   script: 
     - ./gradlew jacocoTestReport
     # Print test coverage to console (for coverage badge)
@@ -70,8 +62,6 @@ test:
   
 coverage:
   stage: visualize
-  tags:
-    - exec-docker
   image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.7
   script:
     # convert report from jacoco to cobertura
@@ -87,23 +77,31 @@ coverage:
         coverage_format: cobertura
         path: build/cobertura.xml
 
-push-dockerhub-native:
+.push-dockerhub-native-base-job:
   stage: publish
-  only:
-    - schedules
-  before_script:
-    - gu install native-image
-  tags:
-    - exec-docker
-  script: 
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  script:
     - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+  after_script:
+    - echo "Image was uploaded to Dockerhub; explorviz/adapter-service-native:latest and explorviz/adapter-service-native:$CI_COMMIT_SHORT_SHA"
+
+push-dockerhub-native-main:
+  extends: .push-dockerhub-native-base-job
+
+push-dockerhub-native-mr:
+  stage: publish
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
 
 .push-dockerhub-base-job:
   stage: publish
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  tags:
-    - exec-docker
   script:
     - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
   after_script:
@@ -113,7 +111,7 @@ push-dockerhub-main:
   extends: .push-dockerhub-base-job
 
 push-dockerhub-mr:
-  extends: .push-dockerhub-base-job
+  stage: publish
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
