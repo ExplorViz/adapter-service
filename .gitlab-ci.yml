@@ -95,7 +95,8 @@ push-dockerhub-native-mr:
   allow_failure: true
   image:
     name: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
-    entrypoint: [""]
+    #entrypoint: [""]
+    entrypoint: ["/bin/bash"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
