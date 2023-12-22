@@ -96,7 +96,9 @@ push-dockerhub-native-mr:
   image:
     name: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
     #entrypoint: [""]
-    entrypoint: ["/bin/bash", "-l", "-c"]
+    #entrypoint: ["/bin/bash", "-l", "-c"]
+    entrypoint:
+      - ""
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
