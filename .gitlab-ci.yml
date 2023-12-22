@@ -27,7 +27,7 @@ stages:
   - visualize
   - publish
 
-build:
+.build:
   stage: build
   script: ./gradlew --build-cache assemble
   cache:
@@ -38,15 +38,15 @@ build:
     paths:
       - build
 
-pmd:
+.pmd:
   stage: code-analysis
   script: ./gradlew pmdMain
 
-checkstyle:
+.heckstyle:
   stage: code-analysis
   script: ./gradlew checkstyleMain
 
-test:
+.test:
   stage: test
   script: 
     - ./gradlew jacocoTestReport
@@ -60,7 +60,7 @@ test:
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml
   
-coverage:
+.coverage:
   stage: visualize
   image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.7
   script:
@@ -93,10 +93,13 @@ push-dockerhub-native-main:
 push-dockerhub-native-mr:
   stage: publish
   allow_failure: true
+  image:
+    name: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
-    - ./gradlew clean assemble -Dquarkus.native.container-build=true -Dquarkus.package.type=native -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
 
 .push-dockerhub-base-job:
   stage: publish
