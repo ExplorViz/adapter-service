@@ -42,7 +42,7 @@ stages:
   stage: code-analysis
   script: ./gradlew pmdMain
 
-.heckstyle:
+.checkstyle:
   stage: code-analysis
   script: ./gradlew checkstyleMain
 
@@ -93,14 +93,24 @@ push-dockerhub-native-main:
 push-dockerhub-native-mr:
   stage: publish
   allow_failure: true
+  tags:
+    - podman
   image:
     name: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
     #entrypoint: [""]
-    entrypoint: ["/usr/bin/sh"]
+    entrypoint: ["/bin/bash"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
     - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+
+push-dockerhub-native-mr-podman:
+  stage: publish
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - ./gradlew clean assemble -Dquarkus.native.container-runtime=podman -Dquarkus.native.container-build=true -Dquarkus.package.type=native -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
 
 .push-dockerhub-base-job:
   stage: publish
