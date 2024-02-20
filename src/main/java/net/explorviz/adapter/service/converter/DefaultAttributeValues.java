@@ -14,5 +14,7 @@ public final class DefaultAttributeValues {
   public static final String DEFAULT_APP_LANG = "UNKNOWN";
   // This must adhere to the format <pkg.Class.method>, i.e., include at least two '.'
   public static final String DEFAULT_FQN = "unknownpkg.UnknownClass.unknownMethod";
+  // This is just for Javascript spans, who don't possess the required format
+  public static final String JS_FQN = "package.class.";
 
 }

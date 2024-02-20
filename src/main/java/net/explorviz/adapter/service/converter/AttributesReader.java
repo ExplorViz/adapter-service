@@ -130,6 +130,8 @@ public class AttributesReader {
 
   /**
    * Appends all attributes to the given {{@link net.explorviz.avro.Span}} builder.
+   * The fqn holds an exception, since we want tp process the spanIDs as method names and therefore
+   * we set the fqn to the one we set in the {{@link net.explorviz.avro.Span}} converter.
    *
    * @param builder the builder to append the attributes to
    */
@@ -141,7 +143,7 @@ public class AttributesReader {
         .setAppInstanceId(this.getApplicationInstanceId())
         .setAppName(this.getApplicationName())
         .setAppLanguage(this.getApplicationLanguage())
-        .setFullyQualifiedOperationName(this.getMethodFqn());
+        .setFullyQualifiedOperationName(builder.getFullyQualifiedOperationName());
   }
 
 }

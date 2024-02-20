@@ -1,9 +1,11 @@
 package net.explorviz.adapter.service.converter;
 
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.JS_FQN;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import net.explorviz.avro.Span;
+import java.util.Objects;
 
 /**
  * Converts a {@link io.opentelemetry.proto.trace.v1.Span} to a {@link Span}.
@@ -19,10 +21,10 @@ public class SpanConverterImpl implements SpanConverter<Span> {
 
     final AttributesReader attributesReader = new AttributesReader(ocSpan);
 
-    String methodName = "";
-    if (attributesReader.getMethodFqn() == DEFAULT_FQN) {
-      methodName = IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()) + "." + IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray())
-      + "." + IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
+    // if Fqn = default value, we set the method name to spanID, otherwise do not change it
+    String methodName;
+    if (Objects.equals(attributesReader.getMethodFqn(), DEFAULT_FQN)) {
+      methodName = JS_FQN + IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
     }
     else {
       methodName = attributesReader.getMethodFqn();
@@ -42,10 +44,10 @@ public class SpanConverterImpl implements SpanConverter<Span> {
         .setStartTimeEpochMilli(ocSpan.getStartTimeUnixNano() / TO_MILLISEC_DIVISOR)
         .setEndTimeEpochMilli(ocSpan.getEndTimeUnixNano() / TO_MILLISEC_DIVISOR);
 
-    System.out.print("SpanID: " + IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()));
-    System.out.print("FQN: " + span.getFullyQualifiedOperationName());
-
     attributesReader.appendToSpan(span);
+
+    //System.out.print(" FQN in Attributes reader: " + attributesReader.getMethodFqn());
+    //System.out.print(" FQN in span: " + span.getFullyQualifiedOperationName());
 
     return span.build();
   }
