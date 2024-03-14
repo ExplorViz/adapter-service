@@ -15,9 +15,9 @@ variables:
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+    - if: "$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS"
       when: never
-    - if: '$CI_COMMIT_BRANCH'
+    - if: "$CI_COMMIT_BRANCH"
 
 stages:
   - build
@@ -48,26 +48,26 @@ checkstyle:
 
 test:
   stage: test
-  script: 
+  script:
     - ./gradlew jacocoTestReport
     # Print test coverage to console (for coverage badge)
     - cat build/reports/jacoco/test/html/index.html | grep -o 'Total[^%]*%' | sed 's/<.*>/ /; s/Total/Jacoco Coverage Total:/'
-  coverage: '/Jacoco Coverage Total: ([0-9]{1,3})%/'
+  coverage: "/Jacoco Coverage Total: ([0-9]{1,3})%/"
   artifacts:
     when: always
     reports:
       junit: build/test-results/test/**/TEST-*.xml
     paths:
       - build/reports/jacoco/test/jacocoTestReport.xml
-  
+
 coverage:
   stage: visualize
   image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.7
   script:
     # convert report from jacoco to cobertura
-    - 'python /opt/cover2cover.py build/reports/jacoco/test/jacocoTestReport.xml src/main/java > build/cobertura.xml'
+    - "python /opt/cover2cover.py build/reports/jacoco/test/jacocoTestReport.xml src/main/java > build/cobertura.xml"
     # read the <source></source> tag and prepend the path to every filename attribute
-    - 'python /opt/source2filename.py build/cobertura.xml'
+    - "python /opt/source2filename.py build/cobertura.xml"
   needs: ["test"]
   dependencies:
     - test
@@ -83,7 +83,14 @@ coverage:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   script:
-    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble
+      -Dquarkus.package.type=native
+      -Dquarkus.container-image.push=true
+      -Dquarkus.container-image.name=adapter-service-native
+      -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA
+      -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin"
+      -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
+      -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
     - echo "Image was uploaded to Dockerhub; explorviz/adapter-service-native:latest and explorviz/adapter-service-native:$CI_COMMIT_SHORT_SHA"
 
@@ -96,7 +103,14 @@ push-dockerhub-native-mr:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
-    - ./gradlew clean assemble -Dquarkus.package.type=native -Dquarkus.container-image.push=true -Dquarkus.container-image.name=adapter-service-native -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin" -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble
+      -Dquarkus.package.type=native
+      -Dquarkus.container-image.push=true
+      -Dquarkus.container-image.name=adapter-service-native
+      -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA
+      -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin"
+      -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
+      -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
     - echo "Image was uploaded to Dockerhub; explorviz/user-service-native:$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA"
 
@@ -105,7 +119,12 @@ push-dockerhub-native-mr:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   script:
-    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble
+      -Dquarkus.container-image.build=true
+      -Dquarkus.container-image.push=true
+      -Dquarkus.container-image.additional-tags=$CI_COMMIT_SHORT_SHA
+      -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
+      -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
     - echo "Image was uploaded to Dockerhub; explorviz/adapter-service-jvm:latest and explorviz/adapter-service-jvm:$CI_COMMIT_SHORT_SHA"
 
@@ -117,6 +136,10 @@ push-dockerhub-mr:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
-    - ./gradlew clean assemble -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$EXPLORVIZ_DOCKERHUB_USERNAME -Dquarkus.container-image.password=$EXPLORVIZ_DOCKERHUB_PASSWORD
+    - ./gradlew clean assemble
+      -Dquarkus.container-image.build=true
+      -Dquarkus.container-image.push=true
+      -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
+      -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
     - echo "Image was uploaded to Dockerhub; explorviz/adapter-service-jvm:$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA"
