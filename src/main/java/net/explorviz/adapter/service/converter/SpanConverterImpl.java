@@ -4,8 +4,8 @@ import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEF
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.JS_FQN;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import net.explorviz.avro.Span;
 import java.util.Objects;
+import net.explorviz.avro.Span;
 
 /**
  * Converts a {@link io.opentelemetry.proto.trace.v1.Span} to a {@link Span}.
@@ -25,6 +25,7 @@ public class SpanConverterImpl implements SpanConverter<Span> {
     String methodName;
     if (Objects.equals(attributesReader.getMethodFqn(), DEFAULT_FQN)) {
       methodName = JS_FQN + IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
+
     }
     else {
       methodName = attributesReader.getMethodFqn();
@@ -45,9 +46,6 @@ public class SpanConverterImpl implements SpanConverter<Span> {
         .setEndTimeEpochMilli(ocSpan.getEndTimeUnixNano() / TO_MILLISEC_DIVISOR);
 
     attributesReader.appendToSpan(span);
-
-    //System.out.print(" FQN in Attributes reader: " + attributesReader.getMethodFqn());
-    //System.out.print(" FQN in span: " + span.getFullyQualifiedOperationName());
 
     return span.build();
   }
