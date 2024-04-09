@@ -23,6 +23,7 @@ public class SpanConverterImpl implements SpanConverter<Span> {
 
     final Span.Builder span = Span.newBuilder()
         .setLandscapeToken(attributesReader.getLandscapeToken())
+        .setGitCommitChecksum(attributesReader.getGitCommitChecksum())
         .setParentSpanId(parentSpan)
         .setSpanId(IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray()))
         .setTraceId(IdHelper.converterTraceId(ocSpan.getTraceId().toByteArray()))
