@@ -96,6 +96,9 @@ class TopologyTest {
     attributes.add(KeyValue.newBuilder().setKey(AttributesReader.LANDSCAPE_TOKEN)
         .setValue(AnyValue.newBuilder().setStringValue("token").build()).build());
 
+    attributes.add(KeyValue.newBuilder().setKey(AttributesReader.GIT_COMMIT_CHECKSUM)
+        .setValue(AnyValue.newBuilder().setStringValue("testGitCommit").build()).build());
+
     attributes.add(KeyValue.newBuilder().setKey(AttributesReader.TOKEN_SECRET)
         .setValue(AnyValue.newBuilder().setStringValue("secret").build()).build());
 
@@ -156,6 +159,8 @@ class TopologyTest {
 
     final String expectedToken =
         attrs.get(AttributesReader.LANDSCAPE_TOKEN);
+    final String expectedGitCommitChecksum =
+        attrs.get(AttributesReader.GIT_COMMIT_CHECKSUM);
     final String expectedHostName =
         attrs.get(AttributesReader.HOST_NAME);
     final String expectedHostIp = attrs.get(AttributesReader.HOST_IP);
@@ -169,6 +174,8 @@ class TopologyTest {
         attrs.get(AttributesReader.METHOD_FQN);
 
     assertEquals(expectedToken, result.getLandscapeToken(), "Invalid token");
+    assertEquals(expectedGitCommitChecksum, result.getGitCommitChecksum(),
+        "Invalid Git Commit Checksum");
 
     assertEquals(expectedHostIp, result.getHostIpAddress(), "Invalid host ip address");
     assertEquals(expectedHostName, result.getHostname(), "Invalid host name");

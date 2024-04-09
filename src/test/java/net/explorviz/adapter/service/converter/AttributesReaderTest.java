@@ -15,6 +15,7 @@ public class AttributesReaderTest {
 
   private static final String KEY_LANDSCAPE_TOKEN = AttributesReader.LANDSCAPE_TOKEN;
   private static final String KEY_LANDSCAPE_SECRET = AttributesReader.TOKEN_SECRET;
+  private static final String KEY_GIT_COMMIT_CHECKSUM = AttributesReader.GIT_COMMIT_CHECKSUM;
   private static final String KEY_HOST_NAME = AttributesReader.HOST_NAME;
   private static final String KEY_HOST_IP = AttributesReader.HOST_IP;
   private static final String KEY_APPLICATION_NAME = AttributesReader.APPLICATION_NAME;
@@ -25,6 +26,7 @@ public class AttributesReaderTest {
 
   private static final String TOKEN = "tok";
   private static final String SECRET = "secret";
+  private static final String GIT_COMMIT_CHECKSUM = "gitCommitChecksum";
   private static final String HOSTNAME = "Host";
   private static final String HOST_IP = "1.2.3.4";
   private static final String APP_NAME = "Test App";
@@ -41,6 +43,7 @@ public class AttributesReaderTest {
 
     assertEquals(reader.getLandscapeToken(), TOKEN);
     assertEquals(reader.getSecret(), SECRET);
+    assertEquals(reader.getGitCommitChecksum(), GIT_COMMIT_CHECKSUM);
     assertEquals(reader.getHostName(), HOSTNAME);
     assertEquals(reader.getHostIpAddress(), HOST_IP);
     assertEquals(reader.getApplicationName(), APP_NAME);
@@ -193,6 +196,9 @@ public class AttributesReaderTest {
 
     attributes.add(KeyValue.newBuilder().setKey(KEY_LANDSCAPE_SECRET)
         .setValue(AnyValue.newBuilder().setStringValue(SECRET).build()).build());
+
+    attributes.add(KeyValue.newBuilder().setKey(KEY_GIT_COMMIT_CHECKSUM)
+        .setValue(AnyValue.newBuilder().setStringValue(GIT_COMMIT_CHECKSUM).build()).build());
 
     attributes.add(KeyValue.newBuilder().setKey(KEY_HOST_NAME)
         .setValue(AnyValue.newBuilder().setStringValue(HOSTNAME).build()).build());
