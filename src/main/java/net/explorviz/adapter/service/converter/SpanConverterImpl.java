@@ -25,9 +25,7 @@ public class SpanConverterImpl implements SpanConverter<Span> {
     String methodName;
     if (Objects.equals(attributesReader.getMethodFqn(), DEFAULT_FQN)) {
       methodName = JS_FQN + IdHelper.converterSpanId(ocSpan.getSpanId().toByteArray());
-
-    }
-    else {
+    } else {
       methodName = attributesReader.getMethodFqn();
     }
 
