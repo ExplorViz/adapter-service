@@ -31,7 +31,6 @@ public class SerdeProducer {
         Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, this.schemaRegistryUrl),
         false);
     return valueSerde;
-
   }
 }
 

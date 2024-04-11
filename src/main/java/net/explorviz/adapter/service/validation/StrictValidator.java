@@ -3,7 +3,6 @@ package net.explorviz.adapter.service.validation;
 import io.opentelemetry.proto.trace.v1.Span;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.time.DateTimeException;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -34,16 +33,15 @@ public class StrictValidator implements SpanValidator {
     final AttributesReader attr = new AttributesReader(span);
 
     return this.validateTimestamp(span.getStartTimeUnixNano()) && this.validateTimestamp(
-        span.getEndTimeUnixNano())
-        && this.isValid(attr);
+        span.getEndTimeUnixNano()) && this.isValid(attr);
   }
 
   public boolean isValid(final AttributesReader spanAttributes) {
     return this.validateToken(spanAttributes.getLandscapeToken(), spanAttributes.getSecret())
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
         && this.validateApp(spanAttributes.getApplicationName(),
-        spanAttributes.getApplicationLanguage())
-        && this.validateOperation(spanAttributes.getMethodFqn());
+        spanAttributes.getApplicationLanguage()) && this.validateOperation(
+        spanAttributes.getMethodFqn());
   }
 
   private boolean validateToken(final String token, final String givenSecret) {
@@ -66,8 +64,8 @@ public class StrictValidator implements SpanValidator {
       return true;
     }
 
-    final boolean validationResult = this.tokenService.validLandscapeTokenValueAndSecret(token,
-        givenSecret);
+    final boolean validationResult =
+        this.tokenService.validLandscapeTokenValueAndSecret(token, givenSecret);
 
     if (!validationResult && LOGGER.isTraceEnabled()) {
       LOGGER.trace("Invalid span: Token and/or secret are unknown.");
@@ -76,16 +74,13 @@ public class StrictValidator implements SpanValidator {
   }
 
   private boolean validateTimestamp(final long timestamp) {
-    try {
-      if (timestamp <= 0L) { // NOPMD
-        throw new NumberFormatException("Time must be positive");
-      }
-    } catch (DateTimeException | NumberFormatException e) {
+    if (timestamp <= 0L) {
       if (LOGGER.isTraceEnabled()) {
-        LOGGER.trace("Invalid span: Contains invalid timestamp");
+        LOGGER.trace("Invalid span: Contains invalid timestamp {}", timestamp);
       }
       return false;
     }
+    
     return true;
   }
 
@@ -96,12 +91,14 @@ public class StrictValidator implements SpanValidator {
       }
       return false;
     }
+
     if (this.isBlank(hostIp)) {
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Invalid span: No IP address.");
       }
       return false;
     }
+
     return true;
   }
 
@@ -136,15 +133,8 @@ public class StrictValidator implements SpanValidator {
       return false;
     }
 
-    if (operationFqnSplit[0].isBlank()) {
-      return false;
-    }
-
-    if (operationFqnSplit[1].isBlank()) {
-      return false;
-    }
-
-    return !operationFqnSplit[2].isBlank();
+    return !operationFqnSplit[0].isBlank() && !operationFqnSplit[1].isBlank()
+        && !operationFqnSplit[2].isBlank();
   }
 
   private boolean isBlank(final String s) {

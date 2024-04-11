@@ -31,8 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Builds a KafkaStream topology instance with all its transformers. Entry point of the stream
- * analysis.
+ * Builds a KafkaStream topology instance with all its transformers. Entry point of the stream analysis.
  */
 @ApplicationScoped
 public class TopologyProducer {
@@ -70,7 +69,6 @@ public class TopologyProducer {
 
     final KStream<byte[], Span> spanStream = spanByteStream.flatMapValues(d -> {
       try {
-
         final List<Span> spanList = new ArrayList<>();
 
         ExportTraceServiceRequest.parseFrom(d).getResourceSpansList()
@@ -133,8 +131,7 @@ public class TopologyProducer {
     final int spans = this.lastReceivedSpans.getAndSet(0);
     final int invalidSpans = this.lastInvalidSpans.getAndSet(0);
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Received {} spans: {} valid, {} invalid ", spans, spans - invalidSpans,
-          invalidSpans);
+      LOGGER.debug("Received {} spans: {} valid, {} invalid ", spans, spans - invalidSpans, invalidSpans);
     }
   }
 
