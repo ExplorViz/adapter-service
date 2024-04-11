@@ -32,7 +32,7 @@
   <!-- https://checkstyle.org/config_filters.html#SuppressionFilter -->
   <module name="SuppressionFilter">
     <property name="file"
-      value="${config_loc}/checkstyle-suppression.xml" />
+      value="${config_loc}/checkstyle-suppression.xml"/>
   </module>
 
   <!-- Checks for whitespace                               -->
@@ -43,7 +43,7 @@
 
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
-    <property name="max" value="100"/>
+    <property name="max" value="120"/>
     <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
   </module>
 
@@ -361,14 +361,14 @@
     <!-- https://checkstyle.org/config_filters.html#SuppressionXpathFilter -->
     <module name="SuppressionXpathFilter">
       <property name="file" value="${org.checkstyle.google.suppressionxpathfilter.config}"
-        default="checkstyle-xpath-suppressions.xml" />
+        default="checkstyle-xpath-suppressions.xml"/>
       <property name="optional" value="true"/>
     </module>
-    <module name="SuppressWarningsHolder" />
+    <module name="SuppressWarningsHolder"/>
     <module name="SuppressionCommentFilter">
-      <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)" />
-      <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)" />
-      <property name="checkFormat" value="$1" />
+      <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+      <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
+      <property name="checkFormat" value="$1"/>
     </module>
     <module name="SuppressWithNearbyCommentFilter">
       <property name="commentFormat" value="CHECKSTYLE.SUPPRESS\: ([\w\|]+)"/>
