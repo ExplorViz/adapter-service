@@ -107,12 +107,12 @@ push-dockerhub-native-mr:
       -Dquarkus.package.type=native
       -Dquarkus.container-image.push=true
       -Dquarkus.container-image.name=${DOCKERHUB_IMAGE_NAME_NATIVE}
-      -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA
+      -Dquarkus.container-image.tag=mr-$CI_MERGE_REQUEST_IID
       -Dquarkus.native.additional-build-args="--initialize-at-run-time=org.apache.kafka.common.security.authenticator.SaslClientAuthenticator\\,org.apache.kafka.common.security.oauthbearer.internals.expiring.ExpiringCredentialRefreshingLogin"
       -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
       -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
-    - echo "Image was uploaded to Dockerhub; explorviz/user-service-native:$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA"
+    - echo "Image was uploaded to Dockerhub; explorviz/user-service-native:mr-$CI_MERGE_REQUEST_IID"
 
 .push-dockerhub-base-job:
   stage: publish
@@ -139,7 +139,7 @@ push-dockerhub-mr:
     - ./gradlew clean assemble
       -Dquarkus.container-image.build=true
       -Dquarkus.container-image.push=true
-      -Dquarkus.container-image.tag=$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
+      -Dquarkus.container-image.tag=mr-$CI_MERGE_REQUEST_IID -Dquarkus.container-image.username=$DOCKERHUB_USERNAME
       -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
-    - echo "Image was uploaded to Dockerhub; explorviz/${DOCKERHUB_IMAGE_NAME}:$CI_MERGE_REQUEST_ID-$CI_COMMIT_SHORT_SHA"
+    - echo "Image was uploaded to Dockerhub; explorviz/${DOCKERHUB_IMAGE_NAME}:mr-$CI_MERGE_REQUEST_IID"
