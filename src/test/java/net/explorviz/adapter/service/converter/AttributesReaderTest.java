@@ -9,6 +9,9 @@ import io.opentelemetry.proto.trace.v1.Span;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import net.explorviz.adapter.service.validation.StrictValidator;
 import org.junit.jupiter.api.Test;
 
 public class AttributesReaderTest {
@@ -31,6 +34,12 @@ public class AttributesReaderTest {
   private static final String APP_INSTANCE_ID = "1234L";
   private static final String APP_LANG = "java";
   private static final String FQN = "foo.bar.test()";
+  private static final String K8S_POD_NAME = "my name is pod. james pod.";
+  private static final String K8S_NAMESPACE = "name ";
+  private static final String K8S_DEPLOYMENT = "iraq. i committed war crimes there, ordered by the US government.";
+  private static final String K8S_NODE = "node.js";
+
+
 
 
   @Test
@@ -39,14 +48,8 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
+    assertExcept(reader, null);
+    
   }
 
   @Test
@@ -55,15 +58,9 @@ public class AttributesReaderTest {
     attr = removeElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, attr);
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
-
+    
+    assertExcept(reader, AttributesReader.LANDSCAPE_TOKEN);
     assertEquals(reader.getLandscapeToken(), DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
 
   @Test
@@ -72,15 +69,9 @@ public class AttributesReaderTest {
     attr = removeElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, attr);
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
-
-    assertEquals(reader.getLandscapeToken(), TOKEN);
+    
+    assertExcept(reader, AttributesReader.TOKEN_SECRET);
     assertEquals(reader.getSecret(), DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
 
   @Test
@@ -90,14 +81,8 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
+    assertExcept(reader, AttributesReader.HOST_NAME);
     assertEquals(reader.getHostName(), DefaultAttributeValues.DEFAULT_HOST_NAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
 
   @Test
@@ -107,14 +92,8 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
+    assertExcept(reader, AttributesReader.HOST_IP);
     assertEquals(reader.getHostIpAddress(), DefaultAttributeValues.DEFAULT_HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
 
   @Test
@@ -124,14 +103,8 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
+    assertExcept(reader, AttributesReader.APPLICATION_NAME);
     assertEquals(reader.getApplicationName(), DefaultAttributeValues.DEFAULT_APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
 
   @Test
@@ -141,14 +114,8 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
+    assertExcept(reader, AttributesReader.APPLICATION_INSTANCE_ID);
     assertEquals(reader.getApplicationInstanceId(), DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
 
   @Test
@@ -158,15 +125,10 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
+    assertExcept(reader, AttributesReader.APPLICATION_LANGUAGE);
     assertEquals(reader.getApplicationLanguage(), DefaultAttributeValues.DEFAULT_APP_LANG);
-    assertEquals(reader.getMethodFqn(), FQN);
   }
+
 
   @Test
   void testDefaultFqnReadOut() {
@@ -175,14 +137,38 @@ public class AttributesReaderTest {
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
 
-    assertEquals(reader.getLandscapeToken(), TOKEN);
-    assertEquals(reader.getSecret(), SECRET);
-    assertEquals(reader.getHostName(), HOSTNAME);
-    assertEquals(reader.getHostIpAddress(), HOST_IP);
-    assertEquals(reader.getApplicationName(), APP_NAME);
-    assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    assertEquals(reader.getApplicationLanguage(), APP_LANG);
+    assertExcept(reader, AttributesReader.METHOD_FQN);
     assertEquals(reader.getMethodFqn(), DefaultAttributeValues.DEFAULT_FQN);
+  }
+  
+  void assertExcept(AttributesReader reader, String except){
+    if(!Objects.equals(except, AttributesReader.LANDSCAPE_TOKEN))
+        assertEquals(reader.getLandscapeToken(), TOKEN);
+    if(!Objects.equals(except, AttributesReader.TOKEN_SECRET))
+        assertEquals(reader.getSecret(), SECRET);
+    if(!Objects.equals(except, AttributesReader.HOST_NAME))
+        assertEquals(reader.getHostName(), HOSTNAME);
+    if(!Objects.equals(except, AttributesReader.HOST_IP))
+        assertEquals(reader.getHostIpAddress(), HOST_IP);
+    if(!Objects.equals(except, AttributesReader.APPLICATION_NAME))
+        assertEquals(reader.getApplicationName(), APP_NAME);
+    if(!Objects.equals(except, AttributesReader.APPLICATION_INSTANCE_ID))
+        assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
+    if(!Objects.equals(except, AttributesReader.APPLICATION_LANGUAGE))
+        assertEquals(reader.getApplicationLanguage(), APP_LANG);
+    if(!Objects.equals(except, AttributesReader.METHOD_FQN))
+      assertEquals(reader.getMethodFqn(), FQN);
+    
+    // k8s stuff
+    if(!Objects.equals(except, AttributesReader.K8S_POD_NAME))
+        assertEquals(reader.getK8sPodName(), K8S_POD_NAME);
+    if(!Objects.equals(except, AttributesReader.K8S_NAMESPACE_NAME))
+        assertEquals(reader.getK8sNamespace(), K8S_NAMESPACE);
+    if(!Objects.equals(except, AttributesReader.K8S_DEPLOYMENT_NAME))
+        assertEquals(reader.getK8sDeploymentName(), K8S_DEPLOYMENT);
+    if(!Objects.equals(except, AttributesReader.K8S_NODE_NAME))
+        assertEquals(reader.getK8sNodeName(), K8S_NODE);
+
   }
 
   private List<KeyValue> generateValidAttributesMap() {
@@ -212,6 +198,11 @@ public class AttributesReaderTest {
     attributes.add(KeyValue.newBuilder().setKey(KEY_METHOD_FQN)
         .setValue(AnyValue.newBuilder().setStringValue(FQN).build()).build());
 
+    attributes.add(newKeyValueString(AttributesReader.K8S_POD_NAME, K8S_POD_NAME));
+    attributes.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, K8S_NAMESPACE));
+    attributes.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, K8S_DEPLOYMENT));
+    attributes.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, K8S_NODE));
+
     return attributes;
   }
 
@@ -240,6 +231,22 @@ public class AttributesReaderTest {
     }
 
     return resultList;
+  }
+
+
+  // TODO: dont do code duplication with StrictValidatorTest.newKeyValueString
+  // this should be done when replacing all 
+  // KeyValue.newBuilder().setKey(KEY_HOST_IP).setValue(AnyValue.newBuilder().setStringValue(HOST_IP).build()).build()
+  // with this method.
+  // i am not doing this here, because i am implementing a specific feature; not refactoring the whole project.
+  // so pwease forgive me, uwu
+  //
+  // i am not quite sure if this sounds condescending.
+  // if yes: it's not meant to be.
+  // i cant tell since im autistic *jazz hands*
+  public static KeyValue newKeyValueString(String key, String value){
+    return KeyValue.newBuilder().setKey(key)
+        .setValue(AnyValue.newBuilder().setStringValue(value)).build();
   }
 
 }

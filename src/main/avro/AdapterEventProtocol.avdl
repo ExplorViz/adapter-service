@@ -36,6 +36,12 @@ protocol AdapterEventProtocol {
     string appName;
     string appInstanceId;
     string appLanguage;
+    
+    
+    // k8s specific stuff
+    string k8sPodName = "";
+    string k8sNodeName = "";
+    string k8sNamespace = "";
+    string k8sDeploymentName = "";
 	}
-
 }

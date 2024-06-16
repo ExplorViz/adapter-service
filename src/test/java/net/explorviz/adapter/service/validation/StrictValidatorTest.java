@@ -346,4 +346,62 @@ class StrictValidatorTest {
 
     assertFalse(this.validator.isValid(valid));
   }
+  
+  @Test 
+  void testValidK8sStuffWithNonEmpty(){
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
+    attrMap.add(newKeyValueString(AttributesReader.K8S_POD_NAME, "pod1"));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, "deployment1"));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, "node1"));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, "namespace1"));
+    final Span s = this.generateSpanFromAttributesMap(attrMap);
+    assertTrue(this.validator.isValid(s));
+  }
+
+  @Test
+  void testValidK8sStuffWithEmptyActivelySet(){
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
+    attrMap.add(newKeyValueString(AttributesReader.K8S_POD_NAME, ""));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, ""));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, ""));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, ""));
+    final Span s = this.generateSpanFromAttributesMap(attrMap);
+    assertTrue(this.validator.isValid(s));
+  }
+
+  @Test
+  void testValidK8sStuffWithEmptyUnset(){
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
+    final Span s = this.generateSpanFromAttributesMap(attrMap);
+    assertTrue(this.validator.isValid(s));
+  }
+
+  @Test
+  void testInvalidK8sStuff(){
+    // iter over all possible combinations of invalid set/not set combinations
+    for(var i = 0b0001; i <= 0b1110; i++) {
+      List<KeyValue> attrMap = this.generateValidAttributesMap();
+      
+      if ((i & 0b0001) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_POD_NAME, "pod1"));
+      }
+      if ((i & 0b0010) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, "deployment1"));
+      }
+      if ((i & 0b0100) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, "node1"));
+      }
+      if ((i & 0b1000) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, "namespace1"));
+      }
+      
+      final Span s = this.generateSpanFromAttributesMap(attrMap);
+      assertFalse(this.validator.isValid(s));
+    }
+  }
+
+  public static KeyValue newKeyValueString(String key, String value){
+    return KeyValue.newBuilder().setKey(key)
+        .setValue(AnyValue.newBuilder().setStringValue(value)).build();
+  }
 }

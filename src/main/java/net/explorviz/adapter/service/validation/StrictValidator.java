@@ -3,6 +3,7 @@ package net.explorviz.adapter.service.validation;
 import io.opentelemetry.proto.trace.v1.Span;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.security.PublicKey;
 import java.time.DateTimeException;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
@@ -43,7 +44,8 @@ public class StrictValidator implements SpanValidator {
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
         && this.validateApp(spanAttributes.getApplicationName(),
         spanAttributes.getApplicationLanguage())
-        && this.validateOperation(spanAttributes.getMethodFqn());
+        && this.validateOperation(spanAttributes.getMethodFqn())
+        && this.validateK8s(spanAttributes);
   }
 
   private boolean validateToken(final String token, final String givenSecret) {
@@ -151,4 +153,15 @@ public class StrictValidator implements SpanValidator {
     return s == null || s.isBlank();
   }
 
+  private boolean validateK8s(AttributesReader spanAttributes) {
+    final var hasPodName = !spanAttributes.getK8sPodName().isEmpty();
+    final var hasNamespace = !spanAttributes.getK8sNamespace().isEmpty();
+    final var hasNodeName = !spanAttributes.getK8sNodeName().isEmpty();
+    final var hasDeployment = !spanAttributes.getK8sDeploymentName().isEmpty();
+
+    final var hasAll = hasPodName && hasNamespace && hasNodeName && hasDeployment;
+    final var hasNone = !hasPodName && !hasNamespace && !hasNodeName && !hasDeployment;
+    
+    return hasAll || hasNone;
+  }
 }
