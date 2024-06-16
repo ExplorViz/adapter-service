@@ -140,15 +140,15 @@ public class AttributesReader {
   }
   
   public String getK8sNamespace() {
-      return this.getAsString(K8S_NAMESPACE_NAME).orElse("");
+    return this.getAsString(K8S_NAMESPACE_NAME).orElse("");
   }
   
   public String getK8sNodeName() {
-      return this.getAsString(K8S_NODE_NAME).orElse("");
+    return this.getAsString(K8S_NODE_NAME).orElse("");
   }
-  
+
   public String getK8sDeploymentName() {
-      return this.getAsString(K8S_DEPLOYMENT_NAME).orElse("");
+    return this.getAsString(K8S_DEPLOYMENT_NAME).orElse("");
   }
   
 
