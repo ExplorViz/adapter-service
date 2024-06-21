@@ -45,7 +45,6 @@ public class AttributesReader {
    */
   public static final String APPLICATION_NAME = "application_name";
 
-
   /**
    * The instance id of the application.
    */
@@ -65,7 +64,6 @@ public class AttributesReader {
    * Default values
    */
 
-
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
 
   /**
@@ -79,7 +77,6 @@ public class AttributesReader {
       attributes.put(keyValue.getKey(), keyValue.getValue());
     });
   }
-
 
   /**
    * Unwraps an AttributeValue of into a string.
@@ -129,9 +126,11 @@ public class AttributesReader {
   }
 
   /**
-   * Appends all attributes to the given {{@link net.explorviz.avro.Span}} builder.
-   * The fqn holds an exception, since we want tp process the spanIDs as method names and therefore
-   * we set the fqn to the one we set in the {{@link net.explorviz.avro.Span}} converter.
+   * Appends all attributes to the given {{@link net.explorviz.avro.Span}}
+   * builder. The fqn holds an
+   * exception, since we want to process the span names as method names and
+   * therefore we set the fqn
+   * to the one we set in the {{@link net.explorviz.avro.Span}} converter.
    *
    * @param builder the builder to append the attributes to
    */

@@ -99,7 +99,6 @@ public class TopologyProducer {
     final KStream<String, net.explorviz.avro.Span> explorvizSpanStream = validSpanStream.map(
         (key, value) -> {
           final net.explorviz.avro.Span span = this.spanConverter.fromOpenTelemetrySpan(value);
-          System.out.print(" FQN: " + span.getFullyQualifiedOperationName());
           return new KeyValue<>(span.getLandscapeToken(), span);
         });
 
