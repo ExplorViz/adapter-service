@@ -64,6 +64,13 @@ public class AttributesReader {
   /*
    * Default values
    */
+  
+  // k8s section
+
+  public static final String K8S_POD_NAME = "k8s.pod.name";
+  public static final String K8S_NAMESPACE_NAME = "k8s.namespace.name";
+  public static final String K8S_NODE_NAME = "k8s.node.name";
+  public static final String K8S_DEPLOYMENT_NAME = "k8s.deployment.name";
 
 
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
@@ -127,6 +134,23 @@ public class AttributesReader {
   public String getMethodFqn() {
     return this.getAsString(METHOD_FQN).orElse(DEFAULT_FQN);
   }
+  
+  public String getK8sPodName() {
+    return this.getAsString(K8S_POD_NAME).orElse("");
+  }
+  
+  public String getK8sNamespace() {
+    return this.getAsString(K8S_NAMESPACE_NAME).orElse("");
+  }
+  
+  public String getK8sNodeName() {
+    return this.getAsString(K8S_NODE_NAME).orElse("");
+  }
+
+  public String getK8sDeploymentName() {
+    return this.getAsString(K8S_DEPLOYMENT_NAME).orElse("");
+  }
+  
 
   /**
    * Appends all attributes to the given {{@link net.explorviz.avro.Span}} builder.
@@ -141,7 +165,10 @@ public class AttributesReader {
         .setAppInstanceId(this.getApplicationInstanceId())
         .setAppName(this.getApplicationName())
         .setAppLanguage(this.getApplicationLanguage())
-        .setFullyQualifiedOperationName(this.getMethodFqn());
+        .setFullyQualifiedOperationName(this.getMethodFqn())
+        .setK8sPodName(this.getK8sPodName())
+        .setK8sNamespace(this.getK8sNamespace())
+        .setK8sNodeName(this.getK8sNodeName())
+        .setK8sDeploymentName(this.getK8sDeploymentName());
   }
-
 }
