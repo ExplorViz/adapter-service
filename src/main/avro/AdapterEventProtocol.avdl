@@ -28,6 +28,7 @@ protocol AdapterEventProtocol {
     string spanId;
     string parentSpanId;
     string traceId;
+    string name = "";
     long startTimeEpochMilli;
     long endTimeEpochMilli;
     string fullyQualifiedOperationName;

@@ -3,11 +3,12 @@ package net.explorviz.adapter.service.converter;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
-import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_CLASS_FQN;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_METHOD;
 
 import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.trace.v1.Span;
@@ -64,7 +65,7 @@ public class AttributesReader {
   /*
    * Default values
    */
-  
+
   // k8s section
 
   public static final String K8S_POD_NAME = "k8s.pod.name";
@@ -75,12 +76,16 @@ public class AttributesReader {
 
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
 
+  private Span span = null;
+
   /**
    * Reads attributes from a span.
    *
    * @param span the span to read attributes out of
    */
   public AttributesReader(final Span span) {
+    this.span = span;
+
     // Load attributes into map
     span.getAttributesList().forEach(keyValue -> {
       attributes.put(keyValue.getKey(), keyValue.getValue());
@@ -132,17 +137,21 @@ public class AttributesReader {
   }
 
   public String getMethodFqn() {
-    return this.getAsString(METHOD_FQN).orElse(DEFAULT_FQN);
+    String methodName = this.span.getName();
+    if (methodName.isEmpty()) {
+      methodName = DEFAULT_METHOD;
+    }
+    return this.getAsString(METHOD_FQN).orElse(DEFAULT_CLASS_FQN + methodName);
   }
-  
+
   public String getK8sPodName() {
     return this.getAsString(K8S_POD_NAME).orElse("");
   }
-  
+
   public String getK8sNamespace() {
     return this.getAsString(K8S_NAMESPACE_NAME).orElse("");
   }
-  
+
   public String getK8sNodeName() {
     return this.getAsString(K8S_NODE_NAME).orElse("");
   }
@@ -150,7 +159,7 @@ public class AttributesReader {
   public String getK8sDeploymentName() {
     return this.getAsString(K8S_DEPLOYMENT_NAME).orElse("");
   }
-  
+
 
   /**
    * Appends all attributes to the given {{@link net.explorviz.avro.Span}} builder.

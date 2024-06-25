@@ -10,8 +10,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import net.explorviz.adapter.service.validation.StrictValidator;
 import org.junit.jupiter.api.Test;
 
 public class AttributesReaderTest {
@@ -34,11 +32,11 @@ public class AttributesReaderTest {
   private static final String APP_INSTANCE_ID = "1234L";
   private static final String APP_LANG = "java";
   private static final String FQN = "foo.bar.test()";
+  private static final String NAME = "span name";
   private static final String K8S_POD_NAME = "my name is pod. james pod.";
   private static final String K8S_NAMESPACE = "name ";
-  private static final String K8S_DEPLOYMENT = "iraq. i committed war crimes there, ordered by the US government.";
+  private static final String K8S_DEPLOYMENT = "deployment name";
   private static final String K8S_NODE = "node.js";
-
 
 
 
@@ -49,7 +47,7 @@ public class AttributesReaderTest {
     final AttributesReader reader = new AttributesReader(span);
 
     assertExcept(reader, null);
-    
+
   }
 
   @Test
@@ -58,7 +56,7 @@ public class AttributesReaderTest {
     attr = removeElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, attr);
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
-    
+
     assertExcept(reader, AttributesReader.LANDSCAPE_TOKEN);
     assertEquals(reader.getLandscapeToken(), DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN);
   }
@@ -69,7 +67,7 @@ public class AttributesReaderTest {
     attr = removeElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, attr);
     Span span = generateSpanFromAttributesMap(attr);
     final AttributesReader reader = new AttributesReader(span);
-    
+
     assertExcept(reader, AttributesReader.TOKEN_SECRET);
     assertEquals(reader.getSecret(), DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET);
   }
@@ -138,36 +136,48 @@ public class AttributesReaderTest {
     final AttributesReader reader = new AttributesReader(span);
 
     assertExcept(reader, AttributesReader.METHOD_FQN);
-    assertEquals(reader.getMethodFqn(), DefaultAttributeValues.DEFAULT_FQN);
+    assertEquals(reader.getMethodFqn(), DefaultAttributeValues.DEFAULT_CLASS_FQN + span.getName());
   }
-  
-  void assertExcept(AttributesReader reader, String except){
-    if(!Objects.equals(except, AttributesReader.LANDSCAPE_TOKEN))
-        assertEquals(reader.getLandscapeToken(), TOKEN);
-    if(!Objects.equals(except, AttributesReader.TOKEN_SECRET))
-        assertEquals(reader.getSecret(), SECRET);
-    if(!Objects.equals(except, AttributesReader.HOST_NAME))
-        assertEquals(reader.getHostName(), HOSTNAME);
-    if(!Objects.equals(except, AttributesReader.HOST_IP))
-        assertEquals(reader.getHostIpAddress(), HOST_IP);
-    if(!Objects.equals(except, AttributesReader.APPLICATION_NAME))
-        assertEquals(reader.getApplicationName(), APP_NAME);
-    if(!Objects.equals(except, AttributesReader.APPLICATION_INSTANCE_ID))
-        assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
-    if(!Objects.equals(except, AttributesReader.APPLICATION_LANGUAGE))
-        assertEquals(reader.getApplicationLanguage(), APP_LANG);
-    if(!Objects.equals(except, AttributesReader.METHOD_FQN))
+
+  void assertExcept(AttributesReader reader, String except) {
+    if (!Objects.equals(except, AttributesReader.LANDSCAPE_TOKEN)) {
+      assertEquals(reader.getLandscapeToken(), TOKEN);
+    }
+    if (!Objects.equals(except, AttributesReader.TOKEN_SECRET)) {
+      assertEquals(reader.getSecret(), SECRET);
+    }
+    if (!Objects.equals(except, AttributesReader.HOST_NAME)) {
+      assertEquals(reader.getHostName(), HOSTNAME);
+    }
+    if (!Objects.equals(except, AttributesReader.HOST_IP)) {
+      assertEquals(reader.getHostIpAddress(), HOST_IP);
+    }
+    if (!Objects.equals(except, AttributesReader.APPLICATION_NAME)) {
+      assertEquals(reader.getApplicationName(), APP_NAME);
+    }
+    if (!Objects.equals(except, AttributesReader.APPLICATION_INSTANCE_ID)) {
+      assertEquals(reader.getApplicationInstanceId(), APP_INSTANCE_ID);
+    }
+    if (!Objects.equals(except, AttributesReader.APPLICATION_LANGUAGE)) {
+      assertEquals(reader.getApplicationLanguage(), APP_LANG);
+    }
+    if (!Objects.equals(except, AttributesReader.METHOD_FQN)) {
       assertEquals(reader.getMethodFqn(), FQN);
-    
+    }
+
     // k8s stuff
-    if(!Objects.equals(except, AttributesReader.K8S_POD_NAME))
-        assertEquals(reader.getK8sPodName(), K8S_POD_NAME);
-    if(!Objects.equals(except, AttributesReader.K8S_NAMESPACE_NAME))
-        assertEquals(reader.getK8sNamespace(), K8S_NAMESPACE);
-    if(!Objects.equals(except, AttributesReader.K8S_DEPLOYMENT_NAME))
-        assertEquals(reader.getK8sDeploymentName(), K8S_DEPLOYMENT);
-    if(!Objects.equals(except, AttributesReader.K8S_NODE_NAME))
-        assertEquals(reader.getK8sNodeName(), K8S_NODE);
+    if (!Objects.equals(except, AttributesReader.K8S_POD_NAME)) {
+      assertEquals(reader.getK8sPodName(), K8S_POD_NAME);
+    }
+    if (!Objects.equals(except, AttributesReader.K8S_NAMESPACE_NAME)) {
+      assertEquals(reader.getK8sNamespace(), K8S_NAMESPACE);
+    }
+    if (!Objects.equals(except, AttributesReader.K8S_DEPLOYMENT_NAME)) {
+      assertEquals(reader.getK8sDeploymentName(), K8S_DEPLOYMENT);
+    }
+    if (!Objects.equals(except, AttributesReader.K8S_NODE_NAME)) {
+      assertEquals(reader.getK8sNodeName(), K8S_NODE);
+    }
 
   }
 
@@ -212,6 +222,7 @@ public class AttributesReaderTest {
             ByteString.copyFrom("50c246ad9c9883d1558df9f19b9ae7a6", Charset.defaultCharset()))
         .setSpanId(ByteString.copyFrom("7ef83c66eabd5fbb", Charset.defaultCharset()))
         .setParentSpanId(ByteString.copyFrom("7ef83c66efe42aaa", Charset.defaultCharset()))
+        .setName("span_name")
         .setStartTimeUnixNano(1667986986000L)
         .setEndTimeUnixNano(1667987046000L)
         .addAllAttributes(attributes).build();
@@ -244,7 +255,7 @@ public class AttributesReaderTest {
   // i am not quite sure if this sounds condescending.
   // if yes: it's not meant to be.
   // i cant tell since im autistic *jazz hands*
-  public static KeyValue newKeyValueString(String key, String value){
+  public static KeyValue newKeyValueString(String key, String value) {
     return KeyValue.newBuilder().setKey(key)
         .setValue(AnyValue.newBuilder().setStringValue(value)).build();
   }
