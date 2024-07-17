@@ -156,7 +156,7 @@ public class AttributesReader {
     Optional<String> codeFunction = this.getAsString(CODE_FUNCTION);
     Optional<String> methodFqn = this.getAsString(METHOD_FQN);
 
-    return codeNamespace.flatMap(classFqn -> codeFunction.map(methodName -> classFqn + "." + methodName))
+    return codeNamespace.flatMap(classFqn -> codeFunction.map(method -> classFqn + "." + method))
         .or(() -> methodFqn)
         .orElse(DEFAULT_CLASS_FQN + fallbackMethodName);
   }
