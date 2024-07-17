@@ -53,9 +53,19 @@ public class AttributesReader {
   public static final String APPLICATION_INSTANCE_ID = "application_instance_id";
 
   /**
-   * The PID of the applicatino a span belongs to.
+   * The programming language that the application is written in.
    */
   public static final String APPLICATION_LANGUAGE = "application_language";
+
+  /**
+   * The identifier of the operation/method called.
+   */
+  public static final String CODE_FUNCTION = "code.function";
+
+  /**
+   * The fully qualified class name to which the called operation/method belongs.
+   */
+  public static final String CODE_NAMESPACE = "code.namespace";
 
   /**
    * The fully qualified name of the operation/method called.
@@ -137,11 +147,18 @@ public class AttributesReader {
   }
 
   public String getMethodFqn() {
-    String methodName = this.span.getName();
-    if (methodName.isEmpty()) {
-      methodName = DEFAULT_METHOD;
+    String fallbackMethodName = this.span.getName();
+    if (fallbackMethodName.isEmpty()) {
+      fallbackMethodName = DEFAULT_METHOD;
     }
-    return this.getAsString(METHOD_FQN).orElse(DEFAULT_CLASS_FQN + methodName);
+
+    Optional<String> codeNamespace = this.getAsString(CODE_NAMESPACE);
+    Optional<String> codeFunction = this.getAsString(CODE_FUNCTION);
+    Optional<String> methodFqn = this.getAsString(METHOD_FQN);
+
+    return codeNamespace.flatMap(classFqn -> codeFunction.map(methodName -> classFqn + "." + methodName))
+        .or(() -> methodFqn)
+        .orElse(DEFAULT_CLASS_FQN + fallbackMethodName);
   }
 
   public String getK8sPodName() {
