@@ -246,7 +246,7 @@ public class AttributesReaderTest {
   }
 
 
-  // TODO: dont do code duplication with StrictValidatorTest.newKeyValueString
+  // TODO: dont do code duplication with DefaultValidatorTest.newKeyValueString
   // this should be done when replacing all 
   // KeyValue.newBuilder().setKey(KEY_HOST_IP).setValue(AnyValue.newBuilder().setStringValue(HOST_IP).build()).build()
   // with this method.

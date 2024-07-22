@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-class StrictValidatorTest {
+class DefaultSpanValidatorTest {
 
   private static final String KEY_LANDSCAPE_TOKEN = AttributesReader.LANDSCAPE_TOKEN;
   private static final String KEY_LANDSCAPE_SECRET = AttributesReader.TOKEN_SECRET;
@@ -38,7 +38,7 @@ class StrictValidatorTest {
   private static final String APP_LANG = "java";
   private static final String FQN = "foo.bar.test()";
 
-  private StrictValidator validator;
+  private DefaultSpanValidator validator;
   private AttributesReader validSpan;
 
   @BeforeEach
@@ -46,7 +46,7 @@ class StrictValidatorTest {
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
     Mockito.when(mockTokenService.validLandscapeTokenValueAndSecret(Matchers.anyString(),
         Matchers.anyString())).thenReturn(true);
-    this.validator = new StrictValidator(mockTokenService);
+    this.validator = new DefaultSpanValidator(mockTokenService);
 
     final String token = "tok";
     final String secret = "secret";
@@ -327,7 +327,7 @@ class StrictValidatorTest {
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
     Mockito.when(mockTokenService.validLandscapeTokenValueAndSecret(Matchers.anyString(),
         Matchers.anyString())).thenReturn(false);
-    this.validator = new StrictValidator(mockTokenService);
+    this.validator = new DefaultSpanValidator(mockTokenService);
     this.validator.validateTokens = true;
 
     assertFalse(this.validator.isValid(valid));
