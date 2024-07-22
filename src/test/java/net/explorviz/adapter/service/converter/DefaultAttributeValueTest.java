@@ -33,7 +33,7 @@ public class DefaultAttributeValueTest {
 
   @Test
   void testDefaultInstanceId() {
-    assertEquals(DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID, "default");
+    assertEquals(DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID, "0");
   }
 
 
