@@ -136,7 +136,8 @@ public class AttributesReaderTest {
     final AttributesReader reader = new AttributesReader(span);
 
     assertExcept(reader, AttributesReader.METHOD_FQN);
-    assertEquals(reader.getMethodFqn(), DefaultAttributeValues.DEFAULT_CLASS_FQN + span.getName());
+    assertEquals(reader.getMethodFqn(),
+        DefaultAttributeValues.DEFAULT_CLASS_FQN + "." + span.getName());
   }
 
   void assertExcept(AttributesReader reader, String except) {

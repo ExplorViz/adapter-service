@@ -14,6 +14,5 @@ public interface SpanValidator {
    * @return Boolean that indicates if span is valid.
    */
   boolean isValid(Span span);
-
-
+  
 }

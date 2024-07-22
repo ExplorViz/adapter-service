@@ -1,5 +1,6 @@
 package net.explorviz.adapter.service.converter;
 
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_CLASS_FQN;
@@ -166,7 +167,8 @@ public class AttributesReader {
 
   public String getApplicationInstanceId() {
     return this.getAsString(APPLICATION_INSTANCE_ID)
-        .orElseGet(() -> this.getAsString(LEGACY_APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_NAME));
+        .orElseGet(
+            () -> this.getAsString(LEGACY_APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID));
   }
 
   public String getApplicationLanguage() {
@@ -186,7 +188,7 @@ public class AttributesReader {
 
     return codeNamespace.flatMap(classFqn -> codeFunction.map(method -> classFqn + "." + method))
         .or(() -> methodFqn)
-        .orElse(DEFAULT_CLASS_FQN + fallbackMethodName);
+        .orElse(DEFAULT_CLASS_FQN + "." + fallbackMethodName);
   }
 
   public String getK8sPodName() {
