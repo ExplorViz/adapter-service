@@ -3,7 +3,6 @@ package net.explorviz.adapter.service.validation;
 import io.opentelemetry.proto.trace.v1.Span;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.security.PublicKey;
 import java.time.DateTimeException;
 import net.explorviz.adapter.service.TokenService;
 import net.explorviz.adapter.service.converter.AttributesReader;
@@ -12,12 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Validator that enforces that all values of the {@link Span} are set and valid.
+ * Validator that checks that all values of the {@link Span} are set and valid.
  */
 @ApplicationScoped
-public class StrictValidator implements SpanValidator {
+public class DefaultSpanValidator implements SpanValidator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSpanValidator.class);
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
   private final TokenService tokenService;
@@ -25,7 +24,7 @@ public class StrictValidator implements SpanValidator {
   /* default */ boolean validateTokens; // NOCS
 
   @Inject
-  public StrictValidator(final TokenService tokenService) {
+  public DefaultSpanValidator(final TokenService tokenService) {
     this.tokenService = tokenService;
   }
 
@@ -161,7 +160,7 @@ public class StrictValidator implements SpanValidator {
 
     final var hasAll = hasPodName && hasNamespace && hasNodeName && hasDeployment;
     final var hasNone = !hasPodName && !hasNamespace && !hasNodeName && !hasDeployment;
-    
+
     return hasAll || hasNone;
   }
 }

@@ -24,12 +24,22 @@ public class AttributesReader {
   /**
    * The token that uniquely identifies the landscape a span belongs to.
    */
-  public static final String LANDSCAPE_TOKEN = "landscape_token";
+  public static final String LANDSCAPE_TOKEN = "explorviz.token.id";
+
+  /**
+   * The token that uniquely identifies the landscape a span belongs to (deprecated).
+   */
+  public static final String LEGACY_LANDSCAPE_TOKEN = "landscape_token";
 
   /**
    * The token's secret.
    */
-  public static final String TOKEN_SECRET = "token_secret";
+  public static final String TOKEN_SECRET = "exlporviz.token.secret";
+
+  /**
+   * The token's secret (deprecated).
+   */
+  public static final String LEGACY_TOKEN_SECRET = "token_secret";
 
   /**
    * The name of the host.
@@ -44,21 +54,45 @@ public class AttributesReader {
   /**
    * The name of the application a span belongs to.
    */
-  public static final String APPLICATION_NAME = "application_name";
+  public static final String APPLICATION_NAME = "service.name";
 
+  /**
+   * The name of the application a span belongs to (deprecated).
+   */
+  public static final String LEGACY_APPLICATION_NAME = "application_name";
 
   /**
    * The instance id of the application.
    */
-  public static final String APPLICATION_INSTANCE_ID = "application_instance_id";
+  public static final String APPLICATION_INSTANCE_ID = "service.instance.id";
 
   /**
-   * The PID of the applicatino a span belongs to.
+   * The instance id of the application (deprecated).
    */
-  public static final String APPLICATION_LANGUAGE = "application_language";
+  public static final String LEGACY_APPLICATION_INSTANCE_ID = "application_instance_id";
 
   /**
-   * The fully qualified name of the operation/method called.
+   * The programming language that the application is written in.
+   */
+  public static final String APPLICATION_LANGUAGE = "telemetry.sdk.lanuage";
+
+  /**
+   * The programming language that the application is written in (deprecated).
+   */
+  public static final String LEGACY_APPLICATION_LANGUAGE = "application_language";
+
+  /**
+   * The identifier of the operation/method called.
+   */
+  public static final String CODE_FUNCTION = "code.function";
+
+  /**
+   * The fully qualified class name to which the called operation/method belongs.
+   */
+  public static final String CODE_NAMESPACE = "code.namespace";
+
+  /**
+   * The fully qualified name of the operation/method called (deprecated).
    */
   public static final String METHOD_FQN = "java.fqn";
 
@@ -109,11 +143,13 @@ public class AttributesReader {
   }
 
   public String getLandscapeToken() {
-    return this.getAsString(LANDSCAPE_TOKEN).orElse(DEFAULT_LANDSCAPE_TOKEN);
+    return this.getAsString(LANDSCAPE_TOKEN)
+        .orElseGet(() -> this.getAsString(LEGACY_LANDSCAPE_TOKEN).orElse(DEFAULT_LANDSCAPE_TOKEN));
   }
 
   public String getSecret() {
-    return this.getAsString(TOKEN_SECRET).orElse(DEFAULT_LANDSCAPE_SECRET);
+    return this.getAsString(TOKEN_SECRET)
+        .orElseGet(() -> this.getAsString(LEGACY_TOKEN_SECRET).orElse(DEFAULT_LANDSCAPE_SECRET));
   }
 
   public String getHostName() {
@@ -125,23 +161,34 @@ public class AttributesReader {
   }
 
   public String getApplicationName() {
-    return this.getAsString(APPLICATION_NAME).orElse(DEFAULT_APP_NAME);
+    return this.getAsString(APPLICATION_NAME)
+        .orElseGet(() -> this.getAsString(LEGACY_APPLICATION_NAME).orElse(DEFAULT_APP_NAME));
   }
 
   public String getApplicationInstanceId() {
-    return this.getAsString(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
+    return this.getAsString(APPLICATION_INSTANCE_ID)
+        .orElseGet(
+            () -> this.getAsString(LEGACY_APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID));
   }
 
   public String getApplicationLanguage() {
-    return this.getAsString(APPLICATION_LANGUAGE).orElse(DEFAULT_APP_LANG);
+    return this.getAsString(APPLICATION_LANGUAGE)
+        .orElseGet(() -> this.getAsString(LEGACY_APPLICATION_LANGUAGE).orElse(DEFAULT_APP_LANG));
   }
 
   public String getMethodFqn() {
-    String methodName = this.span.getName();
-    if (methodName.isEmpty()) {
-      methodName = DEFAULT_METHOD;
+    String fallbackMethodName = this.span.getName();
+    if (fallbackMethodName.isEmpty()) {
+      fallbackMethodName = DEFAULT_METHOD;
     }
-    return this.getAsString(METHOD_FQN).orElse(DEFAULT_CLASS_FQN + methodName);
+
+    Optional<String> codeNamespace = this.getAsString(CODE_NAMESPACE);
+    Optional<String> codeFunction = this.getAsString(CODE_FUNCTION);
+    Optional<String> methodFqn = this.getAsString(METHOD_FQN);
+
+    return codeNamespace.flatMap(classFqn -> codeFunction.map(method -> classFqn + "." + method))
+        .or(() -> methodFqn)
+        .orElse(DEFAULT_CLASS_FQN + "." + fallbackMethodName);
   }
 
   public String getK8sPodName() {
