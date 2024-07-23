@@ -34,7 +34,7 @@ public class AttributesReader {
   /**
    * The token's secret.
    */
-  public static final String TOKEN_SECRET = "exlporviz.token.secret";
+  public static final String TOKEN_SECRET = "explorviz.token.secret";
 
   /**
    * The token's secret (deprecated).
@@ -74,7 +74,7 @@ public class AttributesReader {
   /**
    * The programming language that the application is written in.
    */
-  public static final String APPLICATION_LANGUAGE = "telemetry.sdk.lanuage";
+  public static final String APPLICATION_LANGUAGE = "telemetry.sdk.language";
 
   /**
    * The programming language that the application is written in (deprecated).
