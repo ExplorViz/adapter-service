@@ -144,12 +144,14 @@ public class AttributesReader {
 
   public String getLandscapeToken() {
     return this.getAsString(LANDSCAPE_TOKEN)
-        .orElseGet(() -> this.getAsString(LEGACY_LANDSCAPE_TOKEN).orElse(DEFAULT_LANDSCAPE_TOKEN));
+        .or(() -> this.getAsString(LEGACY_LANDSCAPE_TOKEN))
+        .orElse(DEFAULT_LANDSCAPE_TOKEN);
   }
 
   public String getSecret() {
     return this.getAsString(TOKEN_SECRET)
-        .orElseGet(() -> this.getAsString(LEGACY_TOKEN_SECRET).orElse(DEFAULT_LANDSCAPE_SECRET));
+        .or(() -> this.getAsString(LEGACY_TOKEN_SECRET))
+        .orElse(DEFAULT_LANDSCAPE_SECRET);
   }
 
   public String getHostName() {
@@ -162,18 +164,20 @@ public class AttributesReader {
 
   public String getApplicationName() {
     return this.getAsString(APPLICATION_NAME)
-        .orElseGet(() -> this.getAsString(LEGACY_APPLICATION_NAME).orElse(DEFAULT_APP_NAME));
+        .or(() -> this.getAsString(LEGACY_APPLICATION_NAME))
+        .orElse(DEFAULT_APP_NAME);
   }
 
   public String getApplicationInstanceId() {
     return this.getAsString(APPLICATION_INSTANCE_ID)
-        .orElseGet(
-            () -> this.getAsString(LEGACY_APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID));
+        .or(() -> this.getAsString(LEGACY_APPLICATION_INSTANCE_ID))
+        .orElse(DEFAULT_APP_INSTANCE_ID);
   }
 
   public String getApplicationLanguage() {
     return this.getAsString(APPLICATION_LANGUAGE)
-        .orElseGet(() -> this.getAsString(LEGACY_APPLICATION_LANGUAGE).orElse(DEFAULT_APP_LANG));
+        .or(() -> this.getAsString(LEGACY_APPLICATION_LANGUAGE))
+        .orElse(DEFAULT_APP_LANG);
   }
 
   public String getMethodFqn() {
