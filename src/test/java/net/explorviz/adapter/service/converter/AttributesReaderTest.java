@@ -140,6 +140,41 @@ public class AttributesReaderTest {
         DefaultAttributeValues.DEFAULT_CLASS_FQN + "." + span.getName());
   }
 
+  @Test
+  void testFqnFromNameReadOut() {
+    String outerPackage = "net";
+    String innerPackage = "explorviz";
+    String className = "Reader";
+    String methodName = "someNiceMethod()";
+
+    // Only method name given
+    Span span = Span.newBuilder().setName(methodName).build();
+    AttributesReader reader = new AttributesReader(span);
+    assertEquals(
+        DefaultAttributeValues.DEFAULT_CLASS_FQN + "." + methodName, reader.getMethodFqn());
+
+    // Class and method given
+    span = Span.newBuilder().setName(className + "." + methodName).build();
+    reader = new AttributesReader(span);
+    assertEquals(
+        DefaultAttributeValues.DEFAULT_PACKAGE_NAME + "." + className + "." + methodName,
+        reader.getMethodFqn());
+
+    // Class and package given
+    span = Span.newBuilder().setName(innerPackage + "." + className + "." + methodName).build();
+    reader = new AttributesReader(span);
+    assertEquals(
+        innerPackage + "." + className + "." + methodName, reader.getMethodFqn());
+
+    // Class and two packages given
+    span = Span.newBuilder()
+        .setName(outerPackage + "." + innerPackage + "." + className + "." + methodName).build();
+    reader = new AttributesReader(span);
+    assertEquals(
+        outerPackage + "." + innerPackage + "." + className + "." + methodName,
+        reader.getMethodFqn());
+  }
+
   void assertExcept(AttributesReader reader, String except) {
     if (!Objects.equals(except, AttributesReader.LANDSCAPE_TOKEN)) {
       assertEquals(reader.getLandscapeToken(), TOKEN);

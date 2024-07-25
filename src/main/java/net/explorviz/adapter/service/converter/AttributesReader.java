@@ -9,12 +9,14 @@ import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEF
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_METHOD;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_PACKAGE_NAME;
 
 import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Reads the attributes of a {@link Span}.
@@ -181,18 +183,34 @@ public class AttributesReader {
   }
 
   public String getMethodFqn() {
-    String fallbackMethodName = this.span.getName();
-    if (fallbackMethodName.isEmpty()) {
-      fallbackMethodName = DEFAULT_METHOD;
-    }
-
     Optional<String> codeNamespace = this.getAsString(CODE_NAMESPACE);
     Optional<String> codeFunction = this.getAsString(CODE_FUNCTION);
     Optional<String> methodFqn = this.getAsString(METHOD_FQN);
 
     return codeNamespace.flatMap(classFqn -> codeFunction.map(method -> classFqn + "." + method))
         .or(() -> methodFqn)
-        .orElse(DEFAULT_CLASS_FQN + "." + fallbackMethodName);
+        .orElse(this.generateMethodFqnFromSpanName());
+  }
+
+  private String generateMethodFqnFromSpanName() {
+    String spanName = this.span.getName();
+
+    if (spanName == null || spanName.isEmpty()) {
+      return DEFAULT_METHOD;
+    }
+
+    int hierarchyDepth = StringUtils.countMatches(spanName, ".");
+
+    if (hierarchyDepth == 0) {
+      return DEFAULT_CLASS_FQN + "." + spanName;
+    }
+
+    if (hierarchyDepth == 1) {
+      return DEFAULT_PACKAGE_NAME + "." + spanName;
+    }
+
+    // Span name on its own syntactically contains FQN
+    return spanName;
   }
 
   public String getK8sPodName() {

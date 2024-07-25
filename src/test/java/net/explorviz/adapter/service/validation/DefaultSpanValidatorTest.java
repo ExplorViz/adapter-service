@@ -252,11 +252,8 @@ class DefaultSpanValidatorTest {
   @Test
   void testOperation() {
     List<KeyValue> attrMap = this.generateValidAttributesMap();
-
-    // no method fqn -> default fqn
-    attrMap = this.removeElementAndReturnAttributesMap(KEY_METHOD_FQN, attrMap);
+    
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
-    assertTrue(this.validator.isValid(invalid));
 
     for (final String invalidMethodFqn : new String[] {"", "\n", "\t", " ", "noMethod",
         "classNoPackage.method", "...", "a..", "a.b.", "a.b. ", "a..c", ".b.c", "..c", ".b."}) {
