@@ -57,6 +57,8 @@ dependencies {
   implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: '7.2.1'
   implementation 'io.quarkus:quarkus-avro'
 
+  implementation 'org.apache.commons:commons-lang3:3.15.0'
+
   testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
   testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '3.3.1'
   testImplementation 'io.quarkus:quarkus-junit5'
