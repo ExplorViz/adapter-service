@@ -25,6 +25,7 @@ protocol AdapterEventProtocol {
 
 	record Span {
 	  string landscapeToken;
+	  string gitCommitChecksum;
     string spanId;
     string parentSpanId;
     string traceId;

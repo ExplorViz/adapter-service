@@ -4,6 +4,7 @@ import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEF
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_CLASS_FQN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_GIT_COMMIT_CHECKSUM;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET;
@@ -42,6 +43,11 @@ public class AttributesReader {
    * The token's secret (deprecated).
    */
   public static final String LEGACY_TOKEN_SECRET = "token_secret";
+
+  /**
+   * The token that uniquely identifies the landscape a span belongs to.
+   */
+  public static final String GIT_COMMIT_CHECKSUM = "git_commit_checksum";
 
   /**
    * The name of the host.
@@ -107,7 +113,7 @@ public class AttributesReader {
   public static final String K8S_POD_NAME = "k8s.pod.name";
   public static final String K8S_NAMESPACE_NAME = "k8s.namespace.name";
   public static final String K8S_NODE_NAME = "k8s.node.name";
-  public static final String K8S_DEPLOYMENT_NAME = "k8s.deployment.name";
+  public static final String K8S_DEPLOYMENT_NAME = "k8s.deploOyment.name";
 
 
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
@@ -162,6 +168,10 @@ public class AttributesReader {
 
   public String getHostIpAddress() {
     return this.getAsString(HOST_IP).orElse(DEFAULT_HOST_IP);
+  }
+
+  public String getGitCommitChecksum() {
+    return this.getAsString(GIT_COMMIT_CHECKSUM).orElse(DEFAULT_GIT_COMMIT_CHECKSUM);
   }
 
   public String getApplicationName() {
@@ -238,6 +248,7 @@ public class AttributesReader {
   public void appendToSpan(final net.explorviz.avro.Span.Builder builder) {
     builder
         .setLandscapeToken(this.getLandscapeToken())
+        .setGitCommitChecksum(this.getGitCommitChecksum())
         .setHostname(this.getHostName())
         .setHostIpAddress(this.getHostIpAddress())
         .setAppInstanceId(this.getApplicationInstanceId())
