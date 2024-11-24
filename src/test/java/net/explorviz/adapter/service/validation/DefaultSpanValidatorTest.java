@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-class StrictValidatorTest {
+class DefaultSpanValidatorTest {
 
   private static final String KEY_LANDSCAPE_TOKEN = AttributesReader.LANDSCAPE_TOKEN;
   private static final String KEY_LANDSCAPE_SECRET = AttributesReader.TOKEN_SECRET;
@@ -38,7 +38,7 @@ class StrictValidatorTest {
   private static final String APP_LANG = "java";
   private static final String FQN = "foo.bar.test()";
 
-  private StrictValidator validator;
+  private DefaultSpanValidator validator;
   private AttributesReader validSpan;
 
   @BeforeEach
@@ -46,7 +46,7 @@ class StrictValidatorTest {
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
     Mockito.when(mockTokenService.validLandscapeTokenValueAndSecret(Matchers.anyString(),
         Matchers.anyString())).thenReturn(true);
-    this.validator = new StrictValidator(mockTokenService);
+    this.validator = new DefaultSpanValidator(mockTokenService);
 
     final String token = "tok";
     final String secret = "secret";
@@ -153,36 +153,22 @@ class StrictValidatorTest {
 
   @Test
   void invalidLandscapeTokenValue() {
-    List<KeyValue> attrMap = this.generateValidAttributesMap();
-
-    // no token value
-    attrMap = this.removeElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, attrMap);
-    Span invalid = this.generateSpanFromAttributesMap(attrMap);
-    assertFalse(this.validator.isValid(invalid));
-
     for (final String invalidTokenValue : new String[] {"", "\n", "\t", " "}) {
-      attrMap = this.generateValidAttributesMap();
+      List<KeyValue> attrMap = this.generateValidAttributesMap();
       attrMap = this.replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_TOKEN, invalidTokenValue,
           attrMap);
-      invalid = this.generateSpanFromAttributesMap(attrMap);
+      Span invalid = this.generateSpanFromAttributesMap(attrMap);
       assertFalse(this.validator.isValid(invalid));
     }
   }
 
   @Test
   void invalidLandscapeTokenSecret() {
-    List<KeyValue> attrMap = this.generateValidAttributesMap();
-
-    // no secret value
-    attrMap = this.removeElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, attrMap);
-    Span invalid = this.generateSpanFromAttributesMap(attrMap);
-    assertFalse(this.validator.isValid(invalid));
-
     for (final String invalidTokenSecret : new String[] {"", "\n", "\t", " "}) {
-      attrMap = this.generateValidAttributesMap();
+      List<KeyValue> attrMap = this.generateValidAttributesMap();
       attrMap = this.replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, invalidTokenSecret,
           attrMap);
-      invalid = this.generateSpanFromAttributesMap(attrMap);
+      Span invalid = this.generateSpanFromAttributesMap(attrMap);
       assertFalse(this.validator.isValid(invalid));
     }
   }
@@ -266,11 +252,8 @@ class StrictValidatorTest {
   @Test
   void testOperation() {
     List<KeyValue> attrMap = this.generateValidAttributesMap();
-
-    // no method fqn -> default fqn
-    attrMap = this.removeElementAndReturnAttributesMap(KEY_METHOD_FQN, attrMap);
+    
     Span invalid = this.generateSpanFromAttributesMap(attrMap);
-    assertTrue(this.validator.isValid(invalid));
 
     for (final String invalidMethodFqn : new String[] {"", "\n", "\t", " ", "noMethod",
         "classNoPackage.method", "...", "a..", "a.b.", "a.b. ", "a..c", ".b.c", "..c", ".b."}) {
@@ -341,9 +324,67 @@ class StrictValidatorTest {
     final TokenService mockTokenService = Mockito.mock(TokenService.class);
     Mockito.when(mockTokenService.validLandscapeTokenValueAndSecret(Matchers.anyString(),
         Matchers.anyString())).thenReturn(false);
-    this.validator = new StrictValidator(mockTokenService);
+    this.validator = new DefaultSpanValidator(mockTokenService);
     this.validator.validateTokens = true;
 
     assertFalse(this.validator.isValid(valid));
+  }
+
+  @Test
+  void testValidK8sStuffWithNonEmpty() {
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
+    attrMap.add(newKeyValueString(AttributesReader.K8S_POD_NAME, "pod1"));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, "deployment1"));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, "node1"));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, "namespace1"));
+    final Span s = this.generateSpanFromAttributesMap(attrMap);
+    assertTrue(this.validator.isValid(s));
+  }
+
+  @Test
+  void testValidK8sStuffWithEmptyActivelySet() {
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
+    attrMap.add(newKeyValueString(AttributesReader.K8S_POD_NAME, ""));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, ""));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, ""));
+    attrMap.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, ""));
+    final Span s = this.generateSpanFromAttributesMap(attrMap);
+    assertTrue(this.validator.isValid(s));
+  }
+
+  @Test
+  void testValidK8sStuffWithEmptyUnset() {
+    List<KeyValue> attrMap = this.generateValidAttributesMap();
+    final Span s = this.generateSpanFromAttributesMap(attrMap);
+    assertTrue(this.validator.isValid(s));
+  }
+
+  @Test
+  void testInvalidK8sStuff() {
+    // iter over all possible combinations of invalid set/not set combinations
+    for (var i = 0b0001; i <= 0b1110; i++) {
+      List<KeyValue> attrMap = this.generateValidAttributesMap();
+
+      if ((i & 0b0001) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_POD_NAME, "pod1"));
+      }
+      if ((i & 0b0010) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_DEPLOYMENT_NAME, "deployment1"));
+      }
+      if ((i & 0b0100) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_NODE_NAME, "node1"));
+      }
+      if ((i & 0b1000) != 0) {
+        attrMap.add(newKeyValueString(AttributesReader.K8S_NAMESPACE_NAME, "namespace1"));
+      }
+
+      final Span s = this.generateSpanFromAttributesMap(attrMap);
+      assertFalse(this.validator.isValid(s));
+    }
+  }
+
+  public static KeyValue newKeyValueString(String key, String value) {
+    return KeyValue.newBuilder().setKey(key)
+        .setValue(AnyValue.newBuilder().setStringValue(value)).build();
   }
 }

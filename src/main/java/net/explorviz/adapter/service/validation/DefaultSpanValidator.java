@@ -11,12 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Validator that enforces that all values of the {@link Span} are set and valid.
+ * Validator that checks that all values of the {@link Span} are set and valid.
  */
 @ApplicationScoped
-public class StrictValidator implements SpanValidator {
+public class DefaultSpanValidator implements SpanValidator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StrictValidator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSpanValidator.class);
 
   private static final int MIN_DEPTH_FQN_NAME = 3;
   private final TokenService tokenService;
@@ -24,7 +24,7 @@ public class StrictValidator implements SpanValidator {
   /* default */ boolean validateTokens; // NOCS
 
   @Inject
-  public StrictValidator(final TokenService tokenService) {
+  public DefaultSpanValidator(final TokenService tokenService) {
     this.tokenService = tokenService;
   }
 
@@ -43,7 +43,8 @@ public class StrictValidator implements SpanValidator {
         && this.validateHost(spanAttributes.getHostName(), spanAttributes.getHostIpAddress())
         && this.validateApp(spanAttributes.getApplicationName(),
         spanAttributes.getApplicationLanguage())
-        && this.validateOperation(spanAttributes.getMethodFqn());
+        && this.validateOperation(spanAttributes.getMethodFqn())
+        && this.validateK8s(spanAttributes);
   }
 
   private boolean validateToken(final String token, final String givenSecret) {
@@ -151,4 +152,15 @@ public class StrictValidator implements SpanValidator {
     return s == null || s.isBlank();
   }
 
+  private boolean validateK8s(AttributesReader spanAttributes) {
+    final var hasPodName = !spanAttributes.getK8sPodName().isEmpty();
+    final var hasNamespace = !spanAttributes.getK8sNamespace().isEmpty();
+    final var hasNodeName = !spanAttributes.getK8sNodeName().isEmpty();
+    final var hasDeployment = !spanAttributes.getK8sDeploymentName().isEmpty();
+
+    final var hasAll = hasPodName && hasNamespace && hasNodeName && hasDeployment;
+    final var hasNone = !hasPodName && !hasNamespace && !hasNodeName && !hasDeployment;
+
+    return hasAll || hasNone;
+  }
 }

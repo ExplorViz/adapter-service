@@ -8,12 +8,12 @@ public class DefaultAttributeValueTest {
 
   @Test
   void testDefaultTokenValue() {
-    assertEquals(DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN, "");
+    assertEquals(DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN, "mytokenvalue");
   }
 
   @Test
   void testDefaultTokenSecret() {
-    assertEquals(DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET, "");
+    assertEquals(DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET, "mytokensecret");
   }
 
   @Test
@@ -33,7 +33,7 @@ public class DefaultAttributeValueTest {
 
   @Test
   void testDefaultInstanceId() {
-    assertEquals(DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID, "default");
+    assertEquals(DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID, "0");
   }
 
 

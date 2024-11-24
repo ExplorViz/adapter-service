@@ -3,18 +3,21 @@ package net.explorviz.adapter.service.converter;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_LANG;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_APP_NAME;
-import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_FQN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_CLASS_FQN;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_GIT_COMMIT_CHECKSUM;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_IP;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_HOST_NAME;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_SECRET;
 import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_LANDSCAPE_TOKEN;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_METHOD;
+import static net.explorviz.adapter.service.converter.DefaultAttributeValues.DEFAULT_PACKAGE_NAME;
 
 import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Reads the attributes of a {@link Span}.
@@ -24,12 +27,22 @@ public class AttributesReader {
   /**
    * The token that uniquely identifies the landscape a span belongs to.
    */
-  public static final String LANDSCAPE_TOKEN = "landscape_token";
+  public static final String LANDSCAPE_TOKEN = "explorviz.token.id";
+
+  /**
+   * The token that uniquely identifies the landscape a span belongs to (deprecated).
+   */
+  public static final String LEGACY_LANDSCAPE_TOKEN = "landscape_token";
 
   /**
    * The token's secret.
    */
-  public static final String TOKEN_SECRET = "token_secret";
+  public static final String TOKEN_SECRET = "explorviz.token.secret";
+
+  /**
+   * The token's secret (deprecated).
+   */
+  public static final String LEGACY_TOKEN_SECRET = "token_secret";
 
   /**
    * The token that uniquely identifies the landscape a span belongs to.
@@ -49,21 +62,45 @@ public class AttributesReader {
   /**
    * The name of the application a span belongs to.
    */
-  public static final String APPLICATION_NAME = "application_name";
+  public static final String APPLICATION_NAME = "service.name";
 
+  /**
+   * The name of the application a span belongs to (deprecated).
+   */
+  public static final String LEGACY_APPLICATION_NAME = "application_name";
 
   /**
    * The instance id of the application.
    */
-  public static final String APPLICATION_INSTANCE_ID = "application_instance_id";
+  public static final String APPLICATION_INSTANCE_ID = "service.instance.id";
 
   /**
-   * The PID of the applicatino a span belongs to.
+   * The instance id of the application (deprecated).
    */
-  public static final String APPLICATION_LANGUAGE = "application_language";
+  public static final String LEGACY_APPLICATION_INSTANCE_ID = "application_instance_id";
 
   /**
-   * The fully qualified name of the operation/method called.
+   * The programming language that the application is written in.
+   */
+  public static final String APPLICATION_LANGUAGE = "telemetry.sdk.language";
+
+  /**
+   * The programming language that the application is written in (deprecated).
+   */
+  public static final String LEGACY_APPLICATION_LANGUAGE = "application_language";
+
+  /**
+   * The identifier of the operation/method called.
+   */
+  public static final String CODE_FUNCTION = "code.function";
+
+  /**
+   * The fully qualified class name to which the called operation/method belongs.
+   */
+  public static final String CODE_NAMESPACE = "code.namespace";
+
+  /**
+   * The fully qualified name of the operation/method called (deprecated).
    */
   public static final String METHOD_FQN = "java.fqn";
 
@@ -71,8 +108,17 @@ public class AttributesReader {
    * Default values
    */
 
+  // k8s section
+
+  public static final String K8S_POD_NAME = "k8s.pod.name";
+  public static final String K8S_NAMESPACE_NAME = "k8s.namespace.name";
+  public static final String K8S_NODE_NAME = "k8s.node.name";
+  public static final String K8S_DEPLOYMENT_NAME = "k8s.deploOyment.name";
+
 
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
+
+  private Span span = null;
 
   /**
    * Reads attributes from a span.
@@ -80,6 +126,8 @@ public class AttributesReader {
    * @param span the span to read attributes out of
    */
   public AttributesReader(final Span span) {
+    this.span = span;
+
     // Load attributes into map
     span.getAttributesList().forEach(keyValue -> {
       attributes.put(keyValue.getKey(), keyValue.getValue());
@@ -103,11 +151,15 @@ public class AttributesReader {
   }
 
   public String getLandscapeToken() {
-    return this.getAsString(LANDSCAPE_TOKEN).orElse(DEFAULT_LANDSCAPE_TOKEN);
+    return this.getAsString(LANDSCAPE_TOKEN)
+        .or(() -> this.getAsString(LEGACY_LANDSCAPE_TOKEN))
+        .orElse(DEFAULT_LANDSCAPE_TOKEN);
   }
 
   public String getSecret() {
-    return this.getAsString(TOKEN_SECRET).orElse(DEFAULT_LANDSCAPE_SECRET);
+    return this.getAsString(TOKEN_SECRET)
+        .or(() -> this.getAsString(LEGACY_TOKEN_SECRET))
+        .orElse(DEFAULT_LANDSCAPE_SECRET);
   }
 
   public String getHostName() {
@@ -123,20 +175,70 @@ public class AttributesReader {
   }
 
   public String getApplicationName() {
-    return this.getAsString(APPLICATION_NAME).orElse(DEFAULT_APP_NAME);
+    return this.getAsString(APPLICATION_NAME)
+        .or(() -> this.getAsString(LEGACY_APPLICATION_NAME))
+        .orElse(DEFAULT_APP_NAME);
   }
 
   public String getApplicationInstanceId() {
-    return this.getAsString(APPLICATION_INSTANCE_ID).orElse(DEFAULT_APP_INSTANCE_ID);
+    return this.getAsString(APPLICATION_INSTANCE_ID)
+        .or(() -> this.getAsString(LEGACY_APPLICATION_INSTANCE_ID))
+        .orElse(DEFAULT_APP_INSTANCE_ID);
   }
 
   public String getApplicationLanguage() {
-    return this.getAsString(APPLICATION_LANGUAGE).orElse(DEFAULT_APP_LANG);
+    return this.getAsString(APPLICATION_LANGUAGE)
+        .or(() -> this.getAsString(LEGACY_APPLICATION_LANGUAGE))
+        .orElse(DEFAULT_APP_LANG);
   }
 
   public String getMethodFqn() {
-    return this.getAsString(METHOD_FQN).orElse(DEFAULT_FQN);
+    Optional<String> codeNamespace = this.getAsString(CODE_NAMESPACE);
+    Optional<String> codeFunction = this.getAsString(CODE_FUNCTION);
+    Optional<String> methodFqn = this.getAsString(METHOD_FQN);
+
+    return codeNamespace.flatMap(classFqn -> codeFunction.map(method -> classFqn + "." + method))
+        .or(() -> methodFqn)
+        .orElse(this.generateMethodFqnFromSpanName());
   }
+
+  private String generateMethodFqnFromSpanName() {
+    String spanName = this.span.getName();
+
+    if (spanName == null || spanName.isEmpty()) {
+      return DEFAULT_METHOD;
+    }
+
+    int hierarchyDepth = StringUtils.countMatches(spanName, ".");
+
+    if (hierarchyDepth == 0) {
+      return DEFAULT_CLASS_FQN + "." + spanName;
+    }
+
+    if (hierarchyDepth == 1) {
+      return DEFAULT_PACKAGE_NAME + "." + spanName;
+    }
+
+    // Span name on its own syntactically contains FQN
+    return spanName;
+  }
+
+  public String getK8sPodName() {
+    return this.getAsString(K8S_POD_NAME).orElse("");
+  }
+
+  public String getK8sNamespace() {
+    return this.getAsString(K8S_NAMESPACE_NAME).orElse("");
+  }
+
+  public String getK8sNodeName() {
+    return this.getAsString(K8S_NODE_NAME).orElse("");
+  }
+
+  public String getK8sDeploymentName() {
+    return this.getAsString(K8S_DEPLOYMENT_NAME).orElse("");
+  }
+
 
   /**
    * Appends all attributes to the given {{@link net.explorviz.avro.Span}} builder.
@@ -152,7 +254,10 @@ public class AttributesReader {
         .setAppInstanceId(this.getApplicationInstanceId())
         .setAppName(this.getApplicationName())
         .setAppLanguage(this.getApplicationLanguage())
-        .setFullyQualifiedOperationName(this.getMethodFqn());
+        .setFullyQualifiedOperationName(this.getMethodFqn())
+        .setK8sPodName(this.getK8sPodName())
+        .setK8sNamespace(this.getK8sNamespace())
+        .setK8sNodeName(this.getK8sNodeName())
+        .setK8sDeploymentName(this.getK8sDeploymentName());
   }
-
 }
