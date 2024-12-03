@@ -113,7 +113,7 @@ public class AttributesReader {
   public static final String K8S_POD_NAME = "k8s.pod.name";
   public static final String K8S_NAMESPACE_NAME = "k8s.namespace.name";
   public static final String K8S_NODE_NAME = "k8s.node.name";
-  public static final String K8S_DEPLOYMENT_NAME = "k8s.deploOyment.name";
+  public static final String K8S_DEPLOYMENT_NAME = "k8s.deployment.name";
 
 
   private final Map<String, AnyValue> attributes = new HashMap<>(7);
