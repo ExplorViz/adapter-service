@@ -2,6 +2,9 @@ plugins {
   id 'java'
   id 'io.quarkus'
   id 'com.adarshr.test-logger' version '3.2.0'
+
+  id 'org.jetbrains.kotlin.jvm' version "2.0.21"
+  id "org.jetbrains.kotlin.plugin.allopen" version "2.0.21"
 }
 
 apply from: 'code-analysis/code-analysis.gradle'
@@ -42,6 +45,9 @@ sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/av
 dependencies {
   implementation 'io.quarkus:quarkus-container-image-jib'
   implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+
+  implementation 'io.quarkus:quarkus-kotlin'
+  implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
   implementation 'io.quarkus:quarkus-jackson'
   implementation 'io.quarkus:quarkus-scheduler'
@@ -90,4 +96,20 @@ tasks.withType(JavaCompile) {
 test {
   jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED' // for mockito reflection
   systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+
+allOpen {
+  annotation("jakarta.ws.rs.Path")
+  annotation("jakarta.enterprise.context.ApplicationScoped")
+  annotation("jakarta.persistence.Entity")
+  annotation("io.quarkus.test.junit.QuarkusTest")
+}
+
+compileKotlin {
+  kotlinOptions.jvmTarget = JavaVersion.VERSION_21
+  kotlinOptions.javaParameters = true
+}
+
+compileTestKotlin {
+  kotlinOptions.jvmTarget = JavaVersion.VERSION_21
 }
