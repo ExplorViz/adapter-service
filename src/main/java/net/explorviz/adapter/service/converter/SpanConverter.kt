@@ -7,11 +7,11 @@ import io.opentelemetry.proto.trace.v1.Span;
  *
  * @param <T> the type spans are converted to.
  */
-public interface SpanConverter<T> {
+interface SpanConverter<T> {
 
   /**
    * Converts an OpenCensus {@link Span} into {@link T}.
    */
-  T fromOpenTelemetrySpan(Span ocSpan);
+  fun fromOpenTelemetrySpan(ocSpan: Span): T;
 
 }

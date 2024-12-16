@@ -3,35 +3,35 @@ package net.explorviz.adapter.injection;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import io.quarkus.arc.DefaultBean;
+import io.quarkus.arc.profile.UnlessBuildProfile
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
-import java.util.Map;
 import org.apache.avro.specific.SpecificRecord;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
- * Returns an injectable {@link SpecificAvroSerde}.
+ * Returns an injectable [SpecificAvroSerde].
  */
 @Dependent
-public class SerdeProducer {
+class SerdeProducer {
 
   @Inject
-  /* default */ SchemaRegistryClient registry; // NOCS
+  /* default */  lateinit var registry: SchemaRegistryClient
 
   @ConfigProperty(name = "quarkus.kafka-streams.schema-registry-url")
-  /* default */ String schemaRegistryUrl; // NOCS
+  lateinit var schemaRegistryUrl: String
 
   @Produces
-  @DefaultBean
-  public <T extends SpecificRecord> SpecificAvroSerde<T> produceSpecificAvroSerde() {
-    final SpecificAvroSerde<T> valueSerde = new SpecificAvroSerde<>(this.registry);
+  @jakarta.enterprise.inject.Default
+  @UnlessBuildProfile("test")
+  fun <T : SpecificRecord> produceSpecificAvroSerde(): SpecificAvroSerde<T> {
+    val valueSerde = SpecificAvroSerde<T>(registry)
     valueSerde.configure(
-        Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, this.schemaRegistryUrl),
-        false);
-    return valueSerde;
-
+      mapOf(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryUrl),
+      false
+    )
+    return valueSerde
   }
 }
 

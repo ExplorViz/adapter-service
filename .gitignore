@@ -32,3 +32,6 @@ nb-configuration.xml
 # Gradle
 .gradle/
 build/
+
+# Kotlin
+.kotlin
