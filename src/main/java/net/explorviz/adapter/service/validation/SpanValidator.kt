@@ -3,9 +3,9 @@ package net.explorviz.adapter.service.validation;
 import io.opentelemetry.proto.trace.v1.Span;
 
 /**
- * Validates {@link Span}s prior to processing.
+ * Validates [Span]s prior to processing.
  */
-public interface SpanValidator {
+interface SpanValidator {
 
   /**
    * Checks if the given span is valid.
@@ -13,6 +13,6 @@ public interface SpanValidator {
    * @param span the span
    * @return Boolean that indicates if span is valid.
    */
-  boolean isValid(Span span);
-  
+  fun isValid(span: Span): Boolean
 }
+
