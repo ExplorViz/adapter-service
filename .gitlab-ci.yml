@@ -43,7 +43,7 @@ pmd:
   script: ./gradlew pmdMain
 
 spotless:
-  stage: code-anlysis
+  stage: code-analysis
   script: ./gradlew spotlessCheck
 
 test:
