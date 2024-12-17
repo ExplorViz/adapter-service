@@ -1,6 +1,6 @@
-package net.explorviz.adapter.service.converter;
+package net.explorviz.adapter.service.converter
 
-import io.opentelemetry.proto.trace.v1.Span;
+import io.opentelemetry.proto.trace.v1.Span
 
 /**
  * Converts OpenCensus spans into another type.
@@ -9,9 +9,6 @@ import io.opentelemetry.proto.trace.v1.Span;
  */
 interface SpanConverter<T> {
 
-  /**
-   * Converts an OpenCensus {@link Span} into {@link T}.
-   */
-  fun fromOpenTelemetrySpan(ocSpan: Span): T;
-
+    /** Converts an OpenCensus {@link Span} into {@link T}. */
+    fun fromOpenTelemetrySpan(ocSpan: Span): T
 }

@@ -117,4 +117,10 @@ compileTestKotlin {
 }
 
 // version and style are optional
-spotless { kotlin { ktfmt().kotlinlangStyle() } }
+spotless {
+  kotlin {
+    ktfmt().kotlinlangStyle().configure {
+      it.setMaxWidth(120)
+    }
+  }
+}
