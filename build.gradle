@@ -5,6 +5,8 @@ plugins {
 
   id 'org.jetbrains.kotlin.jvm' version "2.0.21"
   id "org.jetbrains.kotlin.plugin.allopen" version "2.0.21"
+
+  id "com.diffplug.spotless" version "6.25.0"
 }
 
 apply from: 'code-analysis/code-analysis.gradle'
@@ -113,3 +115,6 @@ compileKotlin {
 compileTestKotlin {
   kotlinOptions.jvmTarget = JavaVersion.VERSION_21
 }
+
+// version and style are optional
+spotless { kotlin { ktfmt().kotlinlangStyle() } }
