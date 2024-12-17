@@ -1,4 +1,4 @@
-package net.explorviz.adapter.injection;
+package net.explorviz.adapter.injection
 
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
@@ -9,9 +9,9 @@ import jakarta.enterprise.inject.Produces
 @Dependent
 class MockSchemaRegistryClientProducer {
 
-  @Produces
-  @IfBuildProfile("test")
-  fun produceMockSchemaRegistry(): SchemaRegistryClient {
-    return MockSchemaRegistryClient()
-  }
+    @Produces
+    @IfBuildProfile("test")
+    fun produceMockSchemaRegistry(): SchemaRegistryClient {
+        return MockSchemaRegistryClient()
+    }
 }
