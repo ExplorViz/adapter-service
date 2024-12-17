@@ -31,8 +31,8 @@ class ReadOnlyKeyValueStoreProducer {
                 return streams.store(
                     StoreQueryParameters.fromNameAndType(
                         "token-events-global-store",
-                        QueryableStoreTypes.keyValueStore()
-                    )
+                        QueryableStoreTypes.keyValueStore(),
+                    ),
                 )
             } catch (e: InvalidStateStoreException) {
                 LOGGER.debug("State store not yet initialized, will try again...")
