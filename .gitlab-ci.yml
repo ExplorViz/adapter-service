@@ -78,6 +78,7 @@ build:
   artifacts:
     paths:
       - build
+    expire_in: 1 week
 
 .push-dockerhub-native-base-job:
   stage: publish
