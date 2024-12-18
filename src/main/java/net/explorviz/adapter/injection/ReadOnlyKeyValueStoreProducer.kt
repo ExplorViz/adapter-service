@@ -35,7 +35,8 @@ class ReadOnlyKeyValueStoreProducer {
                     ),
                 )
             } catch (e: InvalidStateStoreException) {
-                LOGGER.debug("State store not yet initialized, will try again...")
+                LOGGER.debug("State store not yet initialized: ${e.message}")
+                LOGGER.debug("Will try again ...")
             }
         }
     }

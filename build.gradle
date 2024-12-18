@@ -6,10 +6,10 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "2.0.21"
     id "org.jetbrains.kotlin.plugin.allopen" version "2.0.21"
 
+    id "io.gitlab.arturbosch.detekt" version "1.23.7"
     id "com.diffplug.spotless" version "6.25.0"
+    id 'jacoco'
 }
-
-apply from: 'code-analysis/code-analysis.gradle'
 
 repositories {
     mavenLocal()
@@ -19,20 +19,6 @@ repositories {
     }
 }
 
-jacocoTestReport {
-    dependsOn test
-
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                    '**/opencensus/**',
-                    '**/SerdeProducer.*',
-                    "**/SchemaRegistryClientProducer.*",
-                    "**/ReadOnlyKeyValueStoreProducer.*"
-            ])
-        }))
-    }
-}
 
 sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/avdl', 'src/main/java']
 
@@ -90,7 +76,7 @@ java {
 }
 
 tasks.withType(JavaCompile) {
-    // Turn on all javac warnings instead of classfile and processing, which produces many false-positives about
+    // Turn on all javac warnings instead of class file and processing, which produces many false-positives about
     // annotations and cast which is triggered by the auto-generated Dao implementations
     options.compilerArgs << "-Xlint:all" << "-Xlint:-classfile" << "-Xlint:-processing" << "-Xlint:-cast"
 }
@@ -106,4 +92,34 @@ allOpen {
     annotation("jakarta.enterprise.context.ApplicationScoped")
     annotation("jakarta.persistence.Entity")
     annotation("io.quarkus.test.junit.QuarkusTest")
+}
+
+spotless {
+    kotlin {
+        ktfmt().kotlinlangStyle().configure {
+            it.setMaxWidth(120)
+        }
+    }
+}
+
+jacocoTestReport {
+    dependsOn test
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/opencensus/**',
+                    '**/SerdeProducer.*',
+                    "**/SchemaRegistryClientProducer.*",
+                    "**/ReadOnlyKeyValueStoreProducer.*"
+            ])
+        }))
+    }
+
+    executionData { tasks.withType(Test).findAll { it.jacoco.destinationFile.exists() }*.jacoco.destinationFile }
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }

@@ -38,7 +38,9 @@ build:
     paths:
       - build
 
+detekt:
   stage: code-analysis
+  script: ./gradlew detekt
 
 spotless:
   stage: code-analysis
