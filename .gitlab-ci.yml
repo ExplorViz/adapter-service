@@ -20,27 +20,16 @@ workflow:
     - if: "$CI_COMMIT_BRANCH"
 
 stages:
-  - build
   - code-analysis
   - test
   - coverage
   - visualize
+  - build
   - publish
 
-build:
-  stage: build
-  script: ./gradlew --build-cache assemble
-  cache:
-    policy: push
-    paths:
-      - .gradle
-  artifacts:
-    paths:
-      - build
-
-pmd:
+detekt:
   stage: code-analysis
-  script: ./gradlew pmdMain
+  script: ./gradlew detekt
 
 spotless:
   stage: code-analysis
@@ -48,6 +37,7 @@ spotless:
 
 test:
   stage: test
+  needs: []
   script:
     - ./gradlew jacocoTestReport
     # Print test coverage to console (for coverage badge)
@@ -62,13 +52,13 @@ test:
 
 coverage:
   stage: visualize
+  needs: [test]
   image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.7
   script:
     # convert report from jacoco to cobertura
     - "python /opt/cover2cover.py build/reports/jacoco/test/jacocoTestReport.xml src/main/java > build/cobertura.xml"
     # read the <source></source> tag and prepend the path to every filename attribute
     - "python /opt/source2filename.py build/cobertura.xml"
-  needs: [ "test" ]
   dependencies:
     - test
   artifacts:
@@ -76,6 +66,19 @@ coverage:
       coverage_report:
         coverage_format: cobertura
         path: build/cobertura.xml
+
+build:
+  stage: build
+  needs: []
+  script: ./gradlew --build-cache assemble
+  cache:
+    policy: push
+    paths:
+      - .gradle
+  artifacts:
+    paths:
+      - build
+    expire_in: 1 week
 
 .push-dockerhub-native-base-job:
   stage: publish
@@ -96,9 +99,11 @@ coverage:
 
 push-dockerhub-native-main:
   extends: .push-dockerhub-native-base-job
+  needs: [detekt, spotless, test, build]
 
 push-dockerhub-native-mr:
   stage: publish
+  needs: [detekt, spotless, test, build]
   image: explorviz/ubi-quarkus-mandrel-builder-image
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -116,6 +121,7 @@ push-dockerhub-native-mr:
 
 .push-dockerhub-base-job:
   stage: publish
+  needs: [detekt, spotless, test, build]
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   script:
@@ -130,9 +136,11 @@ push-dockerhub-native-mr:
 
 push-dockerhub-main:
   extends: .push-dockerhub-base-job
+  needs: [detekt, spotless, test, build]
 
 push-dockerhub-mr:
   stage: publish
+  needs: [detekt, spotless, test, build]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:

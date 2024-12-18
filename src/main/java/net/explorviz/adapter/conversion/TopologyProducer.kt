@@ -72,6 +72,7 @@ class TopologyProducer {
                     lastReceivedSpans.addAndGet(spanList.size)
                     spanList
                 } catch (e: InvalidProtocolBufferException) {
+                    LOGGER.trace("Invalid protocol buffer: ${e.message}")
                     emptyList()
                 }
             }
@@ -112,7 +113,7 @@ class TopologyProducer {
             tokensOutTopic,
             Materialized.`as`<String, TokenEvent, KeyValueStore<Bytes, ByteArray>>("token-events-global-store")
                 .withKeySerde(Serdes.String())
-                .withValueSerde(tokenEventAvroSerde)
+                .withValueSerde(tokenEventAvroSerde),
         )
 
         // END Token Stream

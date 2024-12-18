@@ -15,23 +15,32 @@ import org.mockito.Mockito
 
 class DefaultSpanValidatorTest {
 
-    private val KEY_LANDSCAPE_TOKEN = AttributesReader.LANDSCAPE_TOKEN
-    private val KEY_LANDSCAPE_SECRET = AttributesReader.TOKEN_SECRET
-    private val KEY_HOST_NAME = AttributesReader.HOST_NAME
-    private val KEY_HOST_IP = AttributesReader.HOST_IP
-    private val KEY_APPLICATION_NAME = AttributesReader.APPLICATION_NAME
-    private val KEY_APPLICATION_INSTANCE_ID = AttributesReader.APPLICATION_INSTANCE_ID
-    private val KEY_APPLICATION_LANGUAGE = AttributesReader.APPLICATION_LANGUAGE
-    private val KEY_METHOD_FQN = AttributesReader.METHOD_FQN
+    private companion object {
+        const val KEY_LANDSCAPE_TOKEN = AttributesReader.LANDSCAPE_TOKEN
+        const val KEY_LANDSCAPE_SECRET = AttributesReader.TOKEN_SECRET
+        const val KEY_HOST_NAME = AttributesReader.HOST_NAME
+        const val KEY_HOST_IP = AttributesReader.HOST_IP
+        const val KEY_APPLICATION_NAME = AttributesReader.APPLICATION_NAME
+        const val KEY_APPLICATION_INSTANCE_ID = AttributesReader.APPLICATION_INSTANCE_ID
+        const val KEY_APPLICATION_LANGUAGE = AttributesReader.APPLICATION_LANGUAGE
+        const val KEY_METHOD_FQN = AttributesReader.METHOD_FQN
 
-    private val TOKEN = "tok"
-    private val SECRET = "secret"
-    private val HOSTNAME = "Host"
-    private val HOST_IP = "1.2.3.4"
-    private val APP_NAME = "Test App"
-    private val APP_INSTANCE_ID = "1234L"
-    private val APP_LANG = "java"
-    private val FQN = "foo.bar.test()"
+        const val TOKEN = "tok"
+        const val SECRET = "secret"
+        const val HOSTNAME = "Host"
+        const val HOST_IP = "1.2.3.4"
+        const val APP_NAME = "Test App"
+        const val APP_INSTANCE_ID = "1234L"
+        const val APP_LANG = "java"
+        const val FQN = "foo.bar.test()"
+
+        fun newKeyValueString(key: String, value: String): KeyValue {
+            return KeyValue.newBuilder()
+                .setKey(key)
+                .setValue(AnyValue.newBuilder().setStringValue(value).build())
+                .build()
+        }
+    }
 
     private lateinit var validator: DefaultSpanValidator
     private lateinit var validSpan: AttributesReader
@@ -64,7 +73,7 @@ class DefaultSpanValidatorTest {
             newKeyValueString(KEY_APPLICATION_NAME, APP_NAME),
             newKeyValueString(KEY_APPLICATION_INSTANCE_ID, APP_INSTANCE_ID),
             newKeyValueString(KEY_APPLICATION_LANGUAGE, APP_LANG),
-            newKeyValueString(KEY_METHOD_FQN, FQN)
+            newKeyValueString(KEY_METHOD_FQN, FQN),
         )
     }
 
@@ -203,7 +212,7 @@ class DefaultSpanValidatorTest {
                 "a..c",
                 ".b.c",
                 "..c",
-                ".b."
+                ".b.",
             )
         for (invalidMethodFqn in invalidValues) {
             attrMap = generateValidAttributesMap()
@@ -242,20 +251,11 @@ class DefaultSpanValidatorTest {
                     .setStartTimeUnixNano(0L)
                     .setEndTimeUnixNano(0L)
                     .addAllAttributes(attrMap)
-                    .build()
+                    .build(),
             )
 
         for (invalid in invalids) {
             assertFalse(validator.isValid(invalid))
-        }
-    }
-
-    companion object {
-        fun newKeyValueString(key: String, value: String): KeyValue {
-            return KeyValue.newBuilder()
-                .setKey(key)
-                .setValue(AnyValue.newBuilder().setStringValue(value).build())
-                .build()
         }
     }
 }

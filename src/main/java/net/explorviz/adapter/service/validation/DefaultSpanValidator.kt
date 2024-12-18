@@ -38,25 +38,25 @@ constructor(
     }
 
     private fun validateToken(token: String?, givenSecret: String?): Boolean {
+        val hasTokenAndSecret = !token.isNullOrBlank() && !givenSecret.isNullOrBlank()
+
         if (token.isNullOrBlank()) {
             LOGGER.trace("Invalid span: No or blank token.")
-            return false
         }
 
         if (givenSecret.isNullOrBlank()) {
             LOGGER.trace("Invalid span: No or blank secret.")
-            return false
         }
 
-        if (!validateTokens) {
-            return true
+        var isValid = true
+        if (hasTokenAndSecret && validateTokens) {
+            isValid = tokenService.validLandscapeTokenValueAndSecret(token!!, givenSecret!!)
+            if (!isValid) {
+                LOGGER.trace("Invalid span: Token and/or secret are unknown.")
+            }
         }
 
-        val validationResult = tokenService.validLandscapeTokenValueAndSecret(token, givenSecret!!)
-        if (!validationResult) {
-            LOGGER.trace("Invalid span: Token and/or secret are unknown.")
-        }
-        return validationResult
+        return hasTokenAndSecret && isValid
     }
 
     private fun validateTimestamp(timestamp: Long): Boolean {
@@ -66,40 +66,40 @@ constructor(
             }
             true
         } catch (e: DateTimeException) {
-            LOGGER.trace("Invalid span: Contains invalid timestamp")
+            LOGGER.trace("Invalid span timestamp: Date time exception - ${e.message}")
             false
         } catch (e: NumberFormatException) {
-            LOGGER.trace("Invalid span: Contains invalid timestamp")
+            LOGGER.trace("Invalid span timestamp: Number format exception - ${e.message}")
             false
         }
     }
 
     private fun validateHost(hostName: String?, hostIp: String?): Boolean {
+        val isValid = !hostName.isNullOrBlank() && !hostIp.isNullOrBlank()
+
         if (hostName.isNullOrBlank()) {
             LOGGER.trace("Invalid span: No hostname.")
-            return false
         }
 
         if (hostIp.isNullOrBlank()) {
             LOGGER.trace("Invalid span: No IP address.")
-            return false
         }
 
-        return true
+        return isValid
     }
 
     private fun validateApp(appName: String?, appLang: String?): Boolean {
+        val isValid = !appName.isNullOrBlank() && !appLang.isNullOrBlank()
+
         if (appName.isNullOrBlank()) {
             LOGGER.trace("Invalid span: No application name.")
-            return false
         }
 
         if (appLang.isNullOrBlank()) {
             LOGGER.trace("Invalid span: No application language given.")
-            return false
         }
 
-        return true
+        return isValid
     }
 
     private fun validateOperation(fqn: String): Boolean {
