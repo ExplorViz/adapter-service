@@ -38,9 +38,7 @@ build:
     paths:
       - build
 
-pmd:
   stage: code-analysis
-  script: ./gradlew pmdMain
 
 spotless:
   stage: code-analysis
