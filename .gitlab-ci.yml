@@ -69,7 +69,7 @@ coverage:
 
 build:
   stage: build
-  needs: [detekt, spotless, test]
+  needs: []
   script: ./gradlew --build-cache assemble
   cache:
     policy: push
@@ -98,9 +98,11 @@ build:
 
 push-dockerhub-native-main:
   extends: .push-dockerhub-native-base-job
+  needs: [detekt, spotless, test, build]
 
 push-dockerhub-native-mr:
   stage: publish
+  needs: [detekt, spotless, test, build]
   image: explorviz/ubi-quarkus-mandrel-builder-image
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -118,6 +120,7 @@ push-dockerhub-native-mr:
 
 .push-dockerhub-base-job:
   stage: publish
+  needs: [detekt, spotless, test, build]
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   script:
@@ -132,9 +135,11 @@ push-dockerhub-native-mr:
 
 push-dockerhub-main:
   extends: .push-dockerhub-base-job
+  needs: [detekt, spotless, test, build]
 
 push-dockerhub-mr:
   stage: publish
+  needs: [detekt, spotless, test, build]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
