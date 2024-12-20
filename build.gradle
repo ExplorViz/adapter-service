@@ -1,14 +1,14 @@
 plugins {
-    id 'java'
-    id 'io.quarkus'
-    id 'com.adarshr.test-logger' version '3.2.0'
+    id "java"
+    id "io.quarkus" version "3.17.5"
+    id "com.adarshr.test-logger" version "3.2.0"
 
-    id 'org.jetbrains.kotlin.jvm' version "2.0.21"
+    id "org.jetbrains.kotlin.jvm" version "2.0.21"
     id "org.jetbrains.kotlin.plugin.allopen" version "2.0.21"
 
     id "io.gitlab.arturbosch.detekt" version "1.23.7"
     id "com.diffplug.spotless" version "6.25.0"
-    id 'jacoco'
+    id "jacoco"
 }
 
 repositories {
@@ -20,54 +20,47 @@ repositories {
 }
 
 
-sourceSets.main.java.srcDirs = ['build/classes/java/quarkus-generated-sources/avdl', 'src/main/java']
+sourceSets.main.java.srcDirs = ["build/classes/java/quarkus-generated-sources/avdl", "src/main/java"]
 
-/**
- * Version conflict for Kafka clients library:
- *      kafka-avro-serializer transitively depends on version 5.3.0-scc
- *      kafka-streams-test-utils depends on version 2.4.0
- * Force using 2.4.0 as otherwise Kafka streams test utils will fail. The afka-avro-serializer
- * seems to be compatible with this version.
- */
 
 dependencies {
-    implementation 'io.quarkus:quarkus-container-image-jib'
+    implementation "io.quarkus:quarkus-container-image-jib"
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
-    implementation 'io.quarkus:quarkus-kotlin'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation "io.quarkus:quarkus-kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    implementation 'io.quarkus:quarkus-jackson'
-    implementation 'io.quarkus:quarkus-scheduler'
+    implementation "io.quarkus:quarkus-jackson"
+    implementation "io.quarkus:quarkus-scheduler"
 
-    implementation 'io.quarkus:quarkus-kafka-streams'
-    implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
+    implementation "io.quarkus:quarkus-kafka-streams"
+    implementation "io.quarkus:quarkus-micrometer-registry-prometheus"
 
-    implementation 'io.quarkus:quarkus-grpc'
+    implementation "io.quarkus:quarkus-grpc"
 
-    implementation 'io.opentelemetry.proto:opentelemetry-proto:0.19.0-alpha'
+    implementation "io.opentelemetry.proto:opentelemetry-proto:0.19.0-alpha"
 
-    implementation 'io.quarkus:quarkus-confluent-registry-avro'
-    implementation group: 'io.confluent', name: 'kafka-streams-avro-serde', version: "${confluentAvroSerdeVersion}"
-    implementation 'io.quarkus:quarkus-avro'
+    implementation "io.quarkus:quarkus-confluent-registry-avro"
+    implementation group: "io.confluent", name: "kafka-streams-avro-serde", version: "${confluentAvroSerdeVersion}"
+    implementation "io.quarkus:quarkus-avro"
 
-    implementation 'org.apache.commons:commons-lang3:3.15.0'
+    implementation "org.apache.commons:commons-lang3:3.15.0"
 
-    testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
-    testImplementation group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '3.3.1'
-    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation group: "org.mockito", name: "mockito-all", version: "1.10.19"
+    testImplementation group: "org.apache.kafka", name: "kafka-streams-test-utils", version: "3.3.1"
+    testImplementation "io.quarkus:quarkus-junit5"
 }
 
-group 'net.explorviz'
-version '1.0'
+group "net.explorviz"
+version "1.0"
 
 compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << '-parameters'
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
 }
 
 compileTestJava {
-    options.encoding = 'UTF-8'
+    options.encoding = "UTF-8"
 }
 
 java {
@@ -82,11 +75,11 @@ tasks.withType(JavaCompile) {
 }
 
 test {
-    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED' // for mockito reflection
+    jvmArgs "--add-opens=java.base/java.lang=ALL-UNNAMED" // for mockito reflection
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
 
-// Needed by Mockito since closed classes cannot be mocked
+// Needed by Mockito since closed Kotlin classes cannot be mocked
 allOpen {
     annotation("jakarta.ws.rs.Path")
     annotation("jakarta.enterprise.context.ApplicationScoped")
@@ -108,8 +101,8 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
-                    '**/opencensus/**',
-                    '**/SerdeProducer.*',
+                    "**/opencensus/**",
+                    "**/SerdeProducer.*",
                     "**/SchemaRegistryClientProducer.*",
                     "**/ReadOnlyKeyValueStoreProducer.*"
             ])
