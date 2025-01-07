@@ -63,6 +63,10 @@ compileTestJava {
     options.encoding = "UTF-8"
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
