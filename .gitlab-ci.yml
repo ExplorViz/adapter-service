@@ -97,10 +97,6 @@ build:
   after_script:
     - echo "Image was uploaded to Dockerhub; explorviz/${DOCKERHUB_IMAGE_NAME_NATIVE}:latest and explorviz/${DOCKERHUB_IMAGE_NAME_NATIVE}:$CI_COMMIT_SHORT_SHA"
 
-push-dockerhub-native-main:
-  extends: .push-dockerhub-native-base-job
-  needs: [detekt, spotless, test, build]
-
 push-dockerhub-native-mr:
   stage: publish
   needs: [detekt, spotless, test, build]
@@ -133,10 +129,6 @@ push-dockerhub-native-mr:
       -Dquarkus.container-image.password=$DOCKERHUB_PASSWORD
   after_script:
     - echo "Image was uploaded to Dockerhub; explorviz/${DOCKERHUB_IMAGE_NAME}:latest and explorviz/${DOCKERHUB_IMAGE_NAME}:$CI_COMMIT_SHORT_SHA"
-
-push-dockerhub-main:
-  extends: .push-dockerhub-base-job
-  needs: [detekt, spotless, test, build]
 
 push-dockerhub-mr:
   stage: publish
