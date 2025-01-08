@@ -64,7 +64,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Build and Push Image
-        uses: ./.github/actions/build-and-deploy-quarkus-native
+        uses: explorviz/deployment/.github/actions/build-and-deploy-quarkus-native@main
         with:
           platforms: "linux/amd64,linux/arm64/v8"
           docker-username: ${{ secrets.DOCKER_USERNAME }}
@@ -81,7 +81,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Build and Push Image
-        uses: ./.github/actions/build-and-deploy-quarkus-jvm
+        uses: explorviz/deployment/.github/actions/build-and-deploy-quarkus-jvm@main
         with:
           platforms: "linux/amd64,linux/arm64/v8"
           docker-username: ${{ secrets.DOCKER_USERNAME }}
