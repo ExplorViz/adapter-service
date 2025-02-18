@@ -230,6 +230,7 @@ class TopologyTest {
                 .setOwnerId("testOwner")
                 .setCreated(123L)
                 .setAlias("")
+                .setIsRequestedFromVSCodeExtension(false)
                 .build()
 
         val expectedTokenEvent =
@@ -257,6 +258,7 @@ class TopologyTest {
                 .setOwnerId("testOwner")
                 .setCreated(123L)
                 .setAlias("")
+                .setIsRequestedFromVSCodeExtension(false)
                 .build()
 
         val expectedTokenEvent =
@@ -292,6 +294,7 @@ class TopologyTest {
                 .setOwnerId("testOwner")
                 .setCreated(123L)
                 .setAlias("")
+                .setIsRequestedFromVSCodeExtension(false)
                 .build()
 
         val expectedTokenEvent =
@@ -327,6 +330,7 @@ class TopologyTest {
                 .setOwnerId("testOwner")
                 .setCreated(123L)
                 .setAlias("")
+                .setIsRequestedFromVSCodeExtension(false)
                 .build()
 
         EventType.values().forEach { eventType ->
