@@ -161,7 +161,6 @@ class TopologyTest {
         assertEquals(attrs[AttributesReader.APPLICATION_NAME], result.appName, "Invalid application name")
         assertEquals(attrs[AttributesReader.APPLICATION_INSTANCE_ID], result.appInstanceId, "Invalid application pid")
         assertEquals(attrs[AttributesReader.APPLICATION_LANGUAGE], result.appLanguage, "Invalid application language")
-        assertEquals(attrs[AttributesReader.METHOD_FQN], result.fullyQualifiedOperationName, "Invalid operation name")
     }
 
     @Test

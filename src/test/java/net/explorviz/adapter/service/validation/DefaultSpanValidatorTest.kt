@@ -23,7 +23,6 @@ class DefaultSpanValidatorTest {
         const val KEY_APPLICATION_NAME = AttributesReader.APPLICATION_NAME
         const val KEY_APPLICATION_INSTANCE_ID = AttributesReader.APPLICATION_INSTANCE_ID
         const val KEY_APPLICATION_LANGUAGE = AttributesReader.APPLICATION_LANGUAGE
-        const val KEY_METHOD_FQN = AttributesReader.METHOD_FQN
 
         const val TOKEN = "tok"
         const val SECRET = "secret"
@@ -32,7 +31,6 @@ class DefaultSpanValidatorTest {
         const val APP_NAME = "Test App"
         const val APP_INSTANCE_ID = "1234L"
         const val APP_LANG = "java"
-        const val FQN = "foo.bar.test()"
 
         fun newKeyValueString(key: String, value: String): KeyValue {
             return KeyValue.newBuilder()
@@ -61,7 +59,6 @@ class DefaultSpanValidatorTest {
         Mockito.`when`(validSpan.applicationName).thenReturn(APP_NAME)
         Mockito.`when`(validSpan.applicationInstanceId).thenReturn(APP_INSTANCE_ID)
         Mockito.`when`(validSpan.applicationLanguage).thenReturn(APP_LANG)
-        Mockito.`when`(validSpan.methodFqn).thenReturn(FQN)
     }
 
     private fun generateValidAttributesMap(): List<KeyValue> {
@@ -73,7 +70,6 @@ class DefaultSpanValidatorTest {
             newKeyValueString(KEY_APPLICATION_NAME, APP_NAME),
             newKeyValueString(KEY_APPLICATION_INSTANCE_ID, APP_INSTANCE_ID),
             newKeyValueString(KEY_APPLICATION_LANGUAGE, APP_LANG),
-            newKeyValueString(KEY_METHOD_FQN, FQN),
         )
     }
 
@@ -86,13 +82,6 @@ class DefaultSpanValidatorTest {
             .setEndTimeUnixNano(1667987046000L)
             .addAllAttributes(attributes)
             .build()
-    }
-
-    private fun removeElementAndReturnAttributesMap(
-        keyToBeRemoved: String,
-        attributes: List<KeyValue>
-    ): List<KeyValue> {
-        return attributes.filterNot { it.key == keyToBeRemoved }
     }
 
     private fun replaceElementAndReturnAttributesMap(
@@ -125,98 +114,6 @@ class DefaultSpanValidatorTest {
         for (invalidTokenSecret in listOf("", "\n", "\t", " ")) {
             var attrMap = generateValidAttributesMap()
             attrMap = replaceElementAndReturnAttributesMap(KEY_LANDSCAPE_SECRET, invalidTokenSecret, attrMap)
-            val invalid = generateSpanFromAttributesMap(attrMap)
-            assertFalse(validator.isValid(invalid))
-        }
-    }
-
-    @Test
-    fun testHost() {
-        var attrMap = generateValidAttributesMap()
-
-        attrMap = removeElementAndReturnAttributesMap(KEY_HOST_NAME, attrMap)
-        var invalid = generateSpanFromAttributesMap(attrMap)
-        assertTrue(validator.isValid(invalid))
-
-        attrMap = generateValidAttributesMap()
-        attrMap = removeElementAndReturnAttributesMap(KEY_HOST_IP, attrMap)
-        invalid = generateSpanFromAttributesMap(attrMap)
-        assertTrue(validator.isValid(invalid))
-
-        attrMap = generateValidAttributesMap()
-        attrMap = replaceElementAndReturnAttributesMap(KEY_HOST_IP, " ", attrMap)
-        invalid = generateSpanFromAttributesMap(attrMap)
-        assertFalse(validator.isValid(invalid))
-
-        for (invalidHostName in listOf("", "\n", "\t", " ")) {
-            for (invalidHostIp in listOf("", "\t", "\n", " ")) {
-                attrMap = generateValidAttributesMap()
-                attrMap = replaceElementAndReturnAttributesMap(KEY_HOST_NAME, invalidHostName, attrMap)
-                attrMap = replaceElementAndReturnAttributesMap(KEY_HOST_IP, invalidHostIp, attrMap)
-                invalid = generateSpanFromAttributesMap(attrMap)
-                assertFalse(validator.isValid(invalid))
-            }
-        }
-    }
-
-    @Test
-    fun testApp() {
-        var attrMap = generateValidAttributesMap()
-
-        attrMap = removeElementAndReturnAttributesMap(KEY_APPLICATION_NAME, attrMap)
-        var invalid = generateSpanFromAttributesMap(attrMap)
-        assertTrue(validator.isValid(invalid))
-
-        attrMap = generateValidAttributesMap()
-        attrMap = removeElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE, attrMap)
-        invalid = generateSpanFromAttributesMap(attrMap)
-        assertTrue(validator.isValid(invalid))
-
-        attrMap = generateValidAttributesMap()
-        attrMap = replaceElementAndReturnAttributesMap(KEY_APPLICATION_NAME, " ", attrMap)
-        invalid = generateSpanFromAttributesMap(attrMap)
-        assertFalse(validator.isValid(invalid))
-
-        attrMap = generateValidAttributesMap()
-        attrMap = replaceElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE, " ", attrMap)
-        invalid = generateSpanFromAttributesMap(attrMap)
-        assertFalse(validator.isValid(invalid))
-
-        for (invalidId in listOf("", "\n", "\t", " ")) {
-            for (invalidLanguage in listOf("", "\t", "\n", " ")) {
-                attrMap = generateValidAttributesMap()
-                attrMap = replaceElementAndReturnAttributesMap(KEY_APPLICATION_NAME, invalidId, attrMap)
-                attrMap = replaceElementAndReturnAttributesMap(KEY_APPLICATION_LANGUAGE, invalidLanguage, attrMap)
-                invalid = generateSpanFromAttributesMap(attrMap)
-                assertFalse(validator.isValid(invalid))
-            }
-        }
-    }
-
-    @Test
-    fun testOperation() {
-        var attrMap = generateValidAttributesMap()
-
-        val invalidValues =
-            listOf(
-                "",
-                "\n",
-                "\t",
-                " ",
-                "noMethod",
-                "classNoPackage.method",
-                "...",
-                "a..",
-                "a.b.",
-                "a.b. ",
-                "a..c",
-                ".b.c",
-                "..c",
-                ".b.",
-            )
-        for (invalidMethodFqn in invalidValues) {
-            attrMap = generateValidAttributesMap()
-            attrMap = replaceElementAndReturnAttributesMap(KEY_METHOD_FQN, invalidMethodFqn, attrMap)
             val invalid = generateSpanFromAttributesMap(attrMap)
             assertFalse(validator.isValid(invalid))
         }

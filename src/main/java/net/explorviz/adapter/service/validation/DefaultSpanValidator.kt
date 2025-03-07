@@ -20,7 +20,6 @@ constructor(
 
     companion object {
         private val LOGGER: Logger = LoggerFactory.getLogger(DefaultSpanValidator::class.java)
-        private const val MIN_DEPTH_FQN_NAME = 3
     }
 
     override fun isValid(span: Span): Boolean {
@@ -30,11 +29,7 @@ constructor(
     }
 
     fun isValid(spanAttributes: AttributesReader): Boolean {
-        return validateToken(spanAttributes.landscapeToken, spanAttributes.secret) &&
-            validateHost(spanAttributes.hostName, spanAttributes.hostIpAddress) &&
-            validateApp(spanAttributes.applicationName, spanAttributes.applicationLanguage) &&
-            validateOperation(spanAttributes.methodFqn) &&
-            validateK8s(spanAttributes)
+        return validateToken(spanAttributes.landscapeToken, spanAttributes.secret)
     }
 
     private fun validateToken(token: String?, givenSecret: String?): Boolean {
@@ -72,57 +67,5 @@ constructor(
             LOGGER.trace("Invalid span timestamp: Number format exception - ${e.message}")
             false
         }
-    }
-
-    private fun validateHost(hostName: String?, hostIp: String?): Boolean {
-        val isValid = !hostName.isNullOrBlank() && !hostIp.isNullOrBlank()
-
-        if (hostName.isNullOrBlank()) {
-            LOGGER.trace("Invalid span: No hostname.")
-        }
-
-        if (hostIp.isNullOrBlank()) {
-            LOGGER.trace("Invalid span: No IP address.")
-        }
-
-        return isValid
-    }
-
-    private fun validateApp(appName: String?, appLang: String?): Boolean {
-        val isValid = !appName.isNullOrBlank() && !appLang.isNullOrBlank()
-
-        if (appName.isNullOrBlank()) {
-            LOGGER.trace("Invalid span: No application name.")
-        }
-
-        if (appLang.isNullOrBlank()) {
-            LOGGER.trace("Invalid span: No application language given.")
-        }
-
-        return isValid
-    }
-
-    private fun validateOperation(fqn: String): Boolean {
-        val operationFqnSplit = fqn.split(".")
-        if (operationFqnSplit.size < MIN_DEPTH_FQN_NAME) {
-            LOGGER.trace("Invalid span: Invalid operation name: {}", fqn)
-            return false
-        }
-
-        return operationFqnSplit[0].isNotBlank() &&
-            operationFqnSplit[1].isNotBlank() &&
-            operationFqnSplit[2].isNotBlank()
-    }
-
-    private fun validateK8s(spanAttributes: AttributesReader): Boolean {
-        val hasPodName = spanAttributes.k8sPodName.isNotEmpty()
-        val hasNamespace = spanAttributes.k8sNamespace.isNotEmpty()
-        val hasNodeName = spanAttributes.k8sNodeName.isNotEmpty()
-        val hasDeployment = spanAttributes.k8sDeploymentName.isNotEmpty()
-
-        val hasAll = hasPodName && hasNamespace && hasNodeName && hasDeployment
-        val hasNone = !hasPodName && !hasNamespace && !hasNodeName && !hasDeployment
-
-        return hasAll || hasNone
     }
 }

@@ -27,6 +27,7 @@ class SpanConverterImpl : SpanConverter<Span> {
                 .setLandscapeToken(attributesReader.landscapeToken)
                 .setGitCommitChecksum(attributesReader.gitCommitChecksum)
                 .setParentSpanId(parentSpan)
+                .setKind(ocSpan.kind.toString())
                 .setSpanId(IdHelper.convertSpanId(ocSpan.spanId.toByteArray()))
                 .setTraceId(IdHelper.convertTraceId(ocSpan.traceId.toByteArray()))
                 .setStartTimeEpochMilli(ocSpan.startTimeUnixNano / TO_MILLISEC_DIVISOR)

@@ -2,11 +2,11 @@
 protocol AdapterEventProtocol {
 	
 	enum EventType {
-	   CREATED,
-	   DELETED,
-	   ACCESS_GRANTED,
-	   ACCESS_REVOKED,
-	   CLONED
+	    CREATED,
+	    DELETED,
+	    ACCESS_GRANTED,
+	    ACCESS_REVOKED,
+	    CLONED
 	}
 	
 	record LandscapeToken {
@@ -24,26 +24,26 @@ protocol AdapterEventProtocol {
 	}
 
 	record Span {
-	  string landscapeToken;
-	  string gitCommitChecksum;
-    string spanId;
-    string parentSpanId;
-    string traceId;
-    string name = "";
-    long startTimeEpochMilli;
-    long endTimeEpochMilli;
-    string fullyQualifiedOperationName;
-    string hostname;
-    string hostIpAddress;
-    string appName;
-    string appInstanceId;
-    string appLanguage;
-    
-    
-    // k8s specific stuff
-    string k8sPodName = "";
-    string k8sNodeName = "";
-    string k8sNamespace = "";
-    string k8sDeploymentName = "";
+		string landscapeToken;
+		string traceId;
+		string spanId;
+		string parentSpanId;
+		long startTimeEpochMilli;
+		long endTimeEpochMilli;
+		string kind;
+		string namespace;
+		string functionName;
+		string appName;
+		union { null, string } gitCommitChecksum;
+		union { null, string } hostname;
+		union { null, string } hostIpAddress;
+		union { null, string } appInstanceId;
+		union { null, string } appLanguage;
+		
+		// Optional Kubernetes attributes
+		union { null, string } k8sPodName;
+		union { null, string } k8sNodeName;
+		union { null, string } k8sNamespace;
+		union { null, string } k8sDeploymentName;
 	}
 }

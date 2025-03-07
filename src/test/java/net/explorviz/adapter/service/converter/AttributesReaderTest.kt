@@ -54,7 +54,6 @@ class AttributesReaderTest {
         assertEquals(reader.applicationName, APP_NAME)
         assertEquals(reader.applicationInstanceId, APP_INSTANCE_ID)
         assertEquals(reader.applicationLanguage, APP_LANG)
-        assertEquals(reader.methodFqn, FQN)
         assertExcept(reader, null)
     }
 
@@ -88,7 +87,6 @@ class AttributesReaderTest {
         val reader = AttributesReader(span)
 
         assertExcept(reader, AttributesReader.HOST_NAME)
-        assertEquals(reader.hostName, DefaultAttributeValues.DEFAULT_HOST_NAME)
     }
 
     @Test
@@ -99,7 +97,7 @@ class AttributesReaderTest {
         val reader = AttributesReader(span)
 
         assertExcept(reader, AttributesReader.HOST_IP)
-        assertEquals(reader.hostIpAddress, DefaultAttributeValues.DEFAULT_HOST_IP)
+        assertEquals(reader.hostIpAddress, null)
     }
 
     @Test
@@ -121,7 +119,7 @@ class AttributesReaderTest {
         val reader = AttributesReader(span)
 
         assertExcept(reader, AttributesReader.APPLICATION_INSTANCE_ID)
-        assertEquals(reader.applicationInstanceId, DefaultAttributeValues.DEFAULT_APP_INSTANCE_ID)
+        assertEquals(reader.applicationInstanceId, null)
     }
 
     @Test
@@ -132,7 +130,7 @@ class AttributesReaderTest {
         val reader = AttributesReader(span)
 
         assertExcept(reader, AttributesReader.APPLICATION_LANGUAGE)
-        assertEquals(reader.applicationLanguage, DefaultAttributeValues.DEFAULT_APP_LANG)
+        assertEquals(reader.applicationLanguage, null)
     }
 
     @Test
@@ -143,35 +141,40 @@ class AttributesReaderTest {
         val reader = AttributesReader(span)
 
         assertExcept(reader, AttributesReader.METHOD_FQN)
-        assertEquals(reader.methodFqn, DefaultAttributeValues.DEFAULT_CLASS_FQN + "." + span.getName())
+        assertEquals(DefaultAttributeValues.DEFAULT_NAMESPACE, reader.namespace)
+        assertEquals(span.name, reader.functionName)
     }
 
     @Test
     fun testFqnFromNameReadOut() {
         val outerPackage = "net"
         val innerPackage = "explorviz"
-        val className = "Reader"
+        val className = "Class"
         val methodName = "someNiceMethod()"
 
         // Only method name given
         var span = Span.newBuilder().setName(methodName).build()
         var reader = AttributesReader(span)
-        assertEquals(DefaultAttributeValues.DEFAULT_CLASS_FQN + "." + methodName, reader.methodFqn)
+        assertEquals(DefaultAttributeValues.DEFAULT_NAMESPACE, reader.namespace)
+        assertEquals(span.name, reader.functionName)
 
         // Class and method given
         span = Span.newBuilder().setName("$className.$methodName").build()
         reader = AttributesReader(span)
-        assertEquals("${DefaultAttributeValues.DEFAULT_PACKAGE_NAME}.${className}.${methodName}", reader.methodFqn)
+        assertEquals("${DefaultAttributeValues.DEFAULT_PACKAGE_NAME}.$className", reader.namespace)
+        assertEquals(methodName, reader.functionName)
 
         // Class and package given
         span = Span.newBuilder().setName("$innerPackage.$className.$methodName").build()
         reader = AttributesReader(span)
-        assertEquals("$innerPackage.$className.$methodName", reader.methodFqn)
+        assertEquals("$innerPackage.$className", reader.namespace)
+        assertEquals(methodName, reader.functionName)
 
         // Class and two packages given
         span = Span.newBuilder().setName("$outerPackage.$innerPackage.$className.$methodName").build()
         reader = AttributesReader(span)
-        assertEquals("$outerPackage.$innerPackage.$className.$methodName", reader.methodFqn)
+        assertEquals("$outerPackage.$innerPackage.$className", reader.namespace)
+        assertEquals(methodName, reader.functionName)
     }
 
     private fun assertExcept(reader: AttributesReader, except: String?) {
@@ -195,9 +198,6 @@ class AttributesReaderTest {
         }
         if (except != AttributesReader.APPLICATION_LANGUAGE) {
             assertEquals(reader.applicationLanguage, APP_LANG)
-        }
-        if (except != AttributesReader.METHOD_FQN) {
-            assertEquals(reader.methodFqn, FQN)
         }
 
         // Kubernetes-related checks
@@ -268,7 +268,7 @@ class AttributesReaderTest {
             KeyValue.newBuilder()
                 .setKey(KEY_K8S_NODE)
                 .setValue(AnyValue.newBuilder().setStringValue(K8S_NODE).build())
-                .build()
+                .build(),
         )
     }
 
