@@ -187,7 +187,7 @@ class TopologyTest {
         inputTopic!!.pipeInput(testSpan.spanId.toByteArray(), containeredSpan.toByteArray())
         val result = spanOutputTopic!!.readKeyValue().value
 
-        val expectedTimestamp = sampleSpan().startTimeUnixNano / 1_000_000L
+        val expectedTimestamp = sampleSpan().startTimeUnixNano
         assertEquals(expectedTimestamp, result.startTimeEpochMilli)
     }
 
@@ -204,8 +204,8 @@ class TopologyTest {
         val expectedToken = attrs[AttributesReader.LANDSCAPE_TOKEN]
         val expectedSpanId = IdHelper.convertSpanId(testSpan.spanId.toByteArray())
         val expectedParentSpanId = IdHelper.convertSpanId(testSpan.parentSpanId.toByteArray())
-        val expectedStartTimeInMillisec = testSpan.startTimeUnixNano / 1_000_000L
-        val expectedEndTimeInMillisec = testSpan.endTimeUnixNano / 1_000_000L
+        val expectedStartTimeInMillisec = testSpan.startTimeUnixNano
+        val expectedEndTimeInMillisec = testSpan.endTimeUnixNano
 
         assertEquals(expectedToken, result.landscapeToken, "Invalid token")
         assertEquals(expectedSpanId, result.spanId, "Invalid span ID")

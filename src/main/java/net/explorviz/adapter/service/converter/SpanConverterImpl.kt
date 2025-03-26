@@ -6,11 +6,6 @@ import net.explorviz.avro.Span
 /** Converts a [io.opentelemetry.proto.trace.v1.Span] to a [Span]. */
 @ApplicationScoped
 class SpanConverterImpl : SpanConverter<Span> {
-
-    private companion object {
-        const val TO_MILLISEC_DIVISOR = 1_000_000L
-    }
-
     override fun fromOpenTelemetrySpan(ocSpan: io.opentelemetry.proto.trace.v1.Span): Span {
 
         val attributesReader = AttributesReader(ocSpan)
@@ -29,8 +24,8 @@ class SpanConverterImpl : SpanConverter<Span> {
                 .setParentSpanId(parentSpan)
                 .setSpanId(IdHelper.convertSpanId(ocSpan.spanId.toByteArray()))
                 .setTraceId(IdHelper.convertTraceId(ocSpan.traceId.toByteArray()))
-                .setStartTimeEpochMilli(ocSpan.startTimeUnixNano / TO_MILLISEC_DIVISOR)
-                .setEndTimeEpochMilli(ocSpan.endTimeUnixNano / TO_MILLISEC_DIVISOR)
+                .setStartTimeEpochMilli(ocSpan.startTimeUnixNano)
+                .setEndTimeEpochMilli(ocSpan.endTimeUnixNano)
 
         attributesReader.appendToSpan(span)
 
