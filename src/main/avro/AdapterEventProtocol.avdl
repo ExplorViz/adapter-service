@@ -15,9 +15,9 @@ protocol AdapterEventProtocol {
 		string secret;
 		long created;
 		string alias;
-		boolean isRequestedFromVSCodeExtension;
-		string projectName;
-		string commitId;
+		boolean isRequestedFromVSCodeExtension = false;
+		string projectName = "";
+		string commitId = "";
 	}
 	
 	record TokenEvent {
